@@ -76,9 +76,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             raise HTTPException(404, "session not found")
         return s
 
-    def check_passcode(passcode: str | None) -> None:
+    def check_passcode(passcode: str | None, switching: bool = False) -> None:
+        """Live and privacy mode spend credit and send media out, so the UI needs a passcode.
+        Without LIVE_PASSCODE only the operator can choose live mode (APP_MODE=live in .env)."""
         expected = settings.live_passcode
-        if expected and not secrets.compare_digest(passcode or "", expected):
+        if not expected:
+            if switching or settings.app_mode != "live":
+                raise HTTPException(403, "Set LIVE_PASSCODE in .env to enable live or privacy mode from the UI.")
+            return
+        if not secrets.compare_digest(passcode or "", expected):
             raise HTTPException(403, "live mode needs the passcode")
 
     async def save_upload(upload: UploadFile, dest_dir: Path, stem: str) -> Path:
@@ -178,7 +184,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.put("/api/settings")
     async def update_settings(body: SettingsUpdate) -> dict[str, Any]:
         if body.app_mode == "live" or body.privacy_mode:
-            check_passcode(body.passcode)
+            check_passcode(body.passcode, switching=True)
         mapping = {
             "app_mode": body.app_mode,
             "privacy_mode": body.privacy_mode,

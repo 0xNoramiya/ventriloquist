@@ -240,3 +240,12 @@ async def test_spelling_loop_is_capped(ctx):
         "inconsistent",
     )
     assert s.questions_this_message < 200
+
+
+async def test_session_log_redacts_profile_names(ctx):
+    s = make_session(ctx, "daughter", SimulatedPatient(truth="see_person:aisyah"))
+    await s.start()
+    await run_until(s)
+    raw = s.log.path.read_text()
+    assert "Aisyah" not in raw and "Pak Hasan" not in raw
+    assert "[daughter]" in raw

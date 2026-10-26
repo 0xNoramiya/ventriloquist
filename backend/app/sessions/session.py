@@ -163,7 +163,9 @@ class Session:
         self.sim_delay_s = sim_delay_s
         self.sm = StateMachine()
         self.lock = asyncio.Lock()
-        self.log = SessionLog(ctx.store.session_log_path(sid))
+        names = {f["name"]: f["relation"] for f in patient.get("family", [])}
+        names[patient.get("display_name", "")] = "patient"
+        self.log = SessionLog(ctx.store.session_log_path(sid), names)
         self.started_at = now_iso()
         self.ended = False
 
