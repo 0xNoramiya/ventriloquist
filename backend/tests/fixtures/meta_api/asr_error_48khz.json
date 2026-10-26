@@ -1,0 +1,12 @@
+{
+  "http_status": 400,
+  "body": {
+    "sessionId": "voyager/transcribe/CBD30AAB9E1A446ABDA6AD2C498C9C37",
+    "error": {
+      "code": null,
+      "param": null,
+      "type": "invalid_request_error",
+      "message": "Unsupported WAV format: channels=1, sampleRate=48000, bitsPerSample=16; expected mono s16le at 16000 or 24000 Hz"
+    }
+  }
+}

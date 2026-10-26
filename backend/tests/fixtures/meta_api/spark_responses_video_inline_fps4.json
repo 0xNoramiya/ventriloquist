@@ -1,0 +1,100 @@
+{
+  "top_logprobs": 0,
+  "temperature": 1.0,
+  "top_p": 1.0,
+  "service_tier": "auto",
+  "model": "muse-spark-1.3",
+  "reasoning": {
+    "effort": "minimal"
+  },
+  "background": false,
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "name": "movement",
+      "schema": {
+        "required": [
+          "eyebrow_raises",
+          "head_nods",
+          "blinks",
+          "signal",
+          "confidence"
+        ],
+        "type": "object",
+        "properties": {
+          "blinks": {
+            "type": "integer"
+          },
+          "confidence": {
+            "type": "number"
+          },
+          "eyebrow_raises": {
+            "type": "integer"
+          },
+          "head_nods": {
+            "type": "integer"
+          },
+          "signal": {
+            "enum": [
+              "EYEBROW_RAISE",
+              "HEAD_NOD",
+              "NONE",
+              "UNCLEAR"
+            ],
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  },
+  "tools": [],
+  "tool_choice": "auto",
+  "truncation": "disabled",
+  "id": "resp_6adf87c80d3d5523c2594b6b",
+  "object": "response",
+  "status": "completed",
+  "created_at": 1793034184.0,
+  "completed_at": 1793034184.0,
+  "error": null,
+  "incomplete_details": null,
+  "output": [
+    {
+      "type": "reasoning",
+      "id": "rs_6adf87c80d3d5523c2594b6b:rs_565168a1-fbfc-4906-8ed0-7c6b7069be0d",
+      "encrypted_content": "Q-PaDgH5eby3PYGIQgxLgmlQ5AGU2mC_t4-EqDanrysK-Wb-...<truncated 2791 chars>",
+      "summary": [],
+      "status": "completed"
+    },
+    {
+      "type": "message",
+      "id": "msg_c0e1a582-2305-4089-acb6-a2105e0cd016",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "output_text",
+          "text": "{\"blinks\": 1, \"confidence\": 0.9, \"eyebrow_raises\": 1, \"head_nods\": 0, \"signal\": \"EYEBROW_RAISE\"}",
+          "annotations": [],
+          "logprobs": []
+        }
+      ],
+      "status": "completed"
+    }
+  ],
+  "instructions": null,
+  "usage": {
+    "input_tokens": 2126,
+    "input_tokens_details": {
+      "cached_tokens": 6
+    },
+    "output_tokens": 413,
+    "output_tokens_details": {
+      "reasoning_tokens": 361
+    },
+    "total_tokens": 2539
+  },
+  "parallel_tool_calls": true,
+  "store": false,
+  "max_output_tokens": 800
+}

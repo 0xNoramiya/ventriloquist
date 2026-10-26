@@ -1,0 +1,254 @@
+{
+  "events": [
+    {
+      "response": {
+        "id": "resp_6adf87fc9bc1919428484964",
+        "access_programs": null,
+        "created_at": 1793034236.0,
+        "error": null,
+        "incomplete_details": null,
+        "instructions": null,
+        "metadata": {
+          "include_confidence": "true",
+          "mask_encoding": "one_bit"
+        },
+        "model": "sam-3.1",
+        "object": "response",
+        "output": [],
+        "parallel_tool_calls": true,
+        "temperature": 1.0,
+        "tool_choice": "auto",
+        "tools": [],
+        "top_p": 1.0,
+        "background": false,
+        "completed_at": null,
+        "conversation": null,
+        "max_output_tokens": null,
+        "max_tool_calls": null,
+        "moderation": null,
+        "previous_response_id": null,
+        "prompt": null,
+        "prompt_cache_diagnostics": null,
+        "prompt_cache_key": null,
+        "prompt_cache_options": null,
+        "prompt_cache_retention": null,
+        "reasoning": null,
+        "safety_identifier": null,
+        "service_tier": "auto",
+        "status": "in_progress",
+        "text": null,
+        "top_logprobs": 0,
+        "truncation": "disabled",
+        "usage": null,
+        "user": null,
+        "store": false
+      },
+      "sequence_number": 0,
+      "type": "response.created"
+    },
+    {
+      "response": {
+        "id": "resp_6adf87fc9bc1919428484964",
+        "access_programs": null,
+        "created_at": 1793034236.0,
+        "error": null,
+        "incomplete_details": null,
+        "instructions": null,
+        "metadata": {
+          "include_confidence": "true",
+          "mask_encoding": "one_bit"
+        },
+        "model": "sam-3.1",
+        "object": "response",
+        "output": [],
+        "parallel_tool_calls": true,
+        "temperature": 1.0,
+        "tool_choice": "auto",
+        "tools": [],
+        "top_p": 1.0,
+        "background": false,
+        "completed_at": null,
+        "conversation": null,
+        "max_output_tokens": null,
+        "max_tool_calls": null,
+        "moderation": null,
+        "previous_response_id": null,
+        "prompt": null,
+        "prompt_cache_diagnostics": null,
+        "prompt_cache_key": null,
+        "prompt_cache_options": null,
+        "prompt_cache_retention": null,
+        "reasoning": null,
+        "safety_identifier": null,
+        "service_tier": "auto",
+        "status": "in_progress",
+        "text": null,
+        "top_logprobs": 0,
+        "truncation": "disabled",
+        "usage": null,
+        "user": null,
+        "store": false
+      },
+      "sequence_number": 1,
+      "type": "response.in_progress"
+    },
+    {
+      "item": {
+        "id": "msg_8ee743ef-e966-4489-92df-a1e3d4e84165",
+        "content": [
+          {
+            "annotations": [],
+            "text": "",
+            "type": "output_text",
+            "logprobs": []
+          }
+        ],
+        "role": "assistant",
+        "status": "in_progress",
+        "type": "message",
+        "phase": null
+      },
+      "output_index": 0,
+      "sequence_number": 2,
+      "type": "response.output_item.added"
+    },
+    {
+      "content_index": 0,
+      "item_id": "msg_8ee743ef-e966-4489-92df-a1e3d4e84165",
+      "output_index": 0,
+      "part": {
+        "annotations": [],
+        "text": "",
+        "type": "output_text",
+        "logprobs": []
+      },
+      "sequence_number": 3,
+      "type": "response.content_part.added"
+    },
+    {
+      "content_index": 0,
+      "delta": "<0f>0<|box;x1=222;y1=128;x2=417;y2=155;w=640;h=480;c=0.8904109597206116|><|mask;x=0;y=0;c=0.8904109597206116;data=28,196,!!!!!zE3[Gi.X^B9dtg+]1/b_p5+)O6hy?-%S!&)E?.n]pql/ZeXL&PeK.*x{u5ewLW7hNfF`b:_W&4z{tre3&euS$ydx&'jobDYmZ?fA@/7rp|>\n",
+      "item_id": "msg_8ee743ef-e966-4489-92df-a1e3d4e84165",
+      "logprobs": [],
+      "output_index": 0,
+      "sequence_number": 4,
+      "type": "response.output_text.delta"
+    },
+    {
+      "content_index": 0,
+      "item_id": "msg_8ee743ef-e966-4489-92df-a1e3d4e84165",
+      "logprobs": [],
+      "output_index": 0,
+      "sequence_number": 5,
+      "text": "<0f>0<|box;x1=222;y1=128;x2=417;y2=155;w=640;h=480;c=0.8904109597206116|><|mask;x=0;y=0;c=0.8904109597206116;data=28,196,!!!!!zE3[Gi.X^B9dtg+]1/b_p5+)O6hy?-%S!&)E?.n]pql/ZeXL&PeK.*x{u5ewLW7hNfF`b:_W&4z{tre3&euS$ydx&'jobDYmZ?fA@/7rp|>\n",
+      "type": "response.output_text.done"
+    },
+    {
+      "content_index": 0,
+      "item_id": "msg_8ee743ef-e966-4489-92df-a1e3d4e84165",
+      "output_index": 0,
+      "part": {
+        "annotations": [],
+        "text": "<0f>0<|box;x1=222;y1=128;x2=417;y2=155;w=640;h=480;c=0.8904109597206116|><|mask;x=0;y=0;c=0.8904109597206116;data=28,196,!!!!!zE3[Gi.X^B9dtg+]1/b_p5+)O6hy?-%S!&)E?.n]pql/ZeXL&PeK.*x{u5ewLW7hNfF`b:_W&4z{tre3&euS$ydx&'jobDYmZ?fA@/7rp|>\n",
+        "type": "output_text",
+        "logprobs": []
+      },
+      "sequence_number": 6,
+      "type": "response.content_part.done"
+    },
+    {
+      "item": {
+        "id": "msg_8ee743ef-e966-4489-92df-a1e3d4e84165",
+        "content": [
+          {
+            "annotations": [],
+            "text": "<0f>0<|box;x1=222;y1=128;x2=417;y2=155;w=640;h=480;c=0.8904109597206116|><|mask;x=0;y=0;c=0.8904109597206116;data=28,196,!!!!!zE3[Gi.X^B9dtg+]1/b_p5+)O6hy?-%S!&)E?.n]pql/ZeXL&PeK.*x{u5ewLW7hNfF`b:_W&4z{tre3&euS$ydx&'jobDYmZ?fA@/7rp|>\n",
+            "type": "output_text",
+            "logprobs": []
+          }
+        ],
+        "role": "assistant",
+        "status": "completed",
+        "type": "message",
+        "phase": null
+      },
+      "output_index": 0,
+      "sequence_number": 7,
+      "type": "response.output_item.done"
+    },
+    {
+      "response": {
+        "id": "resp_6adf87fc9bc1919428484964",
+        "access_programs": null,
+        "created_at": 1793034236.0,
+        "error": null,
+        "incomplete_details": null,
+        "instructions": null,
+        "metadata": {
+          "include_confidence": "true",
+          "mask_encoding": "one_bit"
+        },
+        "model": "sam-3.1",
+        "object": "response",
+        "output": [
+          {
+            "id": "msg_8ee743ef-e966-4489-92df-a1e3d4e84165",
+            "content": [
+              {
+                "annotations": [],
+                "text": "<0f>0<|box;x1=222;y1=128;x2=417;y2=155;w=640;h=480;c=0.8904109597206116|><|mask;x=0;y=0;c=0.8904109597206116;data=28,196,!!!!!zE3[Gi.X^B9dtg+]1/b_p5+)O6hy?-%S!&)E?.n]pql/ZeXL&PeK.*x{u5ewLW7hNfF`b:_W&4z{tre3&euS$ydx&'jobDYmZ?fA@/7rp|>\n",
+                "type": "output_text",
+                "logprobs": []
+              }
+            ],
+            "role": "assistant",
+            "status": "completed",
+            "type": "message",
+            "phase": null
+          }
+        ],
+        "parallel_tool_calls": true,
+        "temperature": 1.0,
+        "tool_choice": "auto",
+        "tools": [],
+        "top_p": 1.0,
+        "background": false,
+        "completed_at": 1793034236.0,
+        "conversation": null,
+        "max_output_tokens": null,
+        "max_tool_calls": null,
+        "moderation": null,
+        "previous_response_id": null,
+        "prompt": null,
+        "prompt_cache_diagnostics": null,
+        "prompt_cache_key": null,
+        "prompt_cache_options": null,
+        "prompt_cache_retention": null,
+        "reasoning": null,
+        "safety_identifier": null,
+        "service_tier": "auto",
+        "status": "completed",
+        "text": null,
+        "top_logprobs": 0,
+        "truncation": "disabled",
+        "usage": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "cache_write_tokens": null,
+            "cached_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 0,
+          "images_processed": 1
+        },
+        "user": null,
+        "store": false
+      },
+      "sequence_number": 8,
+      "type": "response.completed"
+    }
+  ]
+}

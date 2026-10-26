@@ -1,0 +1,120 @@
+{
+  "events": [
+    {
+      "t": 1.456,
+      "ack": {
+        "sessionId": "probe-rt-1793034403"
+      }
+    },
+    {
+      "t": 1.864,
+      "type": "speechStart",
+      "audioProcessedMs": 0,
+      "turnId": 0
+    },
+    {
+      "t": 2.908,
+      "type": "transcript",
+      "transcript": "anak",
+      "final": false,
+      "audioProcessedMs": 1200
+    },
+    {
+      "t": 3.34,
+      "type": "transcript",
+      "transcript": "anak bapak,",
+      "final": false,
+      "audioProcessedMs": 1600
+    },
+    {
+      "t": 3.83,
+      "type": "transcript",
+      "transcript": "anak bapak, Aisyah,",
+      "final": false,
+      "audioProcessedMs": 2080
+    },
+    {
+      "t": 4.619,
+      "type": "transcript",
+      "transcript": "anak bapak, Aisyah, pulang",
+      "final": false,
+      "audioProcessedMs": 2880
+    },
+    {
+      "t": 4.819,
+      "type": "transcript",
+      "transcript": "anak bapak, Aisyah, pulang dulu",
+      "final": false,
+      "audioProcessedMs": 3120
+    },
+    {
+      "t": 5.396,
+      "type": "transcript",
+      "transcript": "anak bapak, Aisyah, pulang dulu untuk",
+      "final": false,
+      "audioProcessedMs": 3680
+    },
+    {
+      "t": 6.386,
+      "type": "transcript",
+      "transcript": "anak bapak, Aisyah, pulang dulu untuk istirahat,",
+      "final": false,
+      "audioProcessedMs": 4640
+    },
+    {
+      "t": 6.753,
+      "type": "transcript",
+      "transcript": "anak bapak, Aisyah, pulang dulu untuk istirahat, nanti",
+      "final": false,
+      "audioProcessedMs": 5040
+    },
+    {
+      "t": 7.149,
+      "type": "transcript",
+      "transcript": "anak bapak, Aisyah, pulang dulu untuk istirahat, nanti jam",
+      "final": false,
+      "audioProcessedMs": 5440
+    },
+    {
+      "t": 7.549,
+      "type": "transcript",
+      "transcript": "anak bapak, Aisyah, pulang dulu untuk istirahat, nanti jam empat",
+      "final": false,
+      "audioProcessedMs": 5840
+    },
+    {
+      "t": 7.864,
+      "type": "transcript",
+      "transcript": "anak bapak, Aisyah, pulang dulu untuk istirahat, nanti jam empat dia",
+      "final": false,
+      "audioProcessedMs": 6160
+    },
+    {
+      "t": 8.444,
+      "type": "transcript",
+      "transcript": "anak bapak, Aisyah, pulang dulu untuk istirahat, nanti jam empat dia kembali.",
+      "final": false,
+      "audioProcessedMs": 6720
+    },
+    {
+      "t": 8.748,
+      "type": "speechEnd",
+      "audioProcessedMs": 6460,
+      "turnId": 0
+    },
+    {
+      "t": 8.748,
+      "type": "speechComplete",
+      "audioProcessedMs": 6460,
+      "turnId": 0,
+      "transcript": "anak bapak, Aisyah, pulang dulu untuk istirahat, nanti jam empat dia kembali."
+    },
+    {
+      "t": 9.757,
+      "type": "transcript",
+      "transcript": "",
+      "final": true,
+      "audioProcessedMs": 7920
+    }
+  ]
+}

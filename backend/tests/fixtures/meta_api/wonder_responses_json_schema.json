@@ -1,0 +1,102 @@
+{
+  "top_logprobs": 0,
+  "temperature": 1.0,
+  "top_p": 1.0,
+  "service_tier": "auto",
+  "model": "muse-wonder-1.0",
+  "reasoning": {
+    "effort": "minimal"
+  },
+  "background": false,
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "name": "memory_facts",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "facts": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "category": {
+                  "enum": [
+                    "family",
+                    "schedule",
+                    "clinical",
+                    "preference",
+                    "other"
+                  ],
+                  "type": "string"
+                },
+                "fact": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "category",
+                "fact"
+              ],
+              "type": "object"
+            },
+            "maxItems": 5,
+            "type": "array"
+          }
+        },
+        "required": [
+          "facts"
+        ],
+        "type": "object"
+      },
+      "strict": true
+    }
+  },
+  "tools": [],
+  "tool_choice": "auto",
+  "truncation": "disabled",
+  "id": "resp_6adf88e226bd78acac3a42fb",
+  "object": "response",
+  "status": "completed",
+  "created_at": 1793034466.0,
+  "completed_at": 1793034466.0,
+  "error": null,
+  "incomplete_details": null,
+  "output": [
+    {
+      "type": "reasoning",
+      "id": "rs_6adf88e226bd78acac3a42fb:rs_dc05df96-57da-4aa0-a7e7-050f56a9d832",
+      "encrypted_content": "Q-PaDgEE6DFD4yBb3iGqzUWfD4w-uPd6n67YMb_23sti9Oge...<truncated 1426 chars>",
+      "summary": [],
+      "status": "completed"
+    },
+    {
+      "type": "message",
+      "id": "msg_bc4ee1da-3da8-4b7a-abc9-10ead86b7ba4",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "output_text",
+          "text": "{\"facts\": [{\"category\": \"family\", \"fact\": \"Daughter Aisyah went home to rest; will return at 4\"}, {\"category\": \"other\", \"fact\": \"Slept a little after midnight\"}, {\"category\": \"other\", \"fact\": \"Nurse gave something for pain\"}, {\"category\": \"other\", \"fact\": \"Breathing tube to be checked in an hour\"}]}",
+          "annotations": [],
+          "logprobs": []
+        }
+      ],
+      "status": "completed"
+    }
+  ],
+  "instructions": "Extract facts useful for talking with the patient later. Short facts only.",
+  "usage": {
+    "input_tokens": 94,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 165,
+    "output_tokens_details": {
+      "reasoning_tokens": 71
+    },
+    "total_tokens": 259
+  },
+  "parallel_tool_calls": true,
+  "store": false,
+  "max_output_tokens": 700
+}

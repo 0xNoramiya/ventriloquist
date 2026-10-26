@@ -1,0 +1,59 @@
+{
+  "top_logprobs": 0,
+  "temperature": 1.0,
+  "top_p": 1.0,
+  "service_tier": "auto",
+  "previous_response_id": "resp_6adf88e4450812b966b246d9",
+  "model": "muse-wonder-1.0",
+  "reasoning": {
+    "effort": "minimal"
+  },
+  "background": false,
+  "tools": [],
+  "tool_choice": "auto",
+  "truncation": "disabled",
+  "id": "resp_6adf88e915b5694ea1014865",
+  "object": "response",
+  "status": "completed",
+  "created_at": 1793034473.0,
+  "completed_at": 1793034473.0,
+  "error": null,
+  "incomplete_details": null,
+  "output": [
+    {
+      "type": "reasoning",
+      "id": "rs_6adf88e915b5694ea1014865:rs_640477cb-6be0-470c-bb1a-3686cf4f2be6",
+      "summary": [],
+      "status": "completed"
+    },
+    {
+      "type": "message",
+      "id": "msg_304926f4-4029-4976-9291-634b4ee64efc",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "output_text",
+          "text": "PELANGI",
+          "annotations": [],
+          "logprobs": []
+        }
+      ],
+      "status": "completed"
+    }
+  ],
+  "instructions": null,
+  "usage": {
+    "input_tokens": 48,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 21,
+    "output_tokens_details": {
+      "reasoning_tokens": 8
+    },
+    "total_tokens": 69
+  },
+  "parallel_tool_calls": true,
+  "store": false,
+  "max_output_tokens": 200
+}

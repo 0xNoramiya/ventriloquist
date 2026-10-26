@@ -1,0 +1,339 @@
+{
+  "content_type": "text/event-stream",
+  "events": [
+    {
+      "event": "speechStart",
+      "data": {
+        "type": "speechStart",
+        "audioProcessedMs": 0,
+        "turnId": 0
+      }
+    },
+    {
+      "event": "transcript",
+      "data": {
+        "type": "transcript",
+        "transcript": "Good",
+        "final": false,
+        "audioProcessedMs": 800
+      }
+    },
+    {
+      "event": "transcript",
+      "data": {
+        "type": "transcript",
+        "transcript": "Good morning.",
+        "final": false,
+        "audioProcessedMs": 1200
+      }
+    },
+    {
+      "event": "transcript",
+      "data": {
+        "type": "transcript",
+        "transcript": "Good morning. Did",
+        "final": false,
+        "audioProcessedMs": 1600
+      }
+    },
+    {
+      "event": "transcript",
+      "data": {
+        "type": "transcript",
+        "transcript": "Good morning. Did you",
+        "final": false,
+        "audioProcessedMs": 1840
+      }
+    },
+    {
+      "event": "transcript",
+      "data": {
+        "type": "transcript",
+        "transcript": "Good morning. Did you sleep",
+        "final": false,
+        "audioProcessedMs": 2080
+      }
+    },
+    {
+      "event": "transcript",
+      "data": {
+        "type": "transcript",
+        "transcript": "Good morning. Did you sleep at",
+        "final": false,
+        "audioProcessedMs": 2240
+      }
+    },
+    {
+      "event": "transcript",
+      "data": {
+        "type": "transcript",
+        "transcript": "Good morning. Did you sleep at all",
+        "final": false,
+        "audioProcessedMs": 2640
+      }
+    },
+    {
+      "event": "transcript",
+      "data": {
+        "type": "transcript",
+        "transcript": "Good morning. Did you sleep at all last",
+        "final": false,
+        "audioProcessedMs": 2880
+      }
+    },
+    {
+      "event": "transcript",
+      "data": {
+        "type": "transcript",
+        "transcript": "Good morning. Did you sleep at all last night?",
+        "final": false,
+        "audioProcessedMs": 3680
+      }
+    },
+    {
+      "event": "speechEnd",
+      "data": {
+        "type": "speechEnd",
+        "audioProcessedMs": 3180,
+        "turnId": 0
+      }
+    },
+    {
+      "event": "speechComplete",
+      "data": {
+        "type": "speechComplete",
+        "audioProcessedMs": 3180,
+        "turnId": 0,
+        "transcript": "Good morning. Did you sleep at all last night?"
+      }
+    },
+    {
+      "event": "speechStart",
+      "data": {
+        "type": "speechStart",
+        "audioProcessedMs": 3820,
+        "turnId": 1
+      }
+    },
+    {
+      "event": "transcript",
+      "data": {
+        "type": "transcript",
+        "transcript": "She",
+        "final": false,
+        "audioProcessedMs": 4960
+      }
+    },
+    {
+      "event": "transcript",
+      "data": {
+        "type": "transcript",
+        "transcript": "She slept",
+        "final": false,
+        "audioProcessedMs": 5120
+      }
+    },
+    {
+      "event": "transcript",
+      "data": {
+        "type": "transcript",
+        "transcript": "She slept a",
+        "final": false,
+        "audioProcessedMs": 5360
+      }
+    },
+    {
+      "event": "transcript",
+      "data": {
+        "type": "transcript",
+        "transcript": "She slept a little",
+        "final": false,
+        "audioProcessedMs": 5600
+      }
+    },
+    {
+      "event": "transcript",
+      "data": {
+        "type": "transcript",
+        "transcript": "She slept a little after midnight.",
+        "final": false,
+        "audioProcessedMs": 6320
+      }
+    },
+    {
+      "event": "speechEnd",
+      "data": {
+        "type": "speechEnd",
+        "audioProcessedMs": 5900,
+        "turnId": 1
+      }
+    },
+    {
+      "event": "speechComplete",
+      "data": {
+        "type": "speechComplete",
+        "audioProcessedMs": 5900,
+        "turnId": 1,
+        "transcript": "She slept a little after midnight."
+      }
+    },
+    {
+      "event": "speechStart",
+      "data": {
+        "type": "speechStart",
+        "audioProcessedMs": 6300,
+        "turnId": 2
+      }
+    },
+    {
+      "event": "transcript",
+      "data": {
+        "type": "transcript",
+        "transcript": "The",
+        "final": false,
+        "audioProcessedMs": 7040
+      }
+    },
+    {
+      "event": "transcript",
+      "data": {
+        "type": "transcript",
+        "transcript": "The nurse",
+        "final": false,
+        "audioProcessedMs": 7120
+      }
+    },
+    {
+      "event": "transcript",
+      "data": {
+        "type": "transcript",
+        "transcript": "The nurse gave her",
+        "final": false,
+        "audioProcessedMs": 7840
+      }
+    },
+    {
+      "event": "transcript",
+      "data": {
+        "type": "transcript",
+        "transcript": "The nurse gave her something for",
+        "final": false,
+        "audioProcessedMs": 8480
+      }
+    },
+    {
+      "event": "transcript",
+      "data": {
+        "type": "transcript",
+        "transcript": "The nurse gave her something for pain.",
+        "final": false,
+        "audioProcessedMs": 8560
+      }
+    },
+    {
+      "event": "speechEnd",
+      "data": {
+        "type": "speechEnd",
+        "audioProcessedMs": 8060,
+        "turnId": 2
+      }
+    },
+    {
+      "event": "speechComplete",
+      "data": {
+        "type": "speechComplete",
+        "audioProcessedMs": 8060,
+        "turnId": 2,
+        "transcript": "The nurse gave her something for pain."
+      }
+    },
+    {
+      "event": "speechStart",
+      "data": {
+        "type": "speechStart",
+        "audioProcessedMs": 9260,
+        "turnId": 3
+      }
+    },
+    {
+      "event": "transcript",
+      "data": {
+        "type": "transcript",
+        "transcript": "Okay.",
+        "final": false,
+        "audioProcessedMs": 10240
+      }
+    },
+    {
+      "event": "transcript",
+      "data": {
+        "type": "transcript",
+        "transcript": "Okay. Let",
+        "final": false,
+        "audioProcessedMs": 10880
+      }
+    },
+    {
+      "event": "transcript",
+      "data": {
+        "type": "transcript",
+        "transcript": "Okay. Let us",
+        "final": false,
+        "audioProcessedMs": 11120
+      }
+    },
+    {
+      "event": "transcript",
+      "data": {
+        "type": "transcript",
+        "transcript": "Okay. Let us check the",
+        "final": false,
+        "audioProcessedMs": 11840
+      }
+    },
+    {
+      "event": "transcript",
+      "data": {
+        "type": "transcript",
+        "transcript": "Okay. Let us check the breathing tube in",
+        "final": false,
+        "audioProcessedMs": 12480
+      }
+    },
+    {
+      "event": "transcript",
+      "data": {
+        "type": "transcript",
+        "transcript": "Okay. Let us check the breathing tube in an hour.",
+        "final": false,
+        "audioProcessedMs": 13040
+      }
+    },
+    {
+      "event": "speechEnd",
+      "data": {
+        "type": "speechEnd",
+        "audioProcessedMs": 12620,
+        "turnId": 3
+      }
+    },
+    {
+      "event": "speechComplete",
+      "data": {
+        "type": "speechComplete",
+        "audioProcessedMs": 12620,
+        "turnId": 3,
+        "transcript": "Okay. Let us check the breathing tube in an hour."
+      }
+    },
+    {
+      "event": "transcript",
+      "data": {
+        "type": "transcript",
+        "transcript": "",
+        "final": true,
+        "audioProcessedMs": 13120
+      }
+    }
+  ]
+}

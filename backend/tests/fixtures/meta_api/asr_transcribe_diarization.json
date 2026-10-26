@@ -1,0 +1,28 @@
+{
+  "sessionId": "probe-1793034394",
+  "transcript": "Good morning. Did you sleep at all last night? She slept a little after midnight. The nurse nurse gave her something for pain. Okay, let us check the breathing tube in an hour.",
+  "audioDurationMs": 13120,
+  "turns": [
+    {
+      "turnId": 0,
+      "startMs": 60,
+      "endMs": 3260,
+      "transcript": "Good morning. Did you sleep at all last night?",
+      "speaker": "A"
+    },
+    {
+      "turnId": 1,
+      "startMs": 4300,
+      "endMs": 9260,
+      "transcript": "She slept a little after midnight. The nurse nurse gave her something for pain.",
+      "speaker": "B"
+    },
+    {
+      "turnId": 2,
+      "startMs": 9740,
+      "endMs": 12620,
+      "transcript": "Okay, let us check the breathing tube in an hour.",
+      "speaker": "A"
+    }
+  ]
+}

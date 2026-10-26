@@ -1,0 +1,100 @@
+{
+  "top_logprobs": 0,
+  "temperature": 1.0,
+  "top_p": 1.0,
+  "service_tier": "auto",
+  "model": "muse-spark-1.3",
+  "reasoning": {
+    "effort": "minimal"
+  },
+  "background": false,
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "name": "movement",
+      "schema": {
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "eyebrow_raises",
+          "head_nods",
+          "blinks",
+          "signal",
+          "confidence"
+        ],
+        "properties": {
+          "blinks": {
+            "type": "integer"
+          },
+          "confidence": {
+            "type": "number"
+          },
+          "eyebrow_raises": {
+            "type": "integer"
+          },
+          "head_nods": {
+            "type": "integer"
+          },
+          "signal": {
+            "enum": [
+              "EYEBROW_RAISE",
+              "HEAD_NOD",
+              "NONE",
+              "UNCLEAR"
+            ],
+            "type": "string"
+          }
+        }
+      },
+      "strict": true
+    }
+  },
+  "tools": [],
+  "tool_choice": "auto",
+  "truncation": "disabled",
+  "id": "resp_6adf878ac62319b0523b4e02",
+  "object": "response",
+  "status": "completed",
+  "created_at": 1793034122.0,
+  "completed_at": 1793034122.0,
+  "error": null,
+  "incomplete_details": null,
+  "output": [
+    {
+      "type": "reasoning",
+      "id": "rs_6adf878ac62319b0523b4e02:rs_1a2f6b5b-3120-46e7-9428-f32f784e0bc9",
+      "encrypted_content": "Q-PaDgGEw-q2yIuXw9W38_wG851rwKdzCOY20XWdVHpnSaUJ...<truncated 2791 chars>",
+      "summary": [],
+      "status": "completed"
+    },
+    {
+      "type": "message",
+      "id": "msg_b326afa3-952f-4368-b4fc-e872e06685fd",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "output_text",
+          "text": "{\"blinks\":0,\"confidence\":0.8,\"eyebrow_raises\":0,\"head_nods\":1,\"signal\":\"HEAD_NOD\"}",
+          "annotations": [],
+          "logprobs": []
+        }
+      ],
+      "status": "completed"
+    }
+  ],
+  "instructions": null,
+  "usage": {
+    "input_tokens": 1086,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 322,
+    "output_tokens_details": {
+      "reasoning_tokens": 281
+    },
+    "total_tokens": 1408
+  },
+  "parallel_tool_calls": true,
+  "store": false,
+  "max_output_tokens": 800
+}

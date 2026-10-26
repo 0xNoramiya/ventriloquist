@@ -1,0 +1,114 @@
+{
+  "top_logprobs": 0,
+  "temperature": 1.0,
+  "top_p": 1.0,
+  "service_tier": "auto",
+  "model": "muse-spark-1.3",
+  "reasoning": {
+    "effort": "minimal"
+  },
+  "background": false,
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "name": "room_objects",
+      "schema": {
+        "properties": {
+          "objects": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "label": {
+                  "type": "string"
+                },
+                "x_max": {
+                  "type": "integer"
+                },
+                "x_min": {
+                  "type": "integer"
+                },
+                "y_max": {
+                  "type": "integer"
+                },
+                "y_min": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "label",
+                "x_min",
+                "y_min",
+                "x_max",
+                "y_max"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "people_present": {
+            "type": "boolean"
+          },
+          "photo_frame_present": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "objects",
+          "photo_frame_present",
+          "people_present"
+        ],
+        "additionalProperties": false,
+        "type": "object"
+      },
+      "strict": true
+    }
+  },
+  "tools": [],
+  "tool_choice": "auto",
+  "truncation": "disabled",
+  "id": "resp_6adf875922aaacbd34584d76",
+  "object": "response",
+  "status": "completed",
+  "created_at": 1793034073.0,
+  "completed_at": 1793034073.0,
+  "error": null,
+  "incomplete_details": null,
+  "output": [
+    {
+      "type": "reasoning",
+      "id": "rs_6adf875922aaacbd34584d76:rs_3d5266a1-67aa-40b6-aa2d-e4cb24785090",
+      "encrypted_content": "Q-PaDgGZs1oYcTRu82Tv6z7kGgpIos_ZHE5I7ztnvWsAhkvr...<truncated 2791 chars>",
+      "summary": [],
+      "status": "completed"
+    },
+    {
+      "type": "message",
+      "id": "msg_c55c29b4-7739-49a7-a2a6-285455579bf9",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "output_text",
+          "text": "{\"objects\": [{\"label\": \"bed\", \"x_max\": 940, \"x_min\": 405, \"y_max\": 898, \"y_min\": 355}, {\"label\": \"bedside table\", \"x_max\": 324, \"x_min\": 132, \"y_max\": 900, \"y_min\": 525}, {\"label\": \"photo frame\", \"x_max\": 275, \"x_min\": 172, \"y_max\": 525, \"y_min\": 375}], \"people_present\": false, \"photo_frame_present\": true}",
+          "annotations": [],
+          "logprobs": []
+        }
+      ],
+      "status": "completed"
+    }
+  ],
+  "instructions": null,
+  "usage": {
+    "input_tokens": 456,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 336,
+    "output_tokens_details": {
+      "reasoning_tokens": 206
+    },
+    "total_tokens": 792
+  },
+  "parallel_tool_calls": true,
+  "store": false,
+  "max_output_tokens": 800
+}
