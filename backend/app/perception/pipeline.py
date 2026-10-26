@@ -141,6 +141,9 @@ async def perceive(
         nonlocal usd
         if info.effective == Mode.MOCK or not hub.flag("use_spark_judge"):
             return None
+        vl = hub.vision_language(mode)
+        if getattr(vl, "media", vl).provider == "mock":
+            return None  # no model may see the clip in this mode (e.g. on-premises privacy tier)
         try:
             r = await asyncio.wait_for(
                 roles.judge(mode, mp4, calibration.get("signal_text", "")),
