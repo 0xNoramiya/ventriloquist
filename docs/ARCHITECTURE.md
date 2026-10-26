@@ -93,6 +93,25 @@ sequenceDiagram
 | `sim/` | engine simulation (`make sim`) |
 | `scripts/` | API probes, live check, detector evaluation, letter statistics, synthetic media |
 
+## Modes and where each role runs
+
+| Role | Mock | Live | Privacy (partner) | Privacy (on-premises) |
+|---|---|---|---|---|
+| Spark text roles (priors, questions, completions, sentences, sensitive classifier) | rule-based mock | Muse Spark 1.3 | Muse Spark Open (Baseten or Modal) | Muse Glimmer on the hospital's server |
+| Spark media roles (describer, framing, scene, blind judge) | mock | Muse Spark 1.3 | Muse Spark Open | stays on-device (mock describer; judge off) |
+| Tracker | on-device optical flow | SAM 3.1 | self-hosted SAM 3.1 if configured, else on-device | same |
+| Room transcript | typed lines | Muse Voice Transcribe | Muse Spark Open audio input | off (typed lines) |
+| Memory curator | rule-based mock | Muse Wonder | Muse Spark Open | Muse Glimmer |
+
+The budget guard can drop any live or privacy session to mock mid-way (90% of the budget).
+
+## In-browser demo
+
+`backend/app/browser.py` wraps the same `Session` for Pyodide (Python compiled to WebAssembly). The
+hosted demo loads it in a Web Worker with numpy, pydantic, pyyaml and sqlite3 from the Pyodide CDN,
+unpacks the backend sources (`scripts/build_pyodide_bundle.py`) and swaps the WebSocket for
+`postMessage`. Same engine, same safety checks, mock providers, no server, no camera, no keys.
+
 ## Design decisions
 
 - **The LLM supplies intuition; code decides.** Every model output is a proposal: multipliers are
