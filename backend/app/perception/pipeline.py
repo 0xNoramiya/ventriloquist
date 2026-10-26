@@ -37,6 +37,9 @@ class Perception:
     latency_ms: float = 0.0
     usd: float = 0.0
     notes: list[str] = field(default_factory=list)
+    late: asyncio.Task[SourceResult | None] | None = (
+        None  # judge still running after an early decision
+    )
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -44,6 +47,7 @@ class Perception:
             "latency_ms": round(self.latency_ms, 1),
             "usd": round(self.usd, 5),
             "notes": self.notes,
+            "judge_pending": self.late is not None,
         }
 
 
@@ -166,18 +170,47 @@ async def perceive(
             },
         )
 
-    results = await asyncio.gather(tracker_path(), local_path(), judge_path())
-    sources = [r for r in results if r is not None]
+    judge_task = asyncio.ensure_future(judge_path())
+    track_res, local_res = await asyncio.gather(tracker_path(), local_path())
+    late: asyncio.Task[SourceResult | None] | None = None
+    judge_res: SourceResult | None = None
+    early = (
+        track_res is not None
+        and track_res.ok
+        and track_res.top[1] >= pcfg.early_decision_p
+        and track_res.top[0] in ("yes", "no", "none")
+    )
+    if early and not judge_task.done():
+        # Latency: SAM is confident, so don't make the patient wait for the slower blind judge.
+        # Its verdict is attached to the trail when it arrives (audit, disagreement alert).
+        done, _ = await asyncio.wait({judge_task}, timeout=pcfg.early_grace_s)
+        if not done:
+            late = judge_task
+            notes.append("early decision on the tracker; blind judge result follows")
+    if late is None:
+        judge_res = await judge_task
+    sources = [r for r in (track_res, local_res, judge_res) if r is not None]
     weights = dict(calibration.get("weights") or {})
     tracker_ok = any(s.name == "tracker" and s.ok for s in sources)
     if tracker_ok:
         sources = [s for s in sources if s.name != "local" or len(sources) == 1]
     obs = fuse(sources, weights, pcfg.unclear_threshold)
+    if late is not None:
+        obs.confidence *= 0.95  # one source only
+        obs.sources.setdefault("sources", {})["spark"] = {"ok": True, "pending": True}
     if obs.answer == Answer.UNCLEAR and not sources:
         notes.append("no perception source available; caregiver should tap the answer")
-    if not settings.raw["app"].get("keep_clips_for_evaluation") and not hub.store.kv_get(
+    keep = settings.raw["app"].get("keep_clips_for_evaluation") or hub.store.kv_get(
         "keep_clips_for_evaluation"
-    ):
-        for p in (clip, mp4):
-            p.unlink(missing_ok=True)
-    return Perception(obs, sources, overlay, (time.perf_counter() - t0) * 1000, usd, notes)
+    )
+    if not keep:
+
+        def cleanup(_: object = None) -> None:
+            for p in (clip, mp4):
+                p.unlink(missing_ok=True)
+
+        if late is not None:
+            late.add_done_callback(cleanup)
+        else:
+            cleanup()
+    return Perception(obs, sources, overlay, (time.perf_counter() - t0) * 1000, usd, notes, late)

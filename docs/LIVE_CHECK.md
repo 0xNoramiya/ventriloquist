@@ -1,6 +1,6 @@
 # Live check
 
-Last run 2026-10-26T18:13:40+00:00 with `scripts/live_check.py` against the real Meta Model API (`APP_MODE=live`). Fictional patients and synthetic media only. Cost of the last run: $0.321; all live-check runs in this data directory: $0.979.
+Last run 2026-10-26T18:21:28+00:00 with `scripts/live_check.py` against the real Meta Model API (`APP_MODE=live`). Fictional patients and synthetic media only. Cost of the last run: $0.171; all live-check runs in this data directory: $1.150.
 
 ## Model roles
 
@@ -16,16 +16,16 @@ Last run 2026-10-26T18:13:40+00:00 with `scripts/live_check.py` against the real
 
 ## Calibration on synthetic clips
 
-- Muse Spark description: YES = raises both eyebrows upward briefly (eyebrows); NO = shakes head repeatedly (head); distinct = True
-- Leave-one-out accuracy: {'local': 0.7142857142857143, 'tracker': 0.8571428571428571, 'spark': 1.0}; error rates {'a': 0.07692307692307693, 'b': 0.07692307692307693}; ok = True; 52.8 s
+- Muse Spark description: YES = raises both eyebrows upward briefly (eyebrows); NO = lowers and draws both eyebrows together briefly (eyebrows); distinct = True
+- Leave-one-out accuracy: {'local': 0.5714285714285714, 'tracker': 0.8571428571428571, 'spark': 0.8571428571428571}; error rates {'a': 0.07692307692307693, 'b': 0.07692307692307693}; ok = True; 27.9 s
 
 ## Answer windows (full perception pipeline)
 
 | true | fused answer | confidence | latency (ms) | cost | sources |
 |---|---|---:|---:|---:|---|
-| yes | yes | 0.924 | 4690 | 0.0302 | tracker: yes 0.957, spark: yes 0.9 |
-| no | no | 0.849 | 8419 | 0.024 | tracker: no 0.999, spark: none 0.0 |
-| none | none | 0.971 | 5949 | 0.0302 | tracker: none 1.0, spark: none 0.95 |
+| yes | unclear | 0.525 | 4632 | 0.0163 | tracker: yes 1.0, spark: no 0.85 |
+| no | no | 0.95 | 3901 | 0.012 | tracker: no 1.0 |
+| none | none | 0.975 | 4149 | 0.0154 | tracker: none 1.0, spark: none 0.95 |
 
 ## Sessions (simulated patient answers, live context models)
 

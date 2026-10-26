@@ -129,8 +129,8 @@ taxonomy:
   llm_template_base_rate: 0.02
 
 perception:
-  width: 640
-  height: 480
+  width: 320          # answer windows; 320x240 cut SAM latency from 5.0 to 3.2 s and halved judge tokens (live test)
+  height: 240
   fps: 15
   window_s: 4.0
   window_delay_ms: 300
@@ -143,6 +143,8 @@ perception:
   emergency_window_s: 4.0
   idle_watch_interval_s: 20
   calibration_min_accuracy: 0.80
+  early_decision_p: 0.90  # tracker this sure: decide without waiting for the blind judge
+  early_grace_s: 0.5
 
 context:
   transcript_window_min: 15

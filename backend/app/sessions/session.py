@@ -543,7 +543,38 @@ class Session:
             self.overlay = {**perc.overlay, "prompt_id": prompt_id}
         self.log.write("perception", prompt_id=prompt_id, **perc.to_dict())
         await self.observe(prompt_id, perc.observation, "camera", already_processing=True)
+        if perc.late is not None:
+            self._spawn(self._attach_late_judge(prompt_id, perc.late, perc.observation))
         return {"accepted": True, **perc.to_dict()}
+
+    async def _attach_late_judge(self, prompt_id: str, task: Any, obs: Observation) -> None:
+        """The blind judge finished after an early decision: record its verdict next to the answer
+        and alert the caregiver if it confidently disagrees."""
+        res = await task
+        if res is None:
+            return
+        verdict = res.to_dict()
+        entry = next((t for t in self.trail if t["prompt_id"] == prompt_id), None)
+        if entry is not None:
+            entry.setdefault("sources", {})["spark"] = verdict
+        self.log.write("late_judge", prompt_id=prompt_id, verdict=verdict)
+        top, p = res.top
+        if (
+            res.ok
+            and p >= 0.8
+            and top in ("yes", "no")
+            and str(obs.answer) in ("yes", "no")
+            and top != str(obs.answer)
+        ):
+            n = entry["n"] if entry else "?"
+            self.alerts.append(
+                {
+                    "kind": "disagreement",
+                    "at": now_iso(),
+                    "text": f"Q{n}: the blind judge saw {top.upper()}, the tracker {str(obs.answer).upper()}. Check with the patient if unsure.",
+                }
+            )
+        await self._notify()
 
     async def observe(
         self, prompt_id: str, obs: Observation, source: str, already_processing: bool = False

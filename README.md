@@ -153,10 +153,14 @@ Real-patient detector numbers need labelled clips from consenting participants
 (`scripts/eval_detector.py`, data in `data/labeled/`, never committed); they are not recorded yet.
 On synthetic cartoon clips (`docs/DETECTOR_EVAL_SYNTHETIC.md`) the pipeline runs end to end. In the
 live check (`docs/LIVE_CHECK.md`), Muse Spark named the eyebrow raise and chose "eyebrows" as the SAM
-prompt, SAM-based calibration reached 0.86 leave-one-out accuracy, and three answer windows (YES, NO,
-rest) were each classified correctly (fused confidence 0.85 to 0.97). The detector's softmin
-temperature is fitted on the calibration clips (temperature scaling on leave-one-out likelihood);
-before that fix the same windows all came back UNCLEAR. These numbers say nothing about real patients.
+prompt, and SAM-based calibration reached 0.86 leave-one-out accuracy. Across runs the answer windows
+(YES, NO, rest) were classified correctly or, once, returned UNCLEAR because the blind judge
+disagreed with SAM; UNCLEAR means the question is asked again, which is the intended behaviour. The
+detector's softmin temperature is fitted on the calibration clips (temperature scaling on the
+leave-one-out likelihood); before that fix every window came back UNCLEAR. Latency after the
+4-second window is about 4 to 5 s (SAM 3.1 about 3 s at 320x240, the judge about 4 s); when SAM is
+at least 90% sure the engine moves on without waiting for the judge, whose verdict is attached to
+the trail afterwards and raises an alert if it disagrees. These numbers say nothing about real patients.
 
 ## Privacy mode
 
