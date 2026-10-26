@@ -142,6 +142,11 @@ messages correct within the 10-question cap, and fewer wrong messages finalized 
 Under heavy noise the engine hands over to the caregiver instead of guessing. Every table:
 [`docs/EVAL.md`](docs/EVAL.md).
 
+Memory compounds, modestly: with personal base rates learned from confirmed messages (no room
+context), simulated patients needed 7.05 questions per message on day 1 and 6.63 by day 10.
+
+![Learning curve](docs/img/learning_curve.svg)
+
 ### Detector
 
 Real-patient detector numbers need labelled clips from consenting participants

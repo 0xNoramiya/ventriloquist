@@ -338,6 +338,27 @@ def write_charts(results: list[CellResult], img_dir: Path) -> list[str]:
     return written
 
 
+def learning_curve_section(docs: Path) -> list[str]:
+    path = docs / "learning_curve.json"
+    if not path.exists():
+        return []
+    lc = json.loads(path.read_text())
+    m = lc["mean_questions"]
+    return [
+        "### Learning curve (personal memory)",
+        "",
+        f"`python -m sim.learning_curve`: {lc['patients']} simulated patients, {lc['sessions']} daily sessions of "
+        f"{lc['per_session']} messages, noise {lc['noise']:.0%}, no room context. Confirmed messages feed the "
+        "personal base rates (Dirichlet, 3-day half-life, factor clipped to [0.5, 3]). Mean questions per message "
+        f"fall from **{m[0]:.2f}** in session 1 to **{m[-1]:.2f}** in session {lc['sessions']}. The effect is modest "
+        "by design: the personal factor is bounded, and caregiver-approved memory facts (which act as room "
+        "context in the live system) are not simulated here.",
+        "",
+        "![Learning curve](img/learning_curve.svg)",
+        "",
+    ]
+
+
 def write_markdown(
     results: list[CellResult], path: Path, trials: int, seed: int, secs: float
 ) -> None:
@@ -405,6 +426,7 @@ def write_markdown(
             f"{key['board'].success_rate:.1%}."
         ),
         "",
+        *learning_curve_section(path.parent),
         "## 2. Detector evaluation",
         "",
         "See `scripts/eval_detector.py`. Requires labeled clips recorded by consenting participants in",
