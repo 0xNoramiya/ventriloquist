@@ -10,7 +10,7 @@ import pytest
 os.environ["APP_MODE"] = "mock"
 
 from app.config import load_settings  # noqa: E402
-from app.perception.calibration import default_calibration  # noqa: E402
+from app.perception.signals import default_calibration  # noqa: E402
 from app.providers.registry import Mode, ProviderHub  # noqa: E402
 from app.roles import Roles  # noqa: E402
 from app.scenarios import apply as apply_scenario  # noqa: E402

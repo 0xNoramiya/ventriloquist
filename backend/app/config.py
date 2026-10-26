@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import Any, Literal
 
 import yaml
-from dotenv import load_dotenv
 from pydantic import BaseModel, ConfigDict, Field
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -134,7 +133,12 @@ def _env(name: str) -> str | None:
 
 
 def load_settings(config_path: Path | None = None, env_file: Path | None = None) -> Settings:
-    load_dotenv(env_file or ROOT / ".env", override=False)
+    try:
+        from dotenv import load_dotenv
+
+        load_dotenv(env_file or ROOT / ".env", override=False)
+    except ImportError:  # optional outside the server (e.g. the in-browser demo)
+        pass
     raw = yaml.safe_load((config_path or CONFIG_PATH).read_text())
     mode = (_env("APP_MODE") or "mock").lower()
     if mode not in ("mock", "live"):

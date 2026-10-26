@@ -20,7 +20,6 @@ import numpy as np
 
 from app.config import Settings
 from app.providers.base import Tracker, TrackResult
-from app.providers.local import LocalFlowTracker
 from app.providers.registry import Mode, ProviderHub
 from app.roles import Roles
 from app.schemas import CalibrationDescription
@@ -29,41 +28,11 @@ from .dtw import auto_temperature, leave_one_out
 from .features import fit_baseline, normalise, peak_amplitude, sam_feature_seq
 from .fusion import judge_probs
 from .media import normalize_video, read_frames
+from .signals import default_calibration, signal_text  # noqa: F401  (re-exported)
 
 log = logging.getLogger(__name__)
 LABELS = ("rest", "yes", "no", "emergency")
 WINDOW_S = 4.0
-
-
-def signal_text(desc: dict[str, Any]) -> str:
-    y, n = desc["yes"], desc["no"]
-    return (
-        f"YES = {y['body_part']}: {y['motion']}. {y.get('description', '')}\n"
-        f"NO = {n['body_part']}: {n['motion']}. {n.get('description', '')}\n"
-        f"EMERGENCY = the YES movement three times in quick succession."
-    )
-
-
-def default_calibration(
-    mode: str, a: float = 0.10, b: float = 0.10, hint: str | None = None
-) -> dict[str, Any]:
-    from app.providers.mock import mock_calibration
-
-    desc = mock_calibration({"hint": hint})
-    return {
-        "mode": mode,
-        "skipped": True,
-        "description": desc,
-        "signal_text": signal_text(desc),
-        "prompts": [],
-        "tracker": None,
-        "local": None,
-        "accuracy": {},
-        "weights": {"keyboard": 1.0},
-        "error_rates": {"a": a, "b": b},
-        "ok": True,
-        "suggestion": None,
-    }
 
 
 @dataclass
@@ -193,6 +162,8 @@ async def finalize(
         return out
 
     # 5a. local optical-flow baseline (always; on-device fallback)
+    from app.providers.local import LocalFlowTracker
+
     local = LocalFlowTracker()
     local_results = await asyncio.gather(*(local.track(c, "motion") for c in all_clips))
     local_seqs = {

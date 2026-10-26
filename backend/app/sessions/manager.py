@@ -10,7 +10,7 @@ from typing import Any
 from fastapi import WebSocket
 
 from app.engine.taxonomy import taxonomy_ids
-from app.perception.calibration import default_calibration
+from app.perception.signals import default_calibration
 from app.scenarios import apply as apply_scenario
 from app.scenarios import load as load_scenario
 from app.storage import new_id

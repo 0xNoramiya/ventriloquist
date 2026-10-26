@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from app.config import load_settings
-from app.perception.calibration import default_calibration
+from app.perception.signals import default_calibration
 from app.providers.registry import Mode, ProviderHub
 from app.roles import Roles
 from app.scenarios import apply as apply_scenario

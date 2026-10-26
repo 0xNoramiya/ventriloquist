@@ -7,8 +7,6 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
 
-import httpx
-
 from app.config import Settings
 from app.storage import Store
 
@@ -23,7 +21,6 @@ from .base import (
 )
 from .cost import CostMeter, estimate_usd
 from .llm import LLMCaller
-from .local import LocalFlowTracker
 from .mock import MockTranscriber, MockVisionLanguage
 
 log = logging.getLogger(__name__)
@@ -57,11 +54,24 @@ class ProviderHub:
         self.settings = settings
         self.store = store
         self.cost = CostMeter(settings, store)
-        self.http = httpx.AsyncClient()
+        self._http: Any = None
         self._mock_vl = MockVisionLanguage()
         self._mock_tr = MockTranscriber()
-        self._local_tracker = LocalFlowTracker()
         self._cache: dict[str, Any] = {}
+
+    @property
+    def http(self) -> Any:
+        if self._http is None:
+            import httpx
+
+            self._http = httpx.AsyncClient()
+        return self._http
+
+    @property
+    def _local_tracker(self) -> Tracker:
+        from .local import LocalFlowTracker
+
+        return self._get("local_tracker", LocalFlowTracker)
 
     # --------------------------------------------------------------- settings
     def app_mode(self) -> str:

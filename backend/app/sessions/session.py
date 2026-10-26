@@ -39,7 +39,6 @@ from app.engine.types import (
     Question,
     render,
 )
-from app.perception.pipeline import perceive
 from app.providers.registry import Mode, ProviderHub
 from app.roles import Roles
 from app.safety.sensitive import detect
@@ -527,6 +526,8 @@ class Session:
                 return {"accepted": False, "reason": "stale prompt"}
             self._to(State.PROCESSING, "clip received")
         await self._notify()
+        from app.perception.pipeline import perceive
+
         workdir = self.ctx.store.media_dir("sessions", self.id)
         perc = await perceive(
             path,
