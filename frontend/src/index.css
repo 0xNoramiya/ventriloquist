@@ -1,0 +1,230 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans:
+    'Atkinson Hyperlegible Next Variable', 'Atkinson Hyperlegible Next', ui-sans-serif, system-ui,
+    -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Ink: deep scrub teal. Used for text on light surfaces and for primary actions. */
+  --color-ink: #0f2e35;
+  --color-ink-soft: #36545b;
+  --color-muted: #4e666c;
+
+  /* Light surfaces (caregiver console, landing, forms). Cool, not cream. */
+  --color-linen: #f1f4f3;
+  --color-paper: #ffffff;
+  --color-wash: #e5ecea;
+
+  /* Night surfaces (patient screen). */
+  --color-night: #0b252b;
+  --color-night-2: #12343b;
+  --color-night-3: #1d4850;
+  --color-mist: #c9d8d8;
+  --color-mist-soft: #9fb8b9;
+
+  /* Voice: the patient's turn and the patient's words. Used for nothing else. */
+  --color-voice: #f3c14b;
+  --color-voice-soft: #fcefc4;
+  --color-voice-deep: #7a5300;
+
+  /* Alarm: emergency only. */
+  --color-alarm: #b3261e;
+  --color-alarm-deep: #8c1d17;
+  --color-alarm-soft: #fbe3e0;
+
+  --color-good: #2c6a3f;
+  --color-good-soft: #dff0e3;
+  --color-caution: #7a5300;
+  --color-caution-soft: #fdf1d6;
+
+  --color-line: rgb(15 46 53 / 0.12);
+  --color-line-strong: rgb(15 46 53 / 0.24);
+
+  --radius-control: 10px;
+  --radius-panel: 16px;
+  --radius-chip: 6px;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@layer base {
+  :root {
+    --focus: var(--color-ink);
+    color-scheme: light;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-linen);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-optical-sizing: auto;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+    line-height: 1.15;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  button,
+  a,
+  input,
+  select,
+  textarea,
+  summary,
+  label {
+    touch-action: manipulation;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  input,
+  select,
+  textarea {
+    font: inherit;
+    font-size: max(16px, 1em);
+  }
+
+  ::selection {
+    background: var(--color-voice-soft);
+    color: var(--color-ink);
+  }
+
+  .night {
+    --focus: var(--color-voice);
+    color-scheme: dark;
+  }
+}
+
+@layer utilities {
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .sr-only-focusable:not(:focus) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+/* Listening indicator: one calm breathing ring. */
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+.breathe::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: currentColor;
+  animation: breathe 2.4s var(--ease-out) infinite;
+}
+
+/* Recording countdown bar fills over the clip window. */
+@keyframes fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.fill-bar {
+  transform-origin: left center;
+  animation: fill var(--fill-ms, 4000ms) linear forwards;
+}
+
+@keyframes enter-line {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.enter-line {
+  animation: enter-line 420ms var(--ease-out) both;
+}
+
+@keyframes alarm-flash {
+  0%,
+  100% {
+    background-color: var(--color-alarm);
+  }
+  50% {
+    background-color: var(--color-alarm-deep);
+  }
+}
+
+.alarm-flash {
+  animation: alarm-flash 1.4s steps(1, end) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .breathe::after,
+  .alarm-flash,
+  .enter-line {
+    animation: none;
+  }
+  .breathe::after {
+    opacity: 0.35;
+    transform: scale(1.35);
+  }
+  .fill-bar {
+    animation: none;
+    transform: scaleX(1);
+    opacity: 0.6;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

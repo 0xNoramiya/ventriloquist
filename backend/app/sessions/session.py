@@ -208,6 +208,8 @@ class Session:
     def _to(self, dst: State, reason: str = "") -> None:
         if self.sm.state == dst:
             return
+        if self.sm.state == State.CAREGIVER_NEEDED:
+            self.caregiver_reason = None  # leaving the caregiver state clears its banner
         try:
             self.sm.to(dst, reason)
         except InvalidTransition:

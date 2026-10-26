@@ -329,3 +329,12 @@ async def test_stale_answers_are_ignored(ctx):
     n_trail = len(s.trail)
     assert not await s.answer(old, Answer.YES)  # duplicate / late answer for an old prompt
     assert len(s.trail) == n_trail
+
+
+async def test_ack_silent_clears_caregiver_reason(ctx):
+    s = make_session(ctx, "spelling", SimulatedPatient(spell="MAU MATI"))
+    await s.start()
+    await run_until(s, timeout=60)
+    assert s.caregiver_reason == "sensitive_verify"
+    await s.override("ack_sensitive_silent")
+    assert s.caregiver_reason is None and s.state == State.DONE
