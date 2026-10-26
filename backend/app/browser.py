@@ -31,7 +31,12 @@ class BrowserDemo:
 
         path = Path(data_dir or tempfile.mkdtemp(prefix="vent_"))
         settings = load_settings().model_copy(
-            update={"app_mode": "mock", "data_dir": path, "model_api_key": None, "baseten_api_key": None}
+            update={
+                "app_mode": "mock",
+                "data_dir": path,
+                "model_api_key": None,
+                "baseten_api_key": None,
+            }
         )
         store = Store(path)
         hub = ProviderHub(settings, store)
@@ -50,28 +55,48 @@ class BrowserDemo:
         from app.scenarios import load, names
 
         s = self.ctx.settings
-        return json.dumps({
-            "engine": {"tau_confirm": s.engine.tau_confirm, "finalize_threshold": s.engine.finalize_threshold,
-                       "max_questions": s.engine.max_questions},
-            "perception": {"window_s": s.perception.window_s, "window_delay_ms": s.perception.window_delay_ms},
-            "speech": s.raw.get("speech", {}),
-            "flags": self.ctx.hub.flags(),
-            "mode": "mock",
-            "privacy_default": False,
-            "language": s.raw["app"]["default_language"],
-            "budget": self.ctx.hub.cost.status().to_dict(),
-            "passcode_required": False,
-            "scenarios": [{"id": n, "title": load(n).get("title", "")} for n in names()],
-            "taxonomy": [{"id": h["id"], "en": h["en"], "id_text": h["id_text"], "domain": h["domain"]}
-                         for h in load_taxonomy()["hypotheses"]],
-            "event_kinds": ["suctioned", "repositioned", "mouth_care", "visitor_arrived", "visitor_left",
-                            "family_called", "medication_given", "procedure_done", "note"],
-            "models": s.models,
-            "browser_demo": True,
-        })
+        return json.dumps(
+            {
+                "engine": {
+                    "tau_confirm": s.engine.tau_confirm,
+                    "finalize_threshold": s.engine.finalize_threshold,
+                    "max_questions": s.engine.max_questions,
+                },
+                "perception": {
+                    "window_s": s.perception.window_s,
+                    "window_delay_ms": s.perception.window_delay_ms,
+                },
+                "speech": s.raw.get("speech", {}),
+                "flags": self.ctx.hub.flags(),
+                "mode": "mock",
+                "privacy_default": False,
+                "language": s.raw["app"]["default_language"],
+                "budget": self.ctx.hub.cost.status().to_dict(),
+                "passcode_required": False,
+                "scenarios": [{"id": n, "title": load(n).get("title", "")} for n in names()],
+                "taxonomy": [
+                    {"id": h["id"], "en": h["en"], "id_text": h["id_text"], "domain": h["domain"]}
+                    for h in load_taxonomy()["hypotheses"]
+                ],
+                "event_kinds": [
+                    "suctioned",
+                    "repositioned",
+                    "mouth_care",
+                    "visitor_arrived",
+                    "visitor_left",
+                    "family_called",
+                    "medication_given",
+                    "procedure_done",
+                    "note",
+                ],
+                "models": s.models,
+                "browser_demo": True,
+            }
+        )
 
-    async def scenario(self, name: str, simulated: bool = False, noise: float = 0.05,
-                       language: str | None = None) -> str:
+    async def scenario(
+        self, name: str, simulated: bool = False, noise: float = 0.05, language: str | None = None
+    ) -> str:
         from app.perception.signals import default_calibration
         from app.providers.registry import Mode
         from app.scenarios import apply, load
@@ -91,11 +116,27 @@ class BrowserDemo:
         store.create_session(sid, pid, "mock")
         apply(store, sc, pid, sid)
         sp = sc.get("patient") or {}
-        sim = SimulatedPatient(truth=sp.get("truth"), spell=sp.get("spell"), sentence_en=sp.get("sentence_en"),
-                               noise=noise) if simulated else None
-        self.session = Session(sid, store.get_patient(pid), default_calibration("mock"), self.ctx,
-                               mode=Mode.MOCK, simulated=sim, scenario=sc, on_change=self._on_change,
-                               sim_delay_s=1.0 if sim else 0.0)
+        sim = (
+            SimulatedPatient(
+                truth=sp.get("truth"),
+                spell=sp.get("spell"),
+                sentence_en=sp.get("sentence_en"),
+                noise=noise,
+            )
+            if simulated
+            else None
+        )
+        self.session = Session(
+            sid,
+            store.get_patient(pid),
+            default_calibration("mock"),
+            self.ctx,
+            mode=Mode.MOCK,
+            simulated=sim,
+            scenario=sc,
+            on_change=self._on_change,
+            sim_delay_s=1.0 if sim else 0.0,
+        )
         return json.dumps(self.session.view(), default=str)
 
     def snapshot(self) -> str:

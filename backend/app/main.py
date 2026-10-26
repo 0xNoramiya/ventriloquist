@@ -82,7 +82,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         expected = settings.live_passcode
         if not expected:
             if switching or settings.app_mode != "live":
-                raise HTTPException(403, "Set LIVE_PASSCODE in .env to enable live or privacy mode from the UI.")
+                raise HTTPException(
+                    403, "Set LIVE_PASSCODE in .env to enable live or privacy mode from the UI."
+                )
             return
         if not secrets.compare_digest(passcode or "", expected):
             raise HTTPException(403, "live mode needs the passcode")

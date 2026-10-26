@@ -210,9 +210,7 @@ def run_board(
     return Outcome(False, False, n, True, False)
 
 
-def summarise(
-    strategy: str, eps: float, context: str, outcomes: list[Outcome]
-) -> CellResult:
+def summarise(strategy: str, eps: float, context: str, outcomes: list[Outcome]) -> CellResult:
     fin = [o.questions for o in outcomes if o.finalized]
     ok = [o.questions for o in outcomes if o.correct]
     n = len(outcomes)
@@ -252,12 +250,8 @@ def run_cell(args: tuple[int, int, int, int]) -> list[CellResult]:
 
 
 def run(trials: int, seed: int, workers: int | None = None) -> list[CellResult]:
-    cells = [
-        (trials, seed, ci, ni) for ci in range(len(CONTEXT)) for ni in range(len(NOISE))
-    ]
-    with ProcessPoolExecutor(
-        max_workers=workers or min(len(cells), os.cpu_count() or 1)
-    ) as pool:
+    cells = [(trials, seed, ci, ni) for ci in range(len(CONTEXT)) for ni in range(len(NOISE))]
+    with ProcessPoolExecutor(max_workers=workers or min(len(cells), os.cpu_count() or 1)) as pool:
         return [r for cell in pool.map(run_cell, cells) for r in cell]
 
 
@@ -303,9 +297,7 @@ def write_charts(results: list[CellResult], img_dir: Path) -> list[str]:
         ("mean_q", "Mean questions (incl. confirmation)", "sim_mean_questions.svg"),
         ("success_rate", "Correct within 10 questions", "sim_success.svg"),
     ):
-        fig, axes = plt.subplots(
-            1, 3, figsize=(11, 3.8), sharey=True, facecolor="#fcfcfb"
-        )
+        fig, axes = plt.subplots(1, 3, figsize=(11, 3.8), sharey=True, facecolor="#fcfcfb")
         for ax, context in zip(axes, CONTEXT, strict=True):
             ax.set_facecolor("#fcfcfb")
             ax.grid(axis="y", color="#e6e5e0", linewidth=0.8)
@@ -313,16 +305,9 @@ def write_charts(results: list[CellResult], img_dir: Path) -> list[str]:
             for s in ("top", "right"):
                 ax.spines[s].set_visible(False)
             for strategy in STRATEGIES:
-                pts = [
-                    r
-                    for r in results
-                    if r.strategy == strategy and r.context == context
-                ]
+                pts = [r for r in results if r.strategy == strategy and r.context == context]
                 xs = [r.noise for r in pts]
-                ys = [
-                    getattr(r, metric) * (100 if metric == "success_rate" else 1)
-                    for r in pts
-                ]
+                ys = [getattr(r, metric) * (100 if metric == "success_rate" else 1) for r in pts]
                 ax.plot(
                     xs,
                     ys,
@@ -339,9 +324,7 @@ def write_charts(results: list[CellResult], img_dir: Path) -> list[str]:
             ax.set_xlabel("Answer noise (eps)")
         axes[0].set_ylabel(ylabel if metric == "mean_q" else ylabel + " (%)")
         handles, labels = axes[0].get_legend_handles_labels()
-        fig.legend(
-            handles, labels, loc="lower center", ncol=5, frameon=False, fontsize=9
-        )
+        fig.legend(handles, labels, loc="lower center", ncol=5, frameon=False, fontsize=9)
         fig.suptitle(
             "Simulation (simulated patients, not clinical evidence)",
             fontsize=10,
@@ -408,9 +391,7 @@ def write_markdown(
                 "| Strategy | Mean Q | Median Q | Success | Wrong | Spelling | Handover |",
                 "|---|---:|---:|---:|---:|---:|---:|",
             ]
-            lines += [
-                row(r) for r in results if r.context == context and r.noise == eps
-            ]
+            lines += [row(r) for r in results if r.context == context and r.noise == eps]
             lines.append("")
     key = {r.strategy: r for r in results if r.context == "strong" and r.noise == 0.10}
     verdict = key["eig_context"].mean_q < key["board"].mean_q
