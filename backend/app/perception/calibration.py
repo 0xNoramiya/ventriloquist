@@ -192,7 +192,9 @@ async def finalize(
     # 6. blind Spark judge on each labelled clip (leave-one-out is implicit: the judge never trains)
     judge_loo: list[dict[str, Any]] = []
     sig = signal_text(desc.model_dump())
-    if info.effective != Mode.MOCK and hub.flag("use_spark_judge"):
+    vl = hub.vision_language(mode)
+    judge_can_see = getattr(vl, "media", vl).provider != "mock"
+    if info.effective != Mode.MOCK and hub.flag("use_spark_judge") and judge_can_see:
         sem = asyncio.Semaphore(4)
 
         async def judge_one(label: str, clip: Path) -> dict[str, Any]:
