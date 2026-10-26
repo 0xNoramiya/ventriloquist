@@ -56,7 +56,17 @@ Status: `[x]` done, `[~]` in progress, `[ ]` to do. Updated as work proceeds.
 - [ ] Optional: SAM 3.1 open weights self-hosted on Modal (client ready; deployment needs an account)
 
 ## Phase 7: Polish and submission
-- [~] UI polish, final README with eval charts and Mermaid diagram, SAFETY.md (docs drafted)
+- [x] README with eval charts, screenshots and Mermaid diagrams; SAFETY.md, ARCHITECTURE.md, API_NOTES.md, LIVE_CHECK.md
+- [ ] UI polish after a session on real phones (Rifqi)
 - [x] Hosted simulation-only demo (no camera, no keys): real engine in the browser via Pyodide, verified with Playwright; deploys via the Pages workflow once the repo is on GitHub
-- [~] `docs/DEMO_SCRIPT.md`, X post draft (drafted); demo rehearsal and video recorded last
+- [x] `docs/DEMO_SCRIPT.md` and X post draft
+- [ ] Demo rehearsal and video (recorded last, with a consenting actor)
 - [ ] Feature freeze 2026-11-03 12:00 UTC; submission due 2026-11-05 02:00 UTC
+
+## Next session (needs Rifqi)
+- [ ] Add the GitHub remote, push, make the repo public, enable Pages (Settings > Pages > GitHub Actions)
+- [ ] `BASETEN_API_KEY` (or `MODAL_SPARK_URL`) to run privacy mode live and get the open-weight bonus verified
+- [ ] Review `docs/I18N_REVIEW.md` and the sensitive keyword lists
+- [ ] Record labelled clips with consenting volunteers into `data/labeled/`, run `scripts/eval_detector.py --mode live`
+- [ ] Try a full session on a phone over the LAN (`make dev`, open the QR code)
+- [ ] Test Indonesian Voice Transcribe on real speech (and Banjar if possible)
