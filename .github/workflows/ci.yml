@@ -1,0 +1,39 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Install
+        working-directory: backend
+        run: uv venv --python 3.12 .venv && uv sync
+      - name: Lint
+        working-directory: backend
+        run: .venv/bin/ruff check app tests ../sim && .venv/bin/ruff format --check app tests ../sim
+      - name: Test (mock mode, no keys)
+        working-directory: backend
+        env:
+          APP_MODE: mock
+        run: .venv/bin/pytest -q
+      - name: CLI demo
+        env:
+          APP_MODE: mock
+          PYTHONPATH: ${{ github.workspace }}/backend:${{ github.workspace }}
+        run: backend/.venv/bin/python -m app.cli demo --scenario daughter --data-dir /tmp/vdata
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - working-directory: frontend
+        run: npm ci && npm run typecheck && npm run lint && npm test && npm run build
