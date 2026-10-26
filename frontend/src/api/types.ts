@@ -315,6 +315,7 @@ export interface PublicConfig {
   engine: { tau_confirm: number; finalize_threshold: number; max_questions: number };
   perception: {
     window_s: number;
+    idle_watch_interval_s?: number;
     window_delay_ms: number;
     width: number;
     height: number;

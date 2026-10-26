@@ -51,6 +51,7 @@ export default function Patient() {
   const recordedRef = useRef<string | null>(null);
   const emergencySpokenRef = useRef(false);
   const settingsRef = useRef({ rate: 0.9, windowMs: 4000, delayMs: 300 });
+  const [idleMs, setIdleMs] = useState(0);
 
   useEffect(() => {
     loadConfig()
@@ -60,6 +61,7 @@ export default function Patient() {
           windowMs: (c.perception.window_s ?? 4) * 1000,
           delayMs: c.perception.window_delay_ms ?? 300,
         };
+        setIdleMs(c.flags.idle_watch ? (c.perception.idle_watch_interval_s ?? 20) * 1000 : 0);
       })
       .catch(() => {
         // defaults are fine
@@ -166,6 +168,28 @@ export default function Patient() {
     }, delayMs);
     return () => window.clearTimeout(timer);
   }, [started, camera, state, promptId, sid]);
+
+  // Idle watch (brief 9.6): between messages, look for the patient's signal every few seconds.
+  // Triple YES raises the alarm; a single YES starts a new message. Off unless the flag is on.
+  useEffect(() => {
+    if (!started || !camera || !sid || snap?.ended || !(state === 'DONE' || state === 'IDLE'))
+      return;
+    const { windowMs } = settingsRef.current;
+    const stream = streamRef.current;
+    if (!idleMs || !cameraOn || !stream) return;
+    let busy = false;
+    const timer = window.setInterval(() => {
+      if (busy) return;
+      busy = true;
+      recordClip(stream, windowMs)
+        .then((clip) => api.idleClip(sid, clip))
+        .catch(() => undefined)
+        .finally(() => {
+          busy = false;
+        });
+    }, idleMs);
+    return () => window.clearInterval(timer);
+  }, [started, camera, cameraOn, idleMs, state, sid, snap?.ended]);
 
   // Mock mode: keyboard answers.
   useEffect(() => {

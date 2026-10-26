@@ -225,3 +225,13 @@ def test_answer_clip_through_pipeline(client, tmp_path):
     body = r.json()
     assert body["accepted"] and body["observation"]["answer"] in ("yes", "unclear")
     assert "local" in body["observation"]["sources"]["sources"]
+
+
+def test_idle_clip_ignored_after_session_end(client, tmp_path):
+    pid = client.post("/api/patients", json=PROFILE).json()["id"]
+    sid = client.post("/api/sessions", json={"patient_id": pid}).json()["session_id"]
+    client.post(f"/api/sessions/{sid}/end")
+    clip = synthetic_clip(tmp_path / "idle.mp4", "up")
+    with clip.open("rb") as f:
+        r = client.post(f"/api/sessions/{sid}/idle", files={"file": ("idle.mp4", f, "video/mp4")})
+    assert r.json() == {"answer": "none", "ignored": "session ended"}

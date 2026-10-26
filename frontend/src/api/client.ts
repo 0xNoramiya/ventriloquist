@@ -150,6 +150,12 @@ export const api = {
       { prompt_id: promptId, file: clip },
       `clip.${extFor(clip)}`,
     ),
+  idleClip: (sid: string, clip: Blob) =>
+    upload<{ answer: string }>(
+      `/sessions/${encodeURIComponent(sid)}/idle`,
+      { file: clip },
+      `idle.${extFor(clip)}`,
+    ),
   sessionAudio: (sid: string, audio: Blob, filename: string) =>
     upload<{ segments: unknown[] }>(
       `/sessions/${encodeURIComponent(sid)}/audio`,
@@ -227,6 +233,7 @@ if (isBrowserDemo) {
     editDescription: unavailable,
     sessionSnapshotImage: async () => ({ facts: [] }),
     sessionClip: unavailable,
+    idleClip: unavailable,
     sessionAudio: unavailable,
     transcript: (_sid, speaker, text) => demoBridge.send({ type: 'transcript', speaker, text }),
     event: (_sid, kind, label) => demoBridge.send({ type: 'event', kind, label }),

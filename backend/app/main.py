@@ -408,6 +408,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         from app.perception.pipeline import perceive
 
         s = session_or_404(sid)
+        if s.ended:
+            return {"answer": "none", "ignored": "session ended"}
         path = await save_upload(file, store.media_dir("sessions", sid), f"idle_{new_id('c')}")
         perc = await perceive(
             path,
