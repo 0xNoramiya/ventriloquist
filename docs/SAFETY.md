@@ -34,7 +34,7 @@ below exist to keep it that way, and each one is enforced in code and covered by
 |---|---|
 | Mock | nothing |
 | Live | answer clips, room snapshots and room audio go to the Meta Model API with `store: false`; prompts carry evidence text and the profile's first names |
-| Privacy | the same inputs go to Muse Spark Open on Baseten (synchronous Model APIs fall under Baseten's zero-data-retention policy); SAM runs on a self-hosted endpoint if configured, otherwise the on-device optical-flow tracker; without a Baseten key privacy mode stays fully on-device with mock models |
+| Privacy | text-only roles go to Muse Glimmer on the hospital's own server if `LOCAL_LLM_URL` is set; roles with images or video go to Muse Spark Open on Baseten (synchronous Model APIs fall under Baseten's zero-data-retention policy) if a key is set, otherwise they stay on-device; SAM runs on a self-hosted endpoint if configured, otherwise the on-device optical-flow tracker. With Glimmer on-prem and no Baseten key, nothing leaves the building. With neither, privacy mode stays fully on-device with mock models |
 
 Meta offers zero data retention as an organisation-level setting enabled on request; there is no
 per-request flag (docs/API_NOTES.md section 13). A hospital deployment would need it, plus a data

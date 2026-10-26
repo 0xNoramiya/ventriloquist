@@ -103,13 +103,30 @@ class ProviderHub:
             )
         if requested == Mode.LIVE and not self.settings.model_api_key:
             return ModeInfo(requested, Mode.MOCK, "MODEL_API_KEY missing")
-        if requested == Mode.PRIVACY and not self.settings.baseten_api_key:
+        if requested == Mode.PRIVACY:
+            if self.settings.baseten_api_key and self.onprem_url():
+                return ModeInfo(
+                    requested,
+                    requested,
+                    "Muse Glimmer on-prem for text, Muse Spark Open on Baseten for media",
+                )
+            if self.settings.baseten_api_key:
+                return ModeInfo(requested, requested, "Muse Spark Open on Baseten")
+            if self.onprem_url():
+                return ModeInfo(requested, requested, "Muse Glimmer on-prem; media stays on-device")
             return ModeInfo(
                 requested,
                 Mode.MOCK,
-                "BASETEN_API_KEY missing: privacy mode stays on-device (mock models, local motion tracker)",
+                "no BASETEN_API_KEY or LOCAL_LLM_URL: privacy mode stays on-device (mock models, local motion tracker)",
             )
         return ModeInfo(requested, requested, "ok")
+
+    def onprem_url(self) -> str:
+        import os
+
+        return os.environ.get("LOCAL_LLM_URL", "").strip() or str(
+            self.settings.providers.get("local_llm", {}).get("base_url", "") or ""
+        )
 
     # -------------------------------------------------------------- providers
     def _get(self, key: str, factory: Any) -> Any:
@@ -125,14 +142,24 @@ class ProviderHub:
 
                 return self._get("meta_vl", lambda: MetaVisionLanguage(self.settings, self.http))
             if info.effective == Mode.PRIVACY:
-                from .baseten import BasetenVisionLanguage
-
-                return self._get(
-                    "baseten_vl", lambda: BasetenVisionLanguage(self.settings, self.http)
-                )
+                return self._privacy_vl()
         except ProviderError as exc:
             log.warning("falling back to mock VL: %s", exc)
         return self._mock_vl
+
+    def _privacy_vl(self) -> VisionLanguage:
+        """Media to Muse Spark Open (Baseten) or nowhere; text to Muse Glimmer on-prem if configured."""
+        media: VisionLanguage = self._mock_vl
+        if self.settings.baseten_api_key:
+            from .baseten import BasetenVisionLanguage
+
+            media = self._get("baseten_vl", lambda: BasetenVisionLanguage(self.settings, self.http))
+        if not self.onprem_url():
+            return media
+        from .onprem import OnPremVisionLanguage, RoutingVisionLanguage
+
+        text = self._get("onprem_vl", lambda: OnPremVisionLanguage(self.settings, self.http))
+        return self._get("privacy_router", lambda: RoutingVisionLanguage(text, media))
 
     def tracker(self, mode: Mode) -> Tracker:
         info = self.resolve(mode)

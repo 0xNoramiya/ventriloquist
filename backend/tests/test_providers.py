@@ -292,3 +292,62 @@ async def test_llm_caller_repairs_once_then_falls_back():
     assert ok.ok and ok.meta.repaired and ok.data.answer == "yes"
     bad = await LLMCaller(Scripted(["nope", "{}"])).call(req, Schema(answer="fallback"))
     assert not bad.ok and bad.meta.fallback and bad.data.answer == "fallback"
+
+
+async def test_onprem_glimmer_text_and_routing(ctx, monkeypatch, tmp_path):
+    from app.providers.mock import MockVisionLanguage
+    from app.providers.onprem import OnPremVisionLanguage, RoutingVisionLanguage
+
+    monkeypatch.setenv("LOCAL_LLM_URL", "http://gpu-box.local:8001/v1")
+    monkeypatch.setenv("LOCAL_LLM_MODEL", "muse-glimmer-q4")
+    seen = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["url"] = str(request.url)
+        seen["body"] = json.loads(request.content)
+        return httpx.Response(
+            200,
+            json={
+                "choices": [{"message": {"content": '{"answer": "ok"}'}}],
+                "usage": {"prompt_tokens": 12, "completion_tokens": 4},
+            },
+        )
+
+    onprem = OnPremVisionLanguage(
+        ctx.settings, httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    )
+    router = RoutingVisionLanguage(onprem, MockVisionLanguage())
+    raw = await router.complete(
+        LLMRequest(
+            role="sentence_builder",
+            instructions="s",
+            parts=[Part("text", text="KUCING")],
+            schema=Schema,
+        )
+    )
+    assert seen["url"] == "http://gpu-box.local:8001/v1/chat/completions"
+    assert (
+        seen["body"]["model"] == "muse-glimmer-q4"
+        and "JSON schema" in seen["body"]["messages"][0]["content"]
+    )
+    assert raw.provider == "onprem" and json.loads(raw.text) == {"answer": "ok"}
+    clip = tmp_path / "c.mp4"
+    clip.write_bytes(b"0")
+    raw2 = await router.complete(
+        LLMRequest(
+            role="blind_judge", instructions="s", parts=[Part("video", path=clip)], schema=JudgeOut
+        )
+    )
+    assert raw2.provider == "mock"  # media never reaches the text-only model
+
+
+async def test_privacy_mode_resolution(ctx, monkeypatch):
+    from app.providers.registry import Mode
+
+    assert ctx.hub.resolve(Mode.PRIVACY).effective == Mode.MOCK
+    monkeypatch.setenv("LOCAL_LLM_URL", "http://gpu-box.local:8001/v1")
+    info = ctx.hub.resolve(Mode.PRIVACY)
+    assert info.effective == Mode.PRIVACY and "Glimmer" in info.reason
+    vl = ctx.hub.vision_language(Mode.PRIVACY)
+    assert vl.provider == "onprem+mock"
+    assert ctx.hub.tracker(Mode.PRIVACY).provider == "local"

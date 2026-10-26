@@ -113,6 +113,7 @@ Details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Client protocol: [`docs
 | **Muse Voice Transcribe** | Diarized room transcript with family names as keywords and an Indonesian language bias (without it, Indonesian came back empty in our probes) |
 | **Muse Wonder** | Memory curator over the whole stay history (proposals with provenance, caregiver-approved) and memory selector before each session |
 | **Muse Spark Open** (open weights, Baseten) | Privacy mode: the same Spark roles on an open-weight model, including room audio via its audio input |
+| **Muse Glimmer** (open weights, on your own hardware) | Optional on-premises privacy tier: the text-only roles (priors, questions, completions, sentences, sensitive classifier, memory) on an OpenAI-compatible server in the hospital |
 | SAM 3.1 open weights (optional, self-hosted on Modal) | Privacy-mode tracker when an endpoint is configured; otherwise an on-device optical-flow tracker |
 
 Every call is schema-validated (strict JSON schema on the Meta API), repaired once, then falls back
@@ -151,11 +152,18 @@ the eyebrow raise. These numbers say nothing about real patients.
 
 ## Privacy mode
 
-Toggle it per session or in settings. The same pipeline runs on Muse Spark Open via Baseten, whose
-synchronous Model APIs fall under its zero-data-retention policy, so patient video need not touch a
-closed API. SAM runs on a self-hosted endpoint if one is configured, otherwise on an on-device
-optical-flow tracker. Without a Baseten key privacy mode stays fully on-device with mock models. In
-live mode every Meta request is sent with `store: false`.
+Toggle it per session or in settings. The same pipeline runs on open-weight models:
+
+- **Partner inference:** Muse Spark Open on Baseten, whose synchronous Model APIs fall under its
+  zero-data-retention policy, so patient video need not touch a closed API.
+- **On-premises:** Muse Glimmer on a GPU box in the hospital (any OpenAI-compatible server) takes
+  every text-only role. Images and video then stay on-device, read by the local optical-flow tracker,
+  so nothing leaves the building. In Indonesia, where health data is specific personal data under
+  UU 27/2022, that matters.
+
+SAM runs on a self-hosted endpoint if one is configured, otherwise on the on-device tracker. With no
+open-weight endpoint configured, privacy mode stays fully on-device with mock models. In live mode
+every Meta request is sent with `store: false`.
 
 ## Quickstart
 
@@ -179,7 +187,7 @@ answer.
 runs every role for well under a dollar. The budget guard warns at 70% of `budget.max_usd` and switches
 to mock at 90%.
 
-**Privacy mode**: set `BASETEN_API_KEY` (and optionally `MODAL_SAM_URL`) and enable privacy in Settings.
+**Privacy mode**: set `BASETEN_API_KEY` and/or `LOCAL_LLM_URL` (Muse Glimmer on your own server; optionally `MODAL_SAM_URL`) and enable privacy in Settings.
 
 ## Built during the hackathon
 

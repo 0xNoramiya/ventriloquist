@@ -166,6 +166,13 @@ Sources: https://docs.baseten.co/inference/model-apis/overview, /inference/model
 
 - Modal lists **Muse Spark Open** as an OpenAI-compatible shared endpoint, model id `meta-models/Muse-Spark-Open-816B-A42B`, at $1.25 / $0.15 / $4.25 per M (https://modal.com/library/meta/muse-spark-open). Its library page shows **no hosted SAM 3.1 endpoint** (checked https://modal.com/library). SAM 3.1 on Modal would be a self-written Modal app serving the open weights (`facebook/sam3.1` on Hugging Face per third-party listings, not verified). Meta-hosted `sam-3.1` already covers our needs at $0.012 per 4 s clip.
 
+## 11b. Muse Glimmer (open weights, on-premises tier)
+
+- Sources: https://campustechnology.com/articles/2026/08/26/meta-releases-muse-glimmer-an-open-weight-ai-model-designed-to-run-on-consumer-hardware.aspx , https://www.vktr.com/ai-platforms/meta-releases-muse-glimmer/ (news coverage, checked 2026-10-26; read the model card before deploying).
+- Reported: 30B dense parameters, distilled from Muse Spark 1.2, Apache 2.0, weights on Hugging Face, quantized to under 20 GB to run on consumer hardware.
+- Ventriloquist talks to it through any OpenAI-compatible Chat Completions server (`LOCAL_LLM_URL`, `LOCAL_LLM_MODEL`). Like Baseten, structured output is put in the system prompt and validated with one repair. Text-only roles only; requests with media are routed to Baseten or stay on-device (`providers/onprem.py`).
+- UNTESTED against a real Glimmer server; contract test against a mock endpoint.
+
 ## 12. Prices (verified 2026-10-26, https://dev.meta.ai/docs/pricing-rate-limits; config.yaml updated)
 
 | Model | Unit | Price |

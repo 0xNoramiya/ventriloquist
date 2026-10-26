@@ -18,6 +18,7 @@ models:
   image: muse-image-1.0                       # verified in GET /v1/models on 2026-10-26
   spark_open: meta-models/muse-spark-open-1026  # Baseten (organizer note: use this id, not muse-spark-open)
   sam_open: facebook/sam3.1                   # optional, Modal; weights are never committed
+  glimmer: muse-glimmer                       # open weights (Apache 2.0) on your own OpenAI-compatible server; override with LOCAL_LLM_MODEL
 
 providers:
   meta_api:
@@ -30,6 +31,8 @@ providers:
     max_retries: 2
   modal_sam:
     endpoint_url: ""                            # optional
+  local_llm:
+    base_url: ""                                # e.g. http://gpu-box.local:8001/v1 (vLLM / llama.cpp / Ollama); or LOCAL_LLM_URL
 
 # USD prices used by the budget guard. Token prices are per 1M tokens.
 # Meta prices verified 2026-10-26 UTC at https://dev.meta.ai/docs/pricing-rate-limits (see docs/API_NOTES.md).
