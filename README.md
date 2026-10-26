@@ -35,6 +35,14 @@ Hackathon 2026 (Indie Developer track, "Build for Your World").
 5. Anything not on the list gets spelled, with word completions. Three quick YES signals raise an
    alarm from any screen.
 
+| Patient phone (confirm before speaking) | Patient phone (spelling, Indonesian) | Caregiver console |
+|---|---|---|
+| ![Patient confirm](docs/img/patient-confirm.png) | ![Patient spelling](docs/img/patient-spelling.png) | ![Caregiver console](docs/img/caregiver.png) |
+
+Screenshots from mock mode with a fictional patient. The caregiver sees every probability, the
+evidence behind each guess (chip T1: the nurse said Aisyah went home), the question trail with an
+override badge on the one answer the caregiver entered, and the message the patient confirmed.
+
 ## The problem
 
 A 2025 review of communication tools in intensive care reports that only about 5% of the messages
