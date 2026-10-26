@@ -197,7 +197,6 @@ class Session:
         self.refined = False
         self.retractions = 0
         self.sentence_rounds = 0
-        self.pain_parent: Message | None = None
         self.rejected: list[dict[str, Any]] = []
         self._tasks: set[asyncio.Task[Any]] = set()
 
@@ -965,7 +964,6 @@ class Session:
         )
         if msg.hypothesis_id == "pain" and not self.refined:
             self.refined = True
-            self.pain_parent = msg
             self.stage = "refine_offer"
             await self._prompt("refine_offer", "refine_offer", offer_question())
             return
