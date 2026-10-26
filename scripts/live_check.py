@@ -32,13 +32,13 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "backend"), str(ROOT)]
 os.environ["APP_MODE"] = "live"
 
-from app.config import load_settings
-from app.memory import curator
-from app.perception import calibration as calib
-from app.perception.pipeline import perceive
-from app.providers.registry import Mode, ProviderHub
-from app.roles import Roles
-from app.storage import Store
+from app.config import load_settings  # noqa: E402
+from app.memory import curator  # noqa: E402
+from app.perception import calibration as calib  # noqa: E402
+from app.perception.pipeline import perceive  # noqa: E402
+from app.providers.registry import Mode, ProviderHub  # noqa: E402
+from app.roles import Roles  # noqa: E402
+from app.storage import Store  # noqa: E402
 
 MEDIA = ROOT / "data" / "probe_media"
 OUT = ROOT / "data" / "live_check"
