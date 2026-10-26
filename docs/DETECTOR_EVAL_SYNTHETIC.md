@@ -2,7 +2,7 @@
 
 Mode `mock`, 9 clips (SYNTHETIC cartoon clips: not evidence about real patients).
 Calibration leave-one-out accuracy: {'local': 0.8888888888888888}; error rates {'a': 0.07692307692307693, 'b': 0.07692307692307693}.
-Latency per answer window: median 797 ms, p90 879 ms.
+Latency per answer window: median 741 ms, p90 845 ms.
 
 ## fused (accuracy 0.89)
 

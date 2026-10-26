@@ -63,7 +63,7 @@ class Roles:
         effort: str | None = None,
         model_key: str = "spark",
         timeout_s: float = 30.0,
-        max_tokens: int = 900,
+        max_tokens: int = 1500,
     ) -> RoleResult:
         instructions, version = _instructions(role, extra)
         req = LLMRequest(
@@ -150,7 +150,7 @@ class Roles:
             extra=f"\nThe patient's calibrated signals:\n{signal_text}",
             effort=self.settings.perception.judge_reasoning_effort,
             timeout_s=self.settings.perception.judge_timeout_s,
-            max_tokens=700,
+            max_tokens=1500,
         )
 
     # ---------------------------------------------------------------- context
@@ -169,7 +169,7 @@ class Roles:
             SceneFacts,
             SceneFacts(facts=[]),
             {"scene_hint": hint},
-            max_tokens=800,
+            max_tokens=1500,
         )
 
     async def build_prior(
@@ -214,7 +214,7 @@ class Roles:
             QuestionProposal,
             QuestionProposal(),
             {"evidence": evidence, "hypotheses": hypotheses, "top": top},
-            max_tokens=1200,
+            max_tokens=3000,
         )
 
     async def complete_word(
@@ -234,7 +234,7 @@ class Roles:
             Completions(),
             {"prefix": prefix, "text": text, "lang": lang},
             timeout_s=8,
-            max_tokens=700,
+            max_tokens=1500,
         )
 
     async def build_sentences(
@@ -254,7 +254,7 @@ class Roles:
             Sentences(),
             {"text": text, "lang": lang, "persons": persons},
             timeout_s=10,
-            max_tokens=900,
+            max_tokens=1500,
         )
 
     async def classify_sensitive(self, mode: Mode, text: str) -> RoleResult[SensitiveOut]:
@@ -266,7 +266,7 @@ class Roles:
             SensitiveOut(sensitive=False),
             {"text": text},
             timeout_s=8,
-            max_tokens=600,
+            max_tokens=1200,
         )
 
     # ----------------------------------------------------------------- memory
@@ -299,5 +299,5 @@ class Roles:
             MemorySelection(entry_ids=[m["id"] for m in memory[-10:]]),
             {"memory": memory, "evidence": evidence},
             model_key="wonder",
-            max_tokens=600,
+            max_tokens=1200,
         )

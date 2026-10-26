@@ -152,8 +152,11 @@ context), simulated patients needed 7.05 questions per message on day 1 and 6.63
 Real-patient detector numbers need labelled clips from consenting participants
 (`scripts/eval_detector.py`, data in `data/labeled/`, never committed); they are not recorded yet.
 On synthetic cartoon clips (`docs/DETECTOR_EVAL_SYNTHETIC.md`) the pipeline runs end to end. In the
-live check, SAM-based calibration reached 0.86 leave-one-out accuracy and Muse Spark correctly named
-the eyebrow raise. These numbers say nothing about real patients.
+live check (`docs/LIVE_CHECK.md`), Muse Spark named the eyebrow raise and chose "eyebrows" as the SAM
+prompt, SAM-based calibration reached 0.86 leave-one-out accuracy, and three answer windows (YES, NO,
+rest) were each classified correctly (fused confidence 0.85 to 0.97). The detector's softmin
+temperature is fitted on the calibration clips (temperature scaling on leave-one-out likelihood);
+before that fix the same windows all came back UNCLEAR. These numbers say nothing about real patients.
 
 ## Privacy mode
 

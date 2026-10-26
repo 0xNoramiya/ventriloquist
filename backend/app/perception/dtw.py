@@ -87,3 +87,37 @@ def auto_temperature(
             if others:
                 d.append(min(others))
     return float(np.median(d)) if d else 1.0
+
+
+def fit_temperature(
+    examples: list[tuple[str, np.ndarray]], length: int = 32, window: int = 8
+) -> float:
+    """Temperature scaling: pick the softmin temperature that maximises the leave-one-out
+    log-likelihood of the true class (a 1-parameter calibration of the detector's confidence)."""
+    base = auto_temperature(examples, length, window)
+    rows: list[tuple[str, dict[str, float]]] = []
+    for i, (label, seq) in enumerate(examples):
+        temps: dict[str, list[np.ndarray]] = {}
+        for j, (lab, s) in enumerate(examples):
+            if j != i:
+                temps.setdefault(lab, []).append(s)
+        _, dists = classify(seq, temps, base, length, window)
+        if label in dists and len(dists) > 1:
+            rows.append((label, dists))
+    if not rows:
+        return base
+    best_t, best_ll = base, -np.inf
+    for factor in (0.15, 0.2, 0.3, 0.4, 0.5, 0.7, 1.0, 1.5, 2.0):
+        t = base * factor
+        ll = 0.0
+        for label, dists in rows:
+            labels = list(dists)
+            d = np.array([dists[k] for k in labels])
+            logits = -(d - d.min()) / max(t, 1e-6)
+            logp = logits - np.log(np.exp(logits).sum())
+            ll += max(
+                float(logp[labels.index(label)]), np.log(0.02)
+            )  # cap the penalty of one outlier
+        if ll > best_ll + 1e-9:
+            best_t, best_ll = t, ll
+    return float(best_t)

@@ -24,7 +24,7 @@ from app.providers.registry import Mode, ProviderHub
 from app.roles import Roles
 from app.schemas import CalibrationDescription
 
-from .dtw import auto_temperature, leave_one_out
+from .dtw import fit_temperature, leave_one_out
 from .features import fit_baseline, normalise, peak_amplitude, sam_feature_seq
 from .fusion import judge_probs
 from .media import normalize_video, read_frames
@@ -81,7 +81,9 @@ def build_templates(examples: list[Example], fps: float) -> dict[str, Any]:
     motion = [e.seq for e in examples if e.label != "rest"]
     baseline = fit_baseline(rest, motion)
     normed = [(e.label, normalise(e.seq, baseline)) for e in examples]
-    temp = auto_temperature([x for x in normed if x[0] != "emergency"])
+    temp = fit_temperature(
+        [("none" if lab == "rest" else lab, s) for lab, s in normed if lab != "emergency"]
+    )
     templates: dict[str, list[list[list[float]]]] = {}
     for label, seq in normed:
         templates.setdefault("none" if label == "rest" else label, []).append(seq.tolist())

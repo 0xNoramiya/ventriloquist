@@ -46,9 +46,7 @@ OUT = ROOT / "data" / "live_check"
 
 def ensure_media() -> None:
     if not (MEDIA / "face_yes_eyebrows.mp4").exists():
-        subprocess.run(
-            [sys.executable, str(ROOT / "scripts" / "make_probe_media.py")], check=True
-        )
+        subprocess.run([sys.executable, str(ROOT / "scripts" / "make_probe_media.py")], check=True)
 
 
 def variant(src: Path, dst: Path, shift: float, speed: float = 1.0) -> Path:
@@ -132,15 +130,9 @@ async def part_roles(hub: ProviderHub, roles: Roles, report: dict[str, Any]) -> 
         "scene_reader": roles.read_scene(Mode.LIVE, MEDIA / "hospital_room.png"),
         "prior_builder": roles.build_prior(Mode.LIVE, evidence, hyps, people),
         "question_proposer": roles.propose_questions(Mode.LIVE, evidence, hyps, []),
-        "spelling_completer": roles.complete_word(
-            Mode.LIVE, "KU", "KU", "id", evidence
-        ),
-        "sentence_builder": roles.build_sentences(
-            Mode.LIVE, "KUCING", "id", evidence, people
-        ),
-        "sensitive_classifier": roles.classify_sensitive(
-            Mode.LIVE, "SAYA MAU PULANG PAKSA"
-        ),
+        "spelling_completer": roles.complete_word(Mode.LIVE, "KU", "KU", "id", evidence),
+        "sentence_builder": roles.build_sentences(Mode.LIVE, "KUCING", "id", evidence, people),
+        "sensitive_classifier": roles.classify_sensitive(Mode.LIVE, "SAYA MAU PULANG PAKSA"),
     }
     results = await asyncio.gather(*calls.values())
     for name, res in zip(calls, results, strict=True):
@@ -230,8 +222,7 @@ async def part_session(report: dict[str, Any], data_dir: Path) -> None:
         lines = [json.loads(x) for x in Path(res["log"]).read_text().splitlines()]
         calls = [x for x in lines if x["event"] == "llm_call"]
         res["llm_calls"] = [
-            {k: c.get(k) for k in ("role", "model", "latency_ms", "usd", "fallback")}
-            for c in calls
+            {k: c.get(k) for k in ("role", "model", "latency_ms", "usd", "fallback")} for c in calls
         ]
         report["sessions"][scenario] = res
         print(
@@ -240,9 +231,7 @@ async def part_session(report: dict[str, Any], data_dir: Path) -> None:
         )
 
 
-async def part_memory(
-    hub: ProviderHub, roles: Roles, store: Store, report: dict[str, Any]
-) -> None:
+async def part_memory(hub: ProviderHub, roles: Roles, store: Store, report: dict[str, Any]) -> None:
     patients = store.list_patients()
     if not patients:
         print("  no patients (run the session part first)")
@@ -255,9 +244,7 @@ async def part_memory(
             {
                 "patient": p["display_name"],
                 "result": res,
-                "ops": [
-                    {k: o[k] for k in ("op", "text", "category", "reason")} for o in ops
-                ],
+                "ops": [{k: o[k] for k in ("op", "text", "category", "reason")} for o in ops],
             }
         )
         print(
@@ -272,9 +259,10 @@ def write_markdown(report: dict[str, Any]) -> None:
         "# Live check",
         "",
         (
-            f"Run {report['started']} with `scripts/live_check.py` against the real Meta Model API "
-            f"(`APP_MODE=live`). Fictional patients and synthetic media only. Total spend for this run: "
-            f"**${report['spend_usd']:.3f}**."
+            f"Last run {report['started']} with `scripts/live_check.py` against the real Meta Model API "
+            f"(`APP_MODE=live`). Fictional patients and synthetic media only. Cost of the last run: "
+            f"${report['spend_usd']:.3f}; all live-check runs in this data directory: "
+            f"${report.get('spend_total_usd', report['spend_usd']):.3f}."
         ),
         "",
     ]
@@ -311,9 +299,7 @@ def write_markdown(report: dict[str, Any]) -> None:
             "|---|---|---:|---:|---:|---|",
         ]
         for w in report["windows"]:
-            src = ", ".join(
-                f"{k}: {v['top']} {v['p']}" for k, v in w["sources"].items()
-            )
+            src = ", ".join(f"{k}: {v['top']} {v['p']}" for k, v in w["sources"].items())
             lines.append(
                 f"| {w['true']} | {w['answer']} | {w['confidence']} | {w['latency_ms']} | {w['usd']} | {src} |"
             )
@@ -344,9 +330,7 @@ def write_markdown(report: dict[str, Any]) -> None:
 
 async def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument(
-        "--part", action="append", choices=["roles", "perception", "session", "memory"]
-    )
+    ap.add_argument("--part", action="append", choices=["roles", "perception", "session", "memory"])
     args = ap.parse_args()
     parts = args.part or ["roles", "perception", "session", "memory"]
     settings = load_settings().model_copy(update={"app_mode": "live"})
@@ -360,11 +344,15 @@ async def main() -> None:
     hub = ProviderHub(settings, store)
     roles = Roles(hub, settings)
     ensure_media()
-    report: dict[str, Any] = {
-        "started": datetime.now(UTC).isoformat(timespec="seconds"),
-        "roles": {},
-        "sessions": {},
-    }
+    report: dict[str, Any] = {"roles": {}, "sessions": {}}
+    previous = OUT / "live_check.json"
+    if previous.exists():  # keep results of parts not re-run this time
+        report.update(json.loads(previous.read_text()))
+    report["started"] = datetime.now(UTC).isoformat(timespec="seconds")
+    if "roles" in parts:
+        report["roles"] = {}
+    if "session" in parts:
+        report["sessions"] = {}
     spent0 = store.total_spend()
     if "roles" in parts:
         print("roles:")
@@ -379,6 +367,7 @@ async def main() -> None:
         print("memory:")
         await part_memory(hub, roles, Store(data_dir), report)
     report["spend_usd"] = Store(data_dir).total_spend() - spent0
+    report["spend_total_usd"] = Store(data_dir).total_spend()
     (OUT / "live_check.json").write_text(
         json.dumps(report, indent=1, ensure_ascii=False, default=str)
     )
