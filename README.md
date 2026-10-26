@@ -214,6 +214,10 @@ open the patient view on a phone on the same network (`https://<laptop-ip>:5173/
 the self-signed certificate) and answer with Y / N / U / E on a keyboard, or let the simulated patient
 answer.
 
+**Mock mode with a camera**: calibrate the patient (`/setup`, then `/calibrate`). Once a patient has a
+real calibration, the patient view reads answers from the camera even without keys, using the
+on-device optical-flow tracker; nothing leaves the machine.
+
 **Live mode**: set `MODEL_API_KEY` in `.env` and a `LIVE_PASSCODE`, then switch to live in Settings.
 `make probe` checks every endpoint; `PYTHONPATH=backend:. backend/.venv/bin/python scripts/live_check.py`
 runs every role for well under a dollar. The budget guard warns at 70% of `budget.max_usd` and switches

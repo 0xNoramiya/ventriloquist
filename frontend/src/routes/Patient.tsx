@@ -23,6 +23,12 @@ function isLive(s: Snapshot | null): boolean {
   return Boolean(s && s.mode.effective !== 'mock');
 }
 
+/** Read answers from the camera in live mode, and also in mock mode once the patient has a real
+ * calibration: the on-device motion tracker needs no keys and sends nothing off the machine. */
+function usesCamera(s: Snapshot | null): boolean {
+  return isLive(s) || Boolean(s && !s.calibration.skipped);
+}
+
 export default function Patient() {
   const { sid } = useParams<{ sid: string }>();
   useSessionSocket(sid);
@@ -31,6 +37,7 @@ export default function Patient() {
   const lang: Lang = snap?.patient.language ?? 'en';
   const t = useT(snap ? lang : undefined);
   const live = isLive(snap);
+  const camera = usesCamera(snap);
 
   const [started, setStarted] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
@@ -78,7 +85,7 @@ export default function Patient() {
     unlockAudio();
     setStarted(true);
     const current = useSession.getState().snapshot;
-    if (isLive(current) && sid) {
+    if (usesCamera(current) && sid) {
       try {
         const stream = await startCamera();
         streamRef.current = stream;
@@ -88,8 +95,10 @@ export default function Patient() {
           video.srcObject = stream;
           await video.play().catch(() => undefined);
           await new Promise((r) => window.setTimeout(r, 600));
-          const frame = await grabFrame(video);
-          await api.sessionSnapshotImage(sid, frame);
+          if (isLive(current)) {
+            const frame = await grabFrame(video);
+            await api.sessionSnapshotImage(sid, frame);
+          }
         }
       } catch (e) {
         setStartError(e instanceof Error ? e.message : String(e));
@@ -134,9 +143,9 @@ export default function Patient() {
     }
   }, [started, state, lang]);
 
-  // Live mode: record one clip per prompt while listening and upload it.
+  // Camera answers: record one clip per prompt while listening and upload it.
   useEffect(() => {
-    if (!started || !live || state !== 'LISTENING' || !promptId || !sid) return;
+    if (!started || !camera || state !== 'LISTENING' || !promptId || !sid) return;
     if (recordedRef.current === promptId) return;
     const stream = streamRef.current;
     if (!stream) return;
@@ -156,7 +165,7 @@ export default function Patient() {
         });
     }, delayMs);
     return () => window.clearTimeout(timer);
-  }, [started, live, state, promptId, sid]);
+  }, [started, camera, state, promptId, sid]);
 
   // Mock mode: keyboard answers.
   useEffect(() => {
@@ -219,7 +228,7 @@ export default function Patient() {
       {!snap ? (
         <CalmScreen title={t('patient.connecting')} />
       ) : !started ? (
-        <StartGate t={t} live={live} onStart={() => void start()} />
+        <StartGate t={t} live={camera} onStart={() => void start()} />
       ) : (
         <Stage snap={snap} t={t} recording={recording} uploadError={uploadError} />
       )}
