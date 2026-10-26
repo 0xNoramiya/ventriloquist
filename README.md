@@ -185,6 +185,18 @@ SAM runs on a self-hosted endpoint if one is configured, otherwise on the on-dev
 open-weight endpoint configured, privacy mode stays fully on-device with mock models. In live mode
 every Meta request is sent with `store: false`.
 
+## Hosted demo (no install)
+
+![Hosted demo](docs/img/hosted-demo.png)
+
+The demo page runs the real engine, written in Python, inside the browser through WebAssembly
+(Pyodide): the same session code, safety checks and mock models as the server, with the caregiver
+console and a phone-sized patient view side by side. No server, no camera, no keys. Answer with Y
+and N, or tick "Simulated patient" and watch.
+
+It deploys to GitHub Pages from `.github/workflows/pages.yml` (Settings > Pages > Source: GitHub
+Actions), at `https://<user>.github.io/<repo>/`. Locally: `cd frontend && npm run dev:demo`.
+
 ## Quickstart
 
 Requirements: Python 3.11+, [uv](https://docs.astral.sh/uv/), Node 20+, ffmpeg.

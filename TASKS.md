@@ -9,7 +9,7 @@ Status: `[x]` done, `[~]` in progress, `[ ]` to do. Updated as work proceeds.
 - [x] Probes `scripts/probe_*.py` (skip gracefully without keys)
 - [x] Verify problem-statement sources (`docs/SOURCES.md`)
 - [x] README skeleton, `HACKATHON_LOG.md`, docs skeletons
-- [ ] DoD: `make setup && make test` passes; `make dev` serves backend and frontend
+- [x] DoD: `make setup && make test` passes; `make dev` serves backend and frontend
 
 ## Phase 1: Engine (Section 8)
 - [x] Types, taxonomy v1 (EN/ID), attribute partitions
@@ -32,10 +32,10 @@ Status: `[x]` done, `[~]` in progress, `[ ]` to do. Updated as work proceeds.
 - [x] DoD: `make demo-mock` runs a full session from the CLI and writes a JSONL log
 
 ## Phase 3: Frontend
-- [~] Vite + React + TS strict + Zustand + Tailwind + i18n (en, id), HTTPS dev server, proxy
-- [ ] Routes: `/`, `/setup`, `/calibrate`, `/patient/:sid`, `/caregiver/:sid`, `/memory/:pid`, `/eval`, `/settings`
-- [ ] Mock keyboard answers, speech, sync, emergency, spelling, overrides
-- [ ] DoD: daughter scenario end to end in mock mode; Lighthouse a11y >= 90 on patient view
+- [x] Vite + React + TS strict + Zustand + Tailwind + i18n (en, id), HTTPS dev server, proxy
+- [x] Routes: `/`, `/setup`, `/calibrate`, `/patient/:sid`, `/caregiver/:sid`, `/memory/:pid`, `/eval`, `/settings` (+ `/demo/:sid` for the hosted demo)
+- [x] Mock keyboard answers, speech, sync, emergency, spelling, overrides
+- [x] DoD: daughter scenario end to end in mock mode; Lighthouse a11y 100 on patient view (phone over LAN still to try on real hardware)
 
 ## Phase 4: Live adapters
 - [x] Meta Responses API client; Spark roles (calibration, scene, priors, questions, judge, completer)
@@ -57,6 +57,6 @@ Status: `[x]` done, `[~]` in progress, `[ ]` to do. Updated as work proceeds.
 
 ## Phase 7: Polish and submission
 - [~] UI polish, final README with eval charts and Mermaid diagram, SAFETY.md (docs drafted)
-- [~] Hosted simulation-only demo (no camera, no keys): Pyodide bridge done and verified under Node; Pages workflow drafted; frontend wiring next
+- [x] Hosted simulation-only demo (no camera, no keys): real engine in the browser via Pyodide, verified with Playwright; deploys via the Pages workflow once the repo is on GitHub
 - [~] `docs/DEMO_SCRIPT.md`, X post draft (drafted); demo rehearsal and video recorded last
 - [ ] Feature freeze 2026-11-03 12:00 UTC; submission due 2026-11-05 02:00 UTC
