@@ -101,6 +101,10 @@ class LLMCaller:
                 log.warning("role %s failed: %s", req.role, meta.error)
                 break
             self._account(meta, raw, req.role)
+            if raw.raw.get("status") == "incomplete":
+                # Billed but cut off (usually max_output_tokens): a repair would hit the same limit.
+                meta.error = f"incomplete: {raw.raw.get('incomplete')}"
+                break
             try:
                 data = req.schema.model_validate(extract_json(raw.text))
                 meta.repaired = attempt > 0

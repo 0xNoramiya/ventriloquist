@@ -99,8 +99,9 @@ class Roles:
         self, mode: Mode, clips: dict[str, list[Path]], hint: str | None = None
     ) -> RoleResult[CalibrationDescription]:
         parts: list[Part] = []
-        for label in ("rest", "yes", "no"):
-            for i, clip in enumerate(clips.get(label, [])[:3]):
+        # Muse Spark accepts at most 5 videos per request (observed 400), so: 1 rest, 2 YES, 2 NO.
+        for label, n in (("rest", 1), ("yes", 2), ("no", 2)):
+            for i, clip in enumerate(clips.get(label, [])[:n]):
                 parts.append(Part("video", path=clip, label=f"{label.upper()} clip {i + 1}"))
         fallback = CalibrationDescription(
             yes=SignalSpec(
@@ -129,7 +130,7 @@ class Roles:
             extra=extra,
             effort="low",
             timeout_s=60,
-            max_tokens=1500,
+            max_tokens=3000,
         )
 
     async def judge(
@@ -191,7 +192,7 @@ class Roles:
             PriorProposal(),
             {"evidence": evidence, "hypotheses": hypotheses, "persons": persons},
             effort="low",
-            max_tokens=1500,
+            max_tokens=4000,
         )
 
     async def propose_questions(
@@ -280,7 +281,7 @@ class Roles:
             model_key="wonder",
             effort="low",
             timeout_s=60,
-            max_tokens=2500,
+            max_tokens=4000,
         )
 
     async def select_memory(

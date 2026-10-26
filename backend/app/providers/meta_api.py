@@ -224,16 +224,17 @@ class MetaVisionLanguage(_MetaBase, VisionLanguage):
         )
         data = resp.json()
         latency = (time.perf_counter() - t0) * 1000
-        if data.get("status") == "incomplete":
-            reason = (data.get("incomplete_details") or {}).get("reason")
-            raise ProviderError(f"incomplete response: {reason}")
         return RawResponse(
             parse_responses_output(data),
             self.provider,
             body["model"],
             latency,
             responses_usage(data),
-            {"id": data.get("id"), "status": data.get("status")},
+            {
+                "id": data.get("id"),
+                "status": data.get("status"),
+                "incomplete": (data.get("incomplete_details") or {}).get("reason"),
+            },
         )
 
 

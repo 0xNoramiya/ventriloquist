@@ -218,3 +218,25 @@ async def test_delete_patient_wipes_everything(ctx):
     assert not s.log.path.exists()
     assert ctx.store.get_patient(s.pid) is None
     assert not ctx.store.memory(s.pid, None)
+
+
+async def test_spelling_loop_is_capped(ctx):
+    """A patient who rejects every suggestion and never finishes must not loop forever (cost guard)."""
+
+    class Stubborn(SimulatedPatient):
+        def answer(self, prompt, view):
+            if prompt.get("stage") == "sentence":
+                return Answer.NO
+            return super().answer(prompt, view)
+
+    s = make_session(ctx, "spelling", Stubborn(spell="KUCING", sentence_en="nothing like this"))
+    await s.start()
+    await run_until(s, timeout=60)
+    assert s.state == State.CAREGIVER_NEEDED
+    assert s.caregiver_reason in (
+        "spelling_stuck",
+        "no_questions_left",
+        "question_cap",
+        "inconsistent",
+    )
+    assert s.questions_this_message < 200

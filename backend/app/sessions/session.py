@@ -195,6 +195,7 @@ class Session:
         self.questions_this_message = 0
         self.refined = False
         self.retractions = 0
+        self.sentence_rounds = 0
         self.pain_parent: Message | None = None
         self.rejected: list[dict[str, Any]] = []
         self._tasks: set[asyncio.Task[Any]] = set()
@@ -289,6 +290,7 @@ class Session:
         self.message_started_at = now_iso()
         self.questions_this_message = 0
         self.retractions = 0
+        self.sentence_rounds = 0
         self.stage = "main"
         self.message = None
         self.sentence = self.refine = None
@@ -369,7 +371,11 @@ class Session:
         self._record_call(q_res.meta.to_dict())
         new_hyps, rejected = validate_instantiations(
             [
-                TemplateProposal(n.template, n.slots, n.evidence_ids)
+                TemplateProposal(
+                    n.template,
+                    {k: v for k, v in n.slots.model_dump().items() if v},
+                    n.evidence_ids,
+                )
                 for n in prior_res.data.new_hypotheses
             ],
             persons=self.persons,
@@ -743,6 +749,9 @@ class Session:
 
     async def _next_spell_prompt(self) -> None:
         assert self.spelling is not None
+        if self.spelling.n_questions >= self.cfg.spelling_max_prompts:
+            await self._caregiver("spelling_stuck")
+            return
         sp: SpellPrompt = self.spelling.next_prompt()
         await self._prompt(
             "spelling",
@@ -795,6 +804,10 @@ class Session:
 
     async def _offer_sentences(self, text: str) -> None:
         if await self._sensitive_check(text):
+            return
+        self.sentence_rounds += 1
+        if self.sentence_rounds > self.cfg.sentence_max_rounds:
+            await self._caregiver("spelling_stuck")
             return
         res = await self.ctx.roles.build_sentences(
             self.mode,

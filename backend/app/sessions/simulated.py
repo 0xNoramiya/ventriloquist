@@ -75,11 +75,15 @@ class SimulatedPatient:
         typed = ((view.get("spelling") or {}).get("text") or "").strip()
         target = (self.spell or "").strip()
         complete = typed == target
+        offered = {h.get("text_en") for h in hyps.values()}
+        wants_sentence = bool(self.sentence_en and self.sentence_en in offered)
         for hid in yes_ids:
             h = hyps.get(hid)
             if not h:
                 continue
-            if self.sentence_en and h.get("text_en") == self.sentence_en:
+            if wants_sentence and h.get("text_en") == self.sentence_en:
+                return True
+            if not wants_sentence and hid == "spelled_text" and complete:
                 return True
             if hid == "keep_spelling" and not complete and not self.sentence_en:
                 return True

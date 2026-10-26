@@ -85,6 +85,8 @@ engine:
   spelling_letter_accept: 0.90
   spelling_max_questions_per_letter: 14
   spelling_word_suggest_min: 0.35
+  spelling_max_prompts: 80        # per message, then the caregiver takes over (also a cost guard)
+  sentence_max_rounds: 3
 
 # Taxonomy v1 base rates. These are STARTING GUESSES chosen by the team, not clinical data.
 # They are normalised at runtime. see_person is split across family members in the profile.

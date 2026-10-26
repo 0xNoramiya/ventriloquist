@@ -220,6 +220,12 @@ Synthetic media and its ground truth: `data/probe_media/` (gitignored), regenera
 8. **Baseten**: the docs slug is `meta-models/muse-spark-open`, and the `-1026` id is unverified. Structured output is **not enforced**. Reasoning is always on (default xhigh). Video is capped at 96 sampled frames and **video audio is ignored**. No PDF.
 9. **Spark video** works inline as a data URL (no upload required) and honours `input_video.fps`. The default is about 2 fps, which misses fast eyebrow raises. The token-count endpoint ignores video.
 
+10. **Spark accepts at most 5 videos per request** (observed 2026-10-26: `400 "request contains 7 videos, exceeding the maximum of 5 allowed per request"`; not in the docs). The calibration describer sends 1 rest + 2 YES + 2 NO clips.
+11. **Strict structured output rejects free-form maps**: a `dict[str, str]` field fails with `"'additionalProperties' is required to be supplied and to be false."` Template slots are therefore explicit nullable fields (`name`, `relation`, `item`, `item_id`).
+12. **Reasoning budgets**: at effort `low`, the prior builder used more than 1,500 output tokens and came back `incomplete` (still billed). Reasoning roles now get 3,000-4,000 `max_output_tokens`; an incomplete reply is accounted and falls back without a repair retry.
+13. **Adapter choice**: the probes use the OpenAI SDK with `base_url`; the production adapters call the same OpenAI-compatible endpoints with `httpx` directly so retries (429/5xx with `Retry-After`), timeouts and Meta-specific fields (`input_video.fps`, SAM `metadata`) stay explicit. Request bodies are covered by contract tests (`backend/tests/test_providers.py`).
+14. **Blind judge timeout**: observed Spark video latency (3.8-5.1 s, one 13.3 s outlier) is close to the brief's 6 s. The judge keeps `judge_timeout_s: 6` (+2 s grace); on timeout the tracker path decides alone with reduced confidence.
+
 ## Open questions
 
 1. Is `meta-models/muse-spark-open-1026` live on Baseten? Run `scripts/probe_baseten.py --media` once `BASETEN_API_KEY` is set. It also checks video/audio acceptance.

@@ -145,9 +145,18 @@ class MultiplierOut(_Out):
     reason: str = Field(default="", max_length=160)
 
 
+class SlotsOut(_Out):
+    """Template slots. Explicit fields (not a free-form map) so strict structured output accepts it."""
+
+    name: str | None = None
+    relation: str | None = None
+    item: str | None = None
+    item_id: str | None = None
+
+
 class InstantiationOut(_Out):
     template: str
-    slots: dict[str, str]
+    slots: SlotsOut
     evidence_ids: list[str] = Field(default_factory=list)
 
 

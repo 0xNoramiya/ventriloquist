@@ -52,6 +52,8 @@ class EngineConfig(_Section):
     spelling_letter_accept: float = 0.90
     spelling_max_questions_per_letter: int = 14
     spelling_word_suggest_min: float = 0.35
+    spelling_max_prompts: int = 80
+    sentence_max_rounds: int = 3
 
 
 class PerceptionConfig(_Section):
