@@ -13,7 +13,8 @@ message aloud, in the first person, after the patient has confirmed it.
 > bounded guessing and confirm-before-speak exist to keep it that way.
 
 **Not a medical device.** Not a substitute for the nurse call system, monitors or clinical judgment.
-Built and tested with fictional patients and consenting actors only.
+So far built and tested with fictional patients and synthetic media only; recordings with consenting
+actors come next.
 
 Solo entry by Rifqi, emergency medicine intern in Indonesia, for the Meta Global AI Developer
 Hackathon 2026 (Indie Developer track, "Build for Your World").
@@ -22,7 +23,7 @@ Hackathon 2026 (Indie Developer track, "Build for Your World").
 
 ## In 20 seconds
 
-1. During a one-minute calibration the patient shows their own YES and NO. Muse Spark watches the
+1. During a short calibration the patient shows their own YES and NO. Muse Spark watches the
    clips and names the movement; SAM 3.1 tracks that body part from then on.
 2. When the patient wants to talk, Muse Spark reads the room (the nurse's words, the bedside photo,
    the visitor who just left) and proposes how much more or less likely each message is, citing
@@ -120,8 +121,9 @@ Details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Client protocol: [`docs
 | **SAM 3.1** (Meta Model API) | Tracks the patient's own signal (e.g. "eyebrows") across each answer clip; box geometry becomes features for DTW against the calibrated templates; boxes are drawn on the caregiver screen |
 | **Muse Voice Transcribe** | Diarized room transcript with family names as keywords and an Indonesian language bias (without it, Indonesian came back empty in our probes) |
 | **Muse Wonder** | Memory curator over the whole stay history (proposals with provenance, caregiver-approved) and memory selector before each session |
-| **Muse Spark Open** (open weights, Baseten) | Privacy mode: the same Spark roles on an open-weight model, including room audio via its audio input |
+| **Muse Spark Open** (open weights, Baseten or Modal) | Privacy mode: the same Spark roles on an open-weight model, including room audio via its audio input |
 | **Muse Glimmer** (open weights, on your own hardware) | Optional on-premises privacy tier: the text-only roles (priors, questions, completions, sentences, sensitive classifier, memory) on an OpenAI-compatible server in the hospital |
+| **Muse Image** | Generated the 34 AAC pictograms shown next to messages on the patient screen (`scripts/generate_pictograms.py`) |
 | SAM 3.1 open weights (optional, self-hosted on Modal) | Privacy-mode tracker when an endpoint is configured; otherwise an on-device optical-flow tracker |
 
 Every call is schema-validated (strict JSON schema on the Meta API), repaired once, then falls back
@@ -174,8 +176,8 @@ the trail afterwards and raises an alert if it disagrees. These numbers say noth
 
 Toggle it per session or in settings. The same pipeline runs on open-weight models:
 
-- **Partner inference:** Muse Spark Open on Baseten, whose synchronous Model APIs fall under its
-  zero-data-retention policy, so patient video need not touch a closed API.
+- **Partner inference:** Muse Spark Open on Baseten (whose synchronous Model APIs fall under its
+  zero-data-retention policy) or on Modal, so patient video need not touch a closed API.
 - **On-premises:** Muse Glimmer on a GPU box in the hospital (any OpenAI-compatible server) takes
   every text-only role. Images and video then stay on-device, read by the local optical-flow tracker,
   so nothing leaves the building. In Indonesia, where health data is specific personal data under
@@ -223,11 +225,12 @@ on-device optical-flow tracker; nothing leaves the machine.
 runs every role for well under a dollar. The budget guard warns at 70% of `budget.max_usd` and switches
 to mock at 90%.
 
-**Privacy mode**: set `BASETEN_API_KEY` and/or `LOCAL_LLM_URL` (Muse Glimmer on your own server; optionally `MODAL_SAM_URL`) and enable privacy in Settings.
+**Privacy mode**: set `BASETEN_API_KEY` (or `MODAL_SPARK_URL`) and/or `LOCAL_LLM_URL` (Muse Glimmer on
+your own server; optionally `MODAL_SAM_URL`), then enable privacy in Settings.
 
 ## Built during the hackathon
 
-Kickoff 2026-10-26 16:00 UTC; everything in this repository was written after that, in public commits.
+Kickoff 2026-10-26 16:00 UTC; everything in this repository was written after that, in dated commits.
 The dated build log is [`HACKATHON_LOG.md`](HACKATHON_LOG.md) and the task list is [`TASKS.md`](TASKS.md).
 
 ## Limitations and next steps
@@ -248,7 +251,7 @@ The dated build log is [`HACKATHON_LOG.md`](HACKATHON_LOG.md) and the task list 
 
 MIT ([`LICENSE`](LICENSE)). Letter statistics come from public-domain texts (Project Gutenberg) and
 Indonesian statutes, which carry no copyright (UU 28/2014 Art. 42); see `docs/SOURCES.md`. Models by
-Meta (Muse Spark, SAM 3.1, Muse Voice Transcribe, Muse Wonder, Muse Spark Open). SAM 3.1 weights are
+Meta (Muse Spark, SAM 3.1, Muse Voice Transcribe, Muse Wonder, Muse Image, Muse Spark Open, Muse Glimmer). SAM 3.1 weights are
 under the SAM License and are never committed here.
 
 ### References
