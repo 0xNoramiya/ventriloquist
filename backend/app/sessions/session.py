@@ -1192,6 +1192,14 @@ class Session:
         from app.perception.media import file_hash
 
         h = file_hash(path)
+        cached = [
+            f["text"]
+            for f in self.ctx.store.scene_facts(self.pid, self.id)
+            if f["snapshot_hash"] == h
+        ]
+        if cached:  # deterministic result for an identical snapshot: don't pay twice
+            path.unlink(missing_ok=True)
+            return cached
         res = await self.ctx.roles.read_scene(self.mode, path, self.scenario.get("scene_hint"))
         self._record_call(res.meta.to_dict())
         facts = [f for f in res.data.facts if f][:8]

@@ -351,3 +351,13 @@ async def test_privacy_mode_resolution(ctx, monkeypatch):
     vl = ctx.hub.vision_language(Mode.PRIVACY)
     assert vl.provider == "onprem+mock"
     assert ctx.hub.tracker(Mode.PRIVACY).provider == "local"
+
+
+async def test_modal_hosts_spark_open_when_no_baseten_key(ctx, monkeypatch):
+    from app.providers.registry import Mode
+
+    monkeypatch.setenv("MODAL_SPARK_URL", "https://example--muse-spark-open.modal.run/v1")
+    info = ctx.hub.resolve(Mode.PRIVACY)
+    assert info.effective == Mode.PRIVACY and "Modal" in info.reason
+    vl = ctx.hub.vision_language(Mode.PRIVACY)
+    assert vl.provider == "modal" and vl.model.startswith("meta-models/Muse-Spark-Open")

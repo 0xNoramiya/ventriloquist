@@ -104,6 +104,15 @@ class ProviderHub:
         if requested == Mode.LIVE and not self.settings.model_api_key:
             return ModeInfo(requested, Mode.MOCK, "MODEL_API_KEY missing")
         if requested == Mode.PRIVACY:
+            if self.partner_open():
+                partner = "Baseten" if self.settings.baseten_api_key else "Modal"
+                if self.onprem_url():
+                    return ModeInfo(
+                        requested,
+                        requested,
+                        f"Muse Glimmer on-prem for text, Muse Spark Open on {partner} for media",
+                    )
+                return ModeInfo(requested, requested, f"Muse Spark Open on {partner}")
             if self.settings.baseten_api_key and self.onprem_url():
                 return ModeInfo(
                     requested,
@@ -120,6 +129,11 @@ class ProviderHub:
                 "no BASETEN_API_KEY or LOCAL_LLM_URL: privacy mode stays on-device (mock models, local motion tracker)",
             )
         return ModeInfo(requested, requested, "ok")
+
+    def partner_open(self) -> bool:
+        import os
+
+        return bool(self.settings.baseten_api_key or os.environ.get("MODAL_SPARK_URL", "").strip())
 
     def onprem_url(self) -> str:
         import os
@@ -150,7 +164,7 @@ class ProviderHub:
     def _privacy_vl(self) -> VisionLanguage:
         """Media to Muse Spark Open (Baseten) or nowhere; text to Muse Glimmer on-prem if configured."""
         media: VisionLanguage = self._mock_vl
-        if self.settings.baseten_api_key:
+        if self.partner_open():
             from .baseten import BasetenVisionLanguage
 
             media = self._get("baseten_vl", lambda: BasetenVisionLanguage(self.settings, self.http))
@@ -185,7 +199,11 @@ class ProviderHub:
                 from .meta_api import MetaTranscriber
 
                 return self._get("meta_tr", lambda: MetaTranscriber(self.settings, self.http))
-            if info.effective == Mode.PRIVACY and self.flag("use_transcribe"):
+            if (
+                info.effective == Mode.PRIVACY
+                and self.flag("use_transcribe")
+                and self.partner_open()
+            ):
                 from .baseten import BasetenTranscriber, BasetenVisionLanguage
 
                 vl = self._get(

@@ -40,16 +40,29 @@ class BasetenVisionLanguage(VisionLanguage):
     provider = "baseten"
 
     def __init__(self, settings: Settings, client: httpx.AsyncClient | None = None) -> None:
-        if not settings.baseten_api_key:
-            raise ProviderError("BASETEN_API_KEY is not set")
+        import os
+
         cfg = settings.providers.get("baseten", {})
         self.settings = settings
-        self.base_url = cfg.get("base_url", "https://inference.baseten.co/v1").rstrip("/")
         self.max_retries = int(cfg.get("max_retries", 2))
         self.timeout = float(cfg.get("timeout_s", 45))
-        self.headers = {"Authorization": f"Bearer {settings.baseten_api_key}"}
         self.client = client or httpx.AsyncClient()
-        self.model = settings.models["spark_open"]
+        modal_url = os.environ.get("MODAL_SPARK_URL", "").strip()
+        if settings.baseten_api_key:
+            self.base_url = cfg.get("base_url", "https://inference.baseten.co/v1").rstrip("/")
+            self.headers = {"Authorization": f"Bearer {settings.baseten_api_key}"}
+            self.model = settings.models["spark_open"]
+        elif modal_url:
+            # Modal also serves Muse Spark Open on an OpenAI-compatible endpoint (docs/API_NOTES.md section 11).
+            self.provider = "modal"
+            self.base_url = modal_url.rstrip("/")
+            key = os.environ.get("MODAL_SPARK_KEY", "").strip()
+            self.headers = {"Authorization": f"Bearer {key}"} if key else {}
+            self.model = settings.models.get(
+                "spark_open_modal", "meta-models/Muse-Spark-Open-816B-A42B"
+            )
+        else:
+            raise ProviderError("BASETEN_API_KEY (or MODAL_SPARK_URL) is not set")
 
     def model_for(self, req: LLMRequest) -> str:
         return self.model
@@ -109,7 +122,7 @@ class BasetenVisionLanguage(VisionLanguage):
                 timeout=req.timeout_s + 15,
             )
         except ProviderError as exc:
-            if exc.status == 404 and self.model != DOCUMENTED_SLUG:
+            if exc.status == 404 and self.provider == "baseten" and self.model != DOCUMENTED_SLUG:
                 self.model = DOCUMENTED_SLUG
                 body["model"] = DOCUMENTED_SLUG
                 resp = await _post_with_retries(
