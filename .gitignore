@@ -1,0 +1,40 @@
+# secrets
+.env
+.env.*
+!.env.example
+
+# local data, media, weights (never commit)
+data/
+*.mp4
+*.webm
+*.mov
+*.wav
+*.m4a
+*.ogg
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+*.bin
+weights/
+checkpoints/
+
+# python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+.hypothesis/
+.mypy_cache/
+*.egg-info/
+
+# node
+node_modules/
+dist/
+frontend/.vite/
+
+# misc
+.DS_Store
+*.log
+.certs/

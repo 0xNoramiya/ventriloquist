@@ -1,0 +1,149 @@
+# Ventriloquist configuration. All model IDs live here and nowhere else.
+# Secrets live only in .env (see .env.example).
+
+app:
+  name: Ventriloquist
+  default_language: en          # en | id
+  data_dir: ./data
+  cors_origins:
+    - https://localhost:5173
+    - https://127.0.0.1:5173
+  keep_clips_for_evaluation: false   # Safety rule 12: raw clips are deleted after processing unless true
+
+models:
+  spark: muse-spark-1.3                       # verified in GET /v1/models on 2026-10-26
+  sam: sam-3.1                                # verified in GET /v1/models on 2026-10-26
+  transcribe: muse-voice-transcribe-1.0       # verified in GET /v1/models on 2026-10-26
+  wonder: muse-wonder-1.0                     # verified in GET /v1/models on 2026-10-26
+  image: muse-image-1.0                       # verified in GET /v1/models on 2026-10-26
+  spark_open: meta-models/muse-spark-open-1026  # Baseten (organizer note: use this id, not muse-spark-open)
+  sam_open: facebook/sam3.1                   # optional, Modal; weights are never committed
+
+providers:
+  meta_api:
+    base_url: https://api.meta.ai/v1
+    timeout_s: 30
+    max_retries: 2
+  baseten:
+    base_url: https://inference.baseten.co/v1   # verified: https://docs.baseten.co/inference/model-apis/overview
+    timeout_s: 45
+    max_retries: 2
+  modal_sam:
+    endpoint_url: ""                            # optional
+
+# USD prices used by the budget guard. Token prices are per 1M tokens.
+# Meta prices verified 2026-10-27 at https://dev.meta.ai/docs/pricing-rate-limits (see docs/API_NOTES.md).
+pricing:
+  muse-spark-1.3: {input_per_m: 1.25, cached_input_per_m: 0.15, output_per_m: 4.25}   # Standard mode; reasoning tokens bill as output
+  muse-spark-1.3-contributor: {input_per_m: 0.10, cached_input_per_m: 0.002, output_per_m: 0.20}  # content may be used for training
+  muse-wonder-1.0: {input_per_m: 4.0, cached_input_per_m: 0.20, output_per_m: 20.0}
+  muse-voice-transcribe-1.0: {per_audio_minute: 0.003}            # $0.18 per audio hour, billed in whole seconds
+  sam-3.1: {per_image: 0.0025, per_video_frame: 0.0002, min_video_frames: 50}  # $2.50/1k images, $0.20/1k frames, video billed >= 50 frames
+  muse-image-1.0: {per_image: 0.01}
+  # Baseten list price, https://www.baseten.co/library/muse-spark-open (docs slug is meta-models/muse-spark-open)
+  meta-models/muse-spark-open-1026: {input_per_m: 1.25, cached_input_per_m: 0.15, output_per_m: 4.25}
+
+budget:
+  max_usd: 120
+  warn_fraction: 0.70
+  mock_fraction: 0.90
+
+features:
+  use_sam: true
+  use_spark_judge: true
+  use_transcribe: true
+  use_wonder: true
+  privacy_mode: false
+  idle_watch: false        # live mode default (saves credit)
+  idle_watch_mock: true
+
+engine:
+  tau_confirm: 0.70            # ask a confirmation when the top hypothesis reaches this
+  finalize_threshold: 0.95     # Safety rule 4
+  max_questions: 10            # Safety rule 9 (includes confirmations and re-asks)
+  offer_spell_other: 0.50
+  offer_spell_after: 8
+  lambda_words: 0.01
+  prior_cap: 0.40              # Safety rule 8
+  prior_floor: 0.005
+  other_min: 0.08
+  context_multipliers: [0.25, 0.5, 1, 2, 4]
+  context_clip: [0.1, 8.0]
+  personal_clip: [0.5, 3.0]
+  personal_half_life_days: 3
+  personal_prior_strength: 10
+  confirm_no_factor: 0.05
+  default_error_rates: {a: 0.10, b: 0.10}   # a = P(obs NO | true YES), b = P(obs YES | true NO)
+  eps_clip: [0.03, 0.45]
+  max_llm_hypotheses: 3
+  max_llm_questions: 5
+  max_question_words: 10
+  unclear_pause_after: 3
+  confirm_no_pause_after: 2
+  confirm_no_pause_min_p: 0.90
+  spelling_checkpoint_every: 3
+  spelling_letter_accept: 0.90
+  spelling_max_questions_per_letter: 14
+  spelling_word_suggest_min: 0.35
+
+# Taxonomy v1 base rates. These are STARTING GUESSES chosen by the team, not clinical data.
+# They are normalised at runtime. see_person is split across family members in the profile.
+taxonomy:
+  base_rates:
+    pain: 0.08
+    breathing: 0.05
+    suction: 0.06
+    tube_discomfort: 0.05
+    thirst: 0.07
+    nausea: 0.02
+    itch: 0.02
+    position: 0.06
+    hands_uncomfortable: 0.03
+    toilet: 0.04
+    tired: 0.03
+    hot: 0.02
+    cold: 0.02
+    light: 0.015
+    noise: 0.015
+    what_happened: 0.03
+    where: 0.02
+    time: 0.02
+    tube_when: 0.03
+    talk_staff: 0.03
+    scared: 0.03
+    company: 0.03
+    thanks: 0.02
+    see_person: 0.05          # total across all instantiated family members
+    tell_family_ok: 0.02
+    pray: 0.02
+    glasses_hearing: 0.015
+    phone_music: 0.015
+    spell: 0.02
+    stop: 0.02
+    other: 0.10
+  llm_template_base_rate: 0.02
+
+perception:
+  width: 640
+  height: 480
+  fps: 15
+  window_s: 4.0
+  window_delay_ms: 300
+  unclear_threshold: 0.65
+  disagreement_threshold: 0.5    # both sources confident (>=0.7) in different classes => UNCLEAR
+  judge_timeout_s: 6
+  judge_reasoning_effort: minimal
+  judge_frames: 8
+  emergency_yes_count: 3
+  emergency_window_s: 4.0
+  idle_watch_interval_s: 20
+  calibration_min_accuracy: 0.80
+
+context:
+  transcript_window_min: 15
+  transcribe_chunk_s: 8
+  memory_select_max: 10
+
+speech:
+  rate: 0.9
+  voices: {en: en-US, id: id-ID}

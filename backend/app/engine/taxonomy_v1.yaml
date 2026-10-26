@@ -1,0 +1,221 @@
+# Taxonomy v1: first-person messages a ventilated patient commonly wants to convey.
+# Base rates live in config.yaml (taxonomy.base_rates) and are labelled there as starting guesses.
+# Indonesian strings are listed in docs/I18N_REVIEW.md for native review. {hon} = honorific (Bapak/Ibu/Anda).
+# `direct_*` is the natural single-item question used when one message is plausible but not yet likely.
+
+hypotheses:
+  - {id: pain, domain: body, attributes: [physical, pain],
+     en: "I'm in pain.", id_text: "Saya kesakitan.",
+     direct_en: "Are you in pain?", direct_id: "Apakah {hon} merasa sakit?"}
+  - {id: breathing, domain: breathing_throat, attributes: [physical, breathing_throat], urgent: true,
+     en: "It's hard to breathe.", id_text: "Saya sulit bernapas.",
+     direct_en: "Is it hard to breathe?", direct_id: "Apakah {hon} sulit bernapas?"}
+  - {id: suction, domain: breathing_throat, attributes: [physical, breathing_throat],
+     en: "There's mucus in my throat. I need suction.", id_text: "Ada lendir di tenggorokan, tolong disedot.",
+     direct_en: "Do you need suction?", direct_id: "Apakah lendirnya perlu disedot?"}
+  - {id: tube_discomfort, domain: breathing_throat, attributes: [physical, breathing_throat, tube],
+     en: "The tube or tape is bothering me.", id_text: "Selang atau plesternya mengganggu.",
+     direct_en: "Is the tube or tape bothering you?", direct_id: "Apakah selang atau plesternya mengganggu?"}
+  - {id: thirst, domain: body, attributes: [physical, mouth_stomach],
+     en: "My mouth is dry. I'm thirsty.", id_text: "Mulut saya kering, saya haus.",
+     direct_en: "Is your mouth dry?", direct_id: "Apakah mulut {hon} kering?"}
+  - {id: nausea, domain: body, attributes: [physical, mouth_stomach],
+     en: "I feel sick to my stomach.", id_text: "Saya mual.",
+     direct_en: "Do you feel sick to your stomach?", direct_id: "Apakah {hon} merasa mual?"}
+  - {id: itch, domain: body, attributes: [physical, arms_skin],
+     en: "I'm itchy.", id_text: "Saya gatal.",
+     direct_en: "Are you itchy?", direct_id: "Apakah {hon} merasa gatal?"}
+  - {id: position, domain: body, attributes: [physical, rest_move],
+     en: "Please change my position.", id_text: "Tolong ubah posisi saya.",
+     direct_en: "Do you want to change position?", direct_id: "Apakah {hon} ingin ganti posisi?"}
+  - {id: hands_uncomfortable, domain: body, attributes: [physical, arms_skin],
+     en: "My hands or arms are uncomfortable.", id_text: "Tangan saya tidak nyaman.",
+     direct_en: "Are your hands or arms uncomfortable?", direct_id: "Apakah tangan {hon} terasa tidak nyaman?"}
+  - {id: toilet, domain: toilet, attributes: [physical, toilet],
+     en: "I need the toilet, or I'm wet.", id_text: "Saya perlu buang air, atau saya basah.",
+     direct_en: "Do you need the toilet?", direct_id: "Apakah {hon} perlu buang air?"}
+  - {id: tired, domain: body, attributes: [physical, rest_move],
+     en: "I'm tired. I want to sleep.", id_text: "Saya lelah, ingin tidur.",
+     direct_en: "Are you tired?", direct_id: "Apakah {hon} lelah?"}
+  - {id: hot, domain: environment, attributes: [room, temperature],
+     en: "I'm too hot.", id_text: "Saya kepanasan.",
+     direct_en: "Are you too hot?", direct_id: "Apakah {hon} kepanasan?"}
+  - {id: cold, domain: environment, attributes: [room, temperature],
+     en: "I'm cold.", id_text: "Saya kedinginan.",
+     direct_en: "Are you cold?", direct_id: "Apakah {hon} kedinginan?"}
+  - {id: light, domain: environment, attributes: [room],
+     en: "The light is too bright.", id_text: "Lampunya terlalu terang.",
+     direct_en: "Is the light too bright?", direct_id: "Apakah lampunya terlalu terang?"}
+  - {id: noise, domain: environment, attributes: [room],
+     en: "It's too noisy.", id_text: "Terlalu berisik.",
+     direct_en: "Is it too noisy?", direct_id: "Apakah terlalu berisik?"}
+  - {id: what_happened, domain: information, attributes: [question],
+     en: "What happened to me?", id_text: "Apa yang terjadi pada saya?",
+     direct_en: "Do you want to know what happened?", direct_id: "Apakah {hon} ingin tahu apa yang terjadi?"}
+  - {id: where, domain: information, attributes: [question],
+     en: "Where am I?", id_text: "Saya di mana?",
+     direct_en: "Do you want to know where you are?", direct_id: "Apakah {hon} ingin tahu sedang di mana?"}
+  - {id: time, domain: information, attributes: [question],
+     en: "What day and time is it?", id_text: "Hari dan jam berapa sekarang?",
+     direct_en: "Do you want to know the day and time?", direct_id: "Apakah {hon} ingin tahu hari dan jam?"}
+  - {id: tube_when, domain: information, attributes: [question, tube],
+     en: "When will the tube come out?", id_text: "Kapan selangnya dilepas?",
+     direct_en: "Do you want to know when the tube comes out?", direct_id: "Apakah {hon} ingin tahu kapan selangnya dilepas?"}
+  - {id: talk_staff, domain: information, attributes: [person],
+     en: "I want to talk with my doctor or nurse.", id_text: "Saya ingin bicara dengan dokter atau perawat.",
+     direct_en: "Do you want to talk with your doctor or nurse?", direct_id: "Apakah {hon} ingin bicara dengan dokter atau perawat?"}
+  - {id: scared, domain: emotion, attributes: [feeling],
+     en: "I'm scared.", id_text: "Saya takut.",
+     direct_en: "Are you scared?", direct_id: "Apakah {hon} merasa takut?"}
+  - {id: company, domain: emotion, attributes: [feeling, person],
+     en: "Please stay with me.", id_text: "Tolong temani saya.",
+     direct_en: "Do you want someone to stay with you?", direct_id: "Apakah {hon} ingin ditemani?"}
+  - {id: thanks, domain: emotion, attributes: [feeling],
+     en: "Thank you.", id_text: "Terima kasih.",
+     direct_en: "Do you want to say thank you?", direct_id: "Apakah {hon} ingin berterima kasih?"}
+  - {id: tell_family_ok, domain: people, attributes: [person, family],
+     en: "Tell my family I'm okay.", id_text: "Sampaikan ke keluarga bahwa saya baik-baik saja.",
+     direct_en: "Should we tell your family you're okay?", direct_id: "Apakah keluarga perlu diberi tahu {hon} baik-baik saja?"}
+  - {id: pray, domain: spiritual, attributes: [spiritual, feeling],
+     en: "I want to pray or hear prayers.", id_text: "Saya ingin berdoa atau mendengarkan doa.",
+     direct_en: "Do you want to pray or hear prayers?", direct_id: "Apakah {hon} ingin berdoa atau mendengarkan doa?"}
+  - {id: glasses_hearing, domain: items, attributes: [bring],
+     en: "I want my glasses or hearing aid.", id_text: "Saya ingin kacamata atau alat bantu dengar saya.",
+     direct_en: "Do you want your glasses or hearing aid?", direct_id: "Apakah {hon} ingin kacamata atau alat bantu dengar?"}
+  - {id: phone_music, domain: items, attributes: [bring],
+     en: "I want my phone or some music.", id_text: "Saya ingin HP saya atau mendengar musik.",
+     direct_en: "Do you want your phone or some music?", direct_id: "Apakah {hon} ingin HP atau musik?"}
+  - {id: spell, domain: communication, attributes: [],
+     en: "I want to spell something.", id_text: "Saya ingin mengeja sesuatu.",
+     direct_en: "Do you want to spell something?", direct_id: "Apakah {hon} ingin mengeja sesuatu?"}
+  - {id: stop, domain: communication, attributes: [],
+     en: "Stop asking for now.", id_text: "Berhenti dulu.",
+     direct_en: "Do you want me to stop asking for now?", direct_id: "Apakah {hon} ingin saya berhenti bertanya dulu?"}
+  - {id: other, domain: communication, attributes: [],
+     en: "Something else.", id_text: "Hal lain."}
+
+# Attribute partitions: "Is it about X?" questions whose yes-set is every hypothesis carrying the attribute.
+attribute_questions:
+  physical: {en: "Is it about your body?", id: "Apakah ini tentang tubuh {hon}?",
+             rephrase_en: "Is it something about how your body feels?", rephrase_id: "Apakah ini soal badan {hon}?"}
+  breathing_throat: {en: "Is it about breathing or your throat?", id: "Apakah ini tentang napas atau tenggorokan?",
+                     rephrase_en: "Is it your breathing or throat?", rephrase_id: "Apakah soal napas atau tenggorokan?"}
+  pain: {en: "Is it about pain?", id: "Apakah ini tentang rasa sakit?",
+         rephrase_en: "Does something hurt?", rephrase_id: "Apakah ada yang sakit?"}
+  mouth_stomach: {en: "Is it about your mouth or stomach?", id: "Apakah ini tentang mulut atau perut?",
+                  rephrase_en: "Is it your mouth or your stomach?", rephrase_id: "Apakah soal mulut atau perut?"}
+  arms_skin: {en: "Is it about your arms, hands, or skin?", id: "Apakah ini tentang tangan atau kulit?",
+              rephrase_en: "Is it your hands or your skin?", rephrase_id: "Apakah soal tangan atau kulit?"}
+  rest_move: {en: "Is it about resting or moving in bed?", id: "Apakah ini tentang istirahat atau posisi tidur?",
+              rephrase_en: "Is it about sleep or your position?", rephrase_id: "Apakah soal tidur atau posisi?"}
+  room: {en: "Is it about the room, like light, noise, or temperature?", id: "Apakah ini tentang ruangan, seperti lampu, suara, atau suhu?",
+         rephrase_en: "Is it about the room around you?", rephrase_id: "Apakah soal ruangan di sekitar {hon}?"}
+  temperature: {en: "Is it about feeling hot or cold?", id: "Apakah ini tentang rasa panas atau dingin?",
+                rephrase_en: "Is it about the temperature?", rephrase_id: "Apakah soal suhu?"}
+  person: {en: "Is it about a person?", id: "Apakah ini tentang seseorang?",
+           rephrase_en: "Is it about someone?", rephrase_id: "Apakah soal seseorang?"}
+  family: {en: "Is it about your family?", id: "Apakah ini tentang keluarga {hon}?",
+           rephrase_en: "Is it about someone in your family?", rephrase_id: "Apakah soal keluarga?"}
+  question: {en: "Is it a question you want answered?", id: "Apakah {hon} ingin menanyakan sesuatu?",
+             rephrase_en: "Do you want to ask something?", rephrase_id: "Apakah {hon} punya pertanyaan?"}
+  feeling: {en: "Is it about how you feel inside?", id: "Apakah ini tentang perasaan {hon}?",
+            rephrase_en: "Is it about your feelings?", rephrase_id: "Apakah soal perasaan?"}
+  bring: {en: "Do you want something brought to you?", id: "Apakah {hon} ingin dibawakan sesuatu?",
+          rephrase_en: "Should we bring you something?", rephrase_id: "Apakah perlu dibawakan sesuatu?"}
+  toilet: {en: "Is it about the toilet?", id: "Apakah ini tentang buang air?",
+           rephrase_en: "Do you need the toilet?", rephrase_id: "Apakah {hon} perlu buang air?"}
+  tube: {en: "Is it about the tube?", id: "Apakah ini tentang selang?",
+         rephrase_en: "Is it about your breathing tube?", rephrase_id: "Apakah soal selang napas?"}
+  spiritual: {en: "Is it about prayer or faith?", id: "Apakah ini tentang doa atau ibadah?",
+              rephrase_en: "Is it about prayer?", rephrase_id: "Apakah soal doa?"}
+
+person_question: {en: "Is it about {name}?", id: "Apakah ini tentang {name}?"}
+
+meta_questions:
+  spell: {en: "Do you want to spell it?", id: "Apakah {hon} ingin mengejanya?"}
+
+confirm_question:
+  en: "Is this your message: “{message}”?"
+  id: "Apakah ini pesan {hon}: “{message}”?"
+  rephrase_en: "Shall I say: “{message}”?"
+  rephrase_id: "Boleh saya sampaikan: “{message}”?"
+
+post_check:
+  en: "Did I say it right?"
+  id: "Apakah yang saya sampaikan sudah benar?"
+
+# Templates the prior builder may instantiate (max 3 per session, slots must be cited).
+templates:
+  see_person:
+    attributes: [person, family]
+    en: "I want to see my {relation}, {name}."
+    id: "Saya ingin bertemu {relation_id} saya, {name}."
+    direct_en: "Do you want to see {name}?"
+    direct_id: "Apakah {hon} ingin bertemu {name}?"
+  where_person:
+    attributes: [person, family, question]
+    en: "Where is my {relation}, {name}?"
+    id: "Di mana {relation_id} saya, {name}?"
+    direct_en: "Do you want to know where {name} is?"
+    direct_id: "Apakah {hon} ingin tahu {name} di mana?"
+  call_person:
+    attributes: [person, family]
+    en: "Please call my {relation}, {name}."
+    id: "Tolong telepon {relation_id} saya, {name}."
+    direct_en: "Do you want someone to call {name}?"
+    direct_id: "Apakah {hon} ingin {name} ditelepon?"
+  want_item:
+    attributes: [bring]
+    en: "I want my {item}."
+    id: "Saya ingin {item_id} saya."
+    direct_en: "Do you want your {item}?"
+    direct_id: "Apakah {hon} ingin {item_id}?"
+
+relations:
+  daughter: putri
+  son: putra
+  child: anak
+  wife: istri
+  husband: suami
+  spouse: pasangan
+  partner: pasangan
+  mother: ibu
+  father: ayah
+  sister: saudari
+  brother: saudara
+  grandchild: cucu
+  granddaughter: cucu
+  grandson: cucu
+  grandmother: nenek
+  grandfather: kakek
+  aunt: bibi
+  uncle: paman
+  cousin: sepupu
+  niece: keponakan
+  nephew: keponakan
+  daughter-in-law: menantu
+  son-in-law: menantu
+  friend: teman
+  neighbour: tetangga
+  neighbor: tetangga
+non_family_relations: [friend, neighbour, neighbor]
+
+# Optional refinement after "pain" is confirmed. Relay only; never assess.
+pain_refinement:
+  offer: {en: "Can I ask where it hurts?", id: "Boleh saya tanya di mana yang sakit?"}
+  locations:
+    - {id: head, en: "my head", id_text: "kepala saya", groups: [above_shoulders], direct_en: "Is it your head?", direct_id: "Apakah di kepala?"}
+    - {id: mouth_throat, en: "my mouth or throat", id_text: "mulut atau tenggorokan saya", groups: [above_shoulders], direct_en: "Is it your mouth or throat?", direct_id: "Apakah di mulut atau tenggorokan?"}
+    - {id: tube_site, en: "where the tube is", id_text: "tempat selang", groups: [above_shoulders], direct_en: "Is it where the tube is?", direct_id: "Apakah di tempat selang?"}
+    - {id: chest, en: "my chest", id_text: "dada saya", groups: [trunk], direct_en: "Is it your chest?", direct_id: "Apakah di dada?"}
+    - {id: belly, en: "my belly", id_text: "perut saya", groups: [trunk], direct_en: "Is it your belly?", direct_id: "Apakah di perut?"}
+    - {id: back, en: "my back", id_text: "punggung saya", groups: [trunk], direct_en: "Is it your back?", direct_id: "Apakah di punggung?"}
+    - {id: arms_legs, en: "my arms or legs", id_text: "tangan atau kaki saya", groups: [limbs], direct_en: "Is it your arms or legs?", direct_id: "Apakah di tangan atau kaki?"}
+    - {id: elsewhere, en: "somewhere else", id_text: "tempat lain", groups: [], direct_en: "Is it somewhere else?", direct_id: "Apakah di tempat lain?"}
+  groups:
+    above_shoulders: {en: "Is it above your shoulders?", id: "Apakah di atas bahu?"}
+    trunk: {en: "Is it in your chest, belly, or back?", id: "Apakah di dada, perut, atau punggung?"}
+    limbs: {en: "Is it in your arms or legs?", id: "Apakah di tangan atau kaki?"}
+  message: {en: "The pain is in {loc}.", id: "Sakitnya di {loc}."}
+  worse_question: {en: "Is it worse than before?", id: "Apakah lebih sakit dari sebelumnya?"}
+  worse_message: {en: "It is worse than before.", id: "Rasanya lebih sakit dari sebelumnya."}
