@@ -38,13 +38,23 @@ def location_stage() -> tuple[list[Hypothesis], np.ndarray, list[Question]]:
     for gid, g in spec["groups"].items():
         yes = frozenset(h.id for h in hyps if gid in h.attributes)
         questions.append(
-            Question(id=f"pain_group:{gid}", text_en=g["en"], text_id=g["id"],
-                     kind=QuestionKind.ATTRIBUTE, yes_ids=yes)
+            Question(
+                id=f"pain_group:{gid}",
+                text_en=g["en"],
+                text_id=g["id"],
+                kind=QuestionKind.ATTRIBUTE,
+                yes_ids=yes,
+            )
         )
     for h in hyps:
         questions.append(
-            Question(id=f"direct:{h.id}", text_en=h.direct_en or "", text_id=h.direct_id or "",
-                     kind=QuestionKind.ATTRIBUTE, yes_ids=frozenset({h.id}))
+            Question(
+                id=f"direct:{h.id}",
+                text_en=h.direct_en or "",
+                text_id=h.direct_id or "",
+                kind=QuestionKind.ATTRIBUTE,
+                yes_ids=frozenset({h.id}),
+            )
         )
     prior = np.full(len(hyps), 1.0 / len(hyps))
     return hyps, prior, questions
@@ -52,14 +62,24 @@ def location_stage() -> tuple[list[Hypothesis], np.ndarray, list[Question]]:
 
 def offer_question() -> Question:
     spec = load_taxonomy()["pain_refinement"]["offer"]
-    return Question(id="pain:offer", text_en=spec["en"], text_id=spec["id"],
-                    kind=QuestionKind.META, yes_ids=frozenset({"refine"}))
+    return Question(
+        id="pain:offer",
+        text_en=spec["en"],
+        text_id=spec["id"],
+        kind=QuestionKind.META,
+        yes_ids=frozenset({"refine"}),
+    )
 
 
 def worse_question() -> Question:
     spec = load_taxonomy()["pain_refinement"]["worse_question"]
-    return Question(id="pain:worse", text_en=spec["en"], text_id=spec["id"],
-                    kind=QuestionKind.META, yes_ids=frozenset({"worse"}))
+    return Question(
+        id="pain:worse",
+        text_en=spec["en"],
+        text_id=spec["id"],
+        kind=QuestionKind.META,
+        yes_ids=frozenset({"worse"}),
+    )
 
 
 def worse_message() -> tuple[str, str]:

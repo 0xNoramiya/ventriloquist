@@ -1,0 +1,21 @@
+id: spelling
+title: "Something that is not on the list"
+description: >
+  The patient wants to ask who is feeding their cat. It is not in the taxonomy, so after a few
+  NO answers Ventriloquist offers spelling; completions turn K-U-C... into KUCING (cat).
+profile:
+  display_name: "Ibu Sri (fictional)"
+  language: id
+  honorific: Ibu
+  family:
+    - {name: Adi, relation: son}
+  simulation_consent: true
+evidence:
+  transcript: []
+  scene:
+    - "A hospital bed with the patient lying semi-upright."
+  events: []
+patient:
+  truth: null
+  spell: "KUCING"
+  sentence_en: "Who is feeding my cat?"

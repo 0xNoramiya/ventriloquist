@@ -33,14 +33,81 @@ SYMBOLS: tuple[str, ...] = (*LETTERS, SPACE, END, UNDO)
 
 # Fallback unigram percentages if the corpus statistics have not been built yet.
 _FALLBACK_UNIGRAM = {
-    "en": dict(zip(LETTERS, [8.2, 1.5, 2.8, 4.3, 12.7, 2.2, 2.0, 6.1, 7.0, 0.15, 0.77, 4.0, 2.4,
-                             6.7, 7.5, 1.9, 0.1, 6.0, 6.3, 9.1, 2.8, 0.98, 2.4, 0.15, 2.0, 0.07], strict=True)),
-    "id": dict(zip(LETTERS, [19.0, 2.5, 0.7, 3.5, 8.0, 0.1, 3.5, 2.5, 8.5, 1.0, 5.5, 3.0, 4.0,
-                             9.0, 2.0, 2.5, 0.01, 4.5, 4.0, 5.0, 5.0, 0.1, 0.5, 0.02, 1.5, 0.05], strict=True)),
+    "en": dict(
+        zip(
+            LETTERS,
+            [
+                8.2,
+                1.5,
+                2.8,
+                4.3,
+                12.7,
+                2.2,
+                2.0,
+                6.1,
+                7.0,
+                0.15,
+                0.77,
+                4.0,
+                2.4,
+                6.7,
+                7.5,
+                1.9,
+                0.1,
+                6.0,
+                6.3,
+                9.1,
+                2.8,
+                0.98,
+                2.4,
+                0.15,
+                2.0,
+                0.07,
+            ],
+            strict=True,
+        )
+    ),
+    "id": dict(
+        zip(
+            LETTERS,
+            [
+                19.0,
+                2.5,
+                0.7,
+                3.5,
+                8.0,
+                0.1,
+                3.5,
+                2.5,
+                8.5,
+                1.0,
+                5.5,
+                3.0,
+                4.0,
+                9.0,
+                2.0,
+                2.5,
+                0.01,
+                4.5,
+                4.0,
+                5.0,
+                5.0,
+                0.1,
+                0.5,
+                0.02,
+                1.5,
+                0.05,
+            ],
+            strict=True,
+        )
+    ),
 }
 
 TEXTS = {
-    "letter_q": {"en": "Is your letter in this group?", "id": "Apakah huruf {hon} ada di kelompok ini?"},
+    "letter_q": {
+        "en": "Is your letter in this group?",
+        "id": "Apakah huruf {hon} ada di kelompok ini?",
+    },
     "checkpoint": {"en": "Is everything so far correct?", "id": "Apakah sejauh ini sudah benar?"},
     "word_q": {"en": "Is your word {word}?", "id": "Apakah kata {hon} {word}?"},
     "mean": {"en": "Do you mean: “{sentence}”?", "id": "Maksud {hon}: “{sentence}”?"},
@@ -107,8 +174,10 @@ def symbol_prior(
     else:
         prev = current[-1]
         row = stats.bigram.get(prev, {})
-        base = np.array([row.get(c, 0.0) + 0.5 for c in LETTERS]) if row else np.array(
-            [stats.unigram.get(c, 0.0) + 0.5 for c in LETTERS]
+        base = (
+            np.array([row.get(c, 0.0) + 0.5 for c in LETTERS])
+            if row
+            else np.array([stats.unigram.get(c, 0.0) + 0.5 for c in LETTERS])
         )
         p_wend = stats.word_end.get(prev, 0.0) / max(stats.unigram.get(prev, 1.0), 1e-9)
         p_wend = float(np.clip(p_wend, 0.05, 0.6)) if len(current) >= 2 else 0.03
@@ -144,7 +213,9 @@ def best_group(p: np.ndarray, a: float, b: float) -> tuple[int, int, float]:
             if i == 0 and j == n:
                 continue
             gain = float(eig(cum[j] - cum[i], a, b))
-            if gain > best[2] + 1e-12 or (abs(gain - best[2]) <= 1e-12 and (j - i) < (best[1] - best[0])):
+            if gain > best[2] + 1e-12 or (
+                abs(gain - best[2]) <= 1e-12 and (j - i) < (best[1] - best[0])
+            ):
                 best = (i, j, gain)
     return best
 
@@ -362,7 +433,9 @@ class SpellingDecider:
     def _after_word(self, event: SpellEvent, word: str | None) -> SpellOutcome:
         result = detect(self.text)
         if result.sensitive:
-            return SpellOutcome(SpellEvent.SENSITIVE, symbol=word, text=self.text.strip(), sensitive=result)
+            return SpellOutcome(
+                SpellEvent.SENSITIVE, symbol=word, text=self.text.strip(), sensitive=result
+            )
         return SpellOutcome(event, symbol=word, text=self.text)
 
 

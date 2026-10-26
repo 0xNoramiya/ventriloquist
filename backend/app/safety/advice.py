@@ -11,7 +11,9 @@ import re
 
 from .sensitive import is_sensitive
 
-_DOSE = re.compile(r"\b\d+(\.\d+)?\s?(mg|mcg|µg|ug|ml|cc|g|units?|iu|tetes|tablet|tab|kapsul)\b", re.I)
+_DOSE = re.compile(
+    r"\b\d+(\.\d+)?\s?(mg|mcg|µg|ug|ml|cc|g|units?|iu|tetes|tablet|tab|kapsul)\b", re.I
+)
 
 _ADVICE_PHRASES = [
     r"\byou should\b",

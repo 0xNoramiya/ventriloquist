@@ -1,0 +1,19 @@
+id: cold
+title: "Cold at night"
+profile:
+  display_name: "Pak Budi (fictional)"
+  language: en
+  honorific: Bapak
+  family:
+    - {name: Rina, relation: wife}
+  simulation_consent: true
+evidence:
+  transcript:
+    - {speaker: Nurse, text: "It's freezing in here tonight, the AC is on full.", minutes_ago: 8}
+  scene:
+    - "Night: the room lights are dimmed and the air conditioning vent is above the bed."
+    - "The blanket has slipped down to the patient's waist."
+  events:
+    - {kind: repositioned, label: "Repositioned", minutes_ago: 40}
+patient:
+  truth: cold

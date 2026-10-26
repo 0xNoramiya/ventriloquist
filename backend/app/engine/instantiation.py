@@ -64,19 +64,31 @@ def validate_instantiations(
                             why.append("slot_not_in_evidence")
                         else:
                             person = Person(name, relation)
-                    elif not (_mentions(name, cited_texts) or _mentions(person.relation, cited_texts)):
+                    elif not (
+                        _mentions(name, cited_texts) or _mentions(person.relation, cited_texts)
+                    ):
                         why.append("slot_not_cited")
                     if person is not None and not why:
-                        hyp = instantiate(prop.template, person=person, base_rate=base_rate,
-                                          source=HypothesisSource.LLM, evidence_ids=tuple(cited))
+                        hyp = instantiate(
+                            prop.template,
+                            person=person,
+                            base_rate=base_rate,
+                            source=HypothesisSource.LLM,
+                            evidence_ids=tuple(cited),
+                        )
                 elif "item" in prop.slots:
                     item = prop.slots["item"].strip()
                     if not _mentions(item, cited_texts):
                         why.append("slot_not_in_evidence")
                     else:
-                        hyp = instantiate(prop.template, item_en=item, item_id=prop.slots.get("item_id"),
-                                          base_rate=base_rate, source=HypothesisSource.LLM,
-                                          evidence_ids=tuple(cited))
+                        hyp = instantiate(
+                            prop.template,
+                            item_en=item,
+                            item_id=prop.slots.get("item_id"),
+                            base_rate=base_rate,
+                            source=HypothesisSource.LLM,
+                            evidence_ids=tuple(cited),
+                        )
                 else:
                     why.append("missing_slots")
             except (KeyError, ValueError) as exc:
@@ -90,7 +102,9 @@ def validate_instantiations(
             elif len(accepted) >= max_new:
                 why.append("over_limit")
         if why or hyp is None:
-            rejected.append({"template": prop.template, "slots": prop.slots, "why": why or ["invalid"]})
+            rejected.append(
+                {"template": prop.template, "slots": prop.slots, "why": why or ["invalid"]}
+            )
             continue
         seen.add(hyp.id)
         accepted.append(hyp)

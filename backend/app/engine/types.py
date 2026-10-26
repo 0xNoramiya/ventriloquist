@@ -95,7 +95,9 @@ class Question:
 
     def text(self, lang: str, honorific: str = "Anda", rephrased: bool = False) -> str:
         if lang == "id":
-            raw = (self.rephrase_id if rephrased and self.rephrase_id else self.text_id) or self.text_en
+            raw = (
+                self.rephrase_id if rephrased and self.rephrase_id else self.text_id
+            ) or self.text_en
         else:
             raw = self.rephrase_en if rephrased and self.rephrase_en else self.text_en
         return render(raw, honorific)

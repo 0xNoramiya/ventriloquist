@@ -58,7 +58,10 @@ def test_eig_zero_noise_equals_entropy():
 @settings(max_examples=200, deadline=None)
 @given(
     st.lists(st.floats(0.001, 1.0), min_size=2, max_size=40),
-    st.lists(st.tuples(st.integers(0, 2**40), st.sampled_from(list(Answer)), st.floats(0, 1)), max_size=15),
+    st.lists(
+        st.tuples(st.integers(0, 2**40), st.sampled_from(list(Answer)), st.floats(0, 1)),
+        max_size=15,
+    ),
 )
 def test_posterior_always_normalized(weights, steps):
     p = np.array(weights) / sum(weights)
@@ -78,7 +81,9 @@ def test_unclear_does_not_update():
 
 
 def test_override_uses_observation_error_only():
-    a, b = effective_error_rates(Observation(Answer.YES, 0.97, overridden=True), 0.3, 0.3, (0.03, 0.45))
+    a, b = effective_error_rates(
+        Observation(Answer.YES, 0.97, overridden=True), 0.3, 0.3, (0.03, 0.45)
+    )
     assert a == pytest.approx(0.03) and b == pytest.approx(0.03)
     a, b = effective_error_rates(Observation(Answer.YES, 0.97), 0.3, 0.2, (0.03, 0.45))
     assert (a, b) == (pytest.approx(0.3), pytest.approx(0.2))
@@ -111,8 +116,9 @@ def test_build_prior_bounded_with_adversarial_multipliers(mults):
         ContextMultiplier(ids[i % len(ids)], f, ("T1",) if cited else ("BOGUS",), "adv")
         for i, f, cited in mults
     ]
-    p, terms = build_prior(hyps, multipliers=multipliers, valid_evidence={"T1"},
-                           personal={ids[0]: 1e9, ids[1]: 0.0})
+    p, terms = build_prior(
+        hyps, multipliers=multipliers, valid_evidence={"T1"}, personal={ids[0]: 1e9, ids[1]: 0.0}
+    )
     assert p.sum() == pytest.approx(1.0, abs=1e-9)
     assert p.max() <= 0.40 + 1e-9
     assert p.min() >= 0.005 - 1e-9
@@ -135,7 +141,9 @@ def test_uncited_multiplier_forced_to_one():
 
 def test_context_multiplier_snaps_to_allowed_values():
     hyps, _ = taxonomy_setup()
-    _, terms = build_prior(hyps, multipliers=[ContextMultiplier("cold", 3.1, ("E1",))], valid_evidence={"E1"})
+    _, terms = build_prior(
+        hyps, multipliers=[ContextMultiplier("cold", 3.1, ("E1",))], valid_evidence={"E1"}
+    )
     assert terms["cold"].context == 4.0
     assert terms["cold"].chips[0].evidence_id == "E1"
 
@@ -143,14 +151,23 @@ def test_context_multiplier_snaps_to_allowed_values():
 # ------------------------------------------------------------- the 3+1 test
 def binary_world(n_bits: int = 3):
     hyps = [
-        Hypothesis(id=f"h{i}", text_en=f"Message {i}.", text_id=f"Pesan {i}.", category="x",
-                   attributes=frozenset(f"bit{k}" for k in range(n_bits) if i >> k & 1))
+        Hypothesis(
+            id=f"h{i}",
+            text_en=f"Message {i}.",
+            text_id=f"Pesan {i}.",
+            category="x",
+            attributes=frozenset(f"bit{k}" for k in range(n_bits) if i >> k & 1),
+        )
         for i in range(2**n_bits)
     ]
     questions = [
-        Question(id=f"bit{k}", text_en="Is it this half?", text_id="Apakah ini?",
-                 kind=QuestionKind.ATTRIBUTE,
-                 yes_ids=frozenset(h.id for h in hyps if f"bit{k}" in h.attributes))
+        Question(
+            id=f"bit{k}",
+            text_en="Is it this half?",
+            text_id="Apakah ini?",
+            kind=QuestionKind.ATTRIBUTE,
+            yes_ids=frozenset(h.id for h in hyps if f"bit{k}" in h.attributes),
+        )
         for k in range(n_bits)
     ]
     return hyps, questions
@@ -171,7 +188,9 @@ def test_zero_noise_eight_equiprobable_takes_three_questions_plus_confirm(truth)
 
 
 # ----------------------------------------------------------------- policy rules
-def run_patient(d: MessageDecider, truth: str, flip_rng=None, eps: float = 0.0, max_steps: int = 40):
+def run_patient(
+    d: MessageDecider, truth: str, flip_rng=None, eps: float = 0.0, max_steps: int = 40
+):
     act = d.next_action()
     trail = []
     for _ in range(max_steps):
@@ -317,14 +336,20 @@ def test_llm_questions_validated():
     hyps, questions = taxonomy_setup()
     ids = {h.id for h in hyps}
     props = [
-        LLMQuestionProposal("Is it about the photo on the table?", "Apakah ini tentang foto di meja?",
-                            ["see_person:aisyah", "see_person:rizal"], ["S1"]),
+        LLMQuestionProposal(
+            "Is it about the photo on the table?",
+            "Apakah ini tentang foto di meja?",
+            ["see_person:aisyah", "see_person:rizal"],
+            ["S1"],
+        ),
         LLMQuestionProposal("Are you not comfortable?", "", ["position"], []),
         LLMQuestionProposal("Do you want 5 mg of morphine?", "", ["pain"], []),
         LLMQuestionProposal("Do you want to stop treatment?", "", ["other"], []),
         LLMQuestionProposal("Is it about a ghost id?", "", ["ghost"], []),
         LLMQuestionProposal("Are you cold and thirsty?", "", ["cold", "thirst"], []),
-        LLMQuestionProposal("Is it about the long list of many things in the room?", "", ["light"], []),
+        LLMQuestionProposal(
+            "Is it about the long list of many things in the room?", "", ["light"], []
+        ),
     ]
     accepted, rejected = validate_llm_questions(props, ids, questions)
     assert [q.text_en for q in accepted] == ["Is it about the photo on the table?"]
@@ -333,8 +358,10 @@ def test_llm_questions_validated():
 
 # --------------------------------------------- sensitive hypotheses never appear
 def test_sensitive_or_uncited_instantiations_rejected():
-    evidence = {"T1": "Your daughter Aisyah went home to rest, she'll be back at four.",
-                "T2": "Pak Budi from the bank came by"}
+    evidence = {
+        "T1": "Your daughter Aisyah went home to rest, she'll be back at four.",
+        "T2": "Pak Budi from the bank came by",
+    }
     accepted, rejected = validate_instantiations(
         [
             TemplateProposal("where_person", {"name": "Aisyah", "relation": "daughter"}, ["T1"]),
@@ -353,13 +380,20 @@ def test_sensitive_or_uncited_instantiations_rejected():
 
 
 @settings(max_examples=200, deadline=None)
-@given(st.text(min_size=1, max_size=30), st.sampled_from(["see_person", "where_person", "call_person", "want_item"]))
+@given(
+    st.text(min_size=1, max_size=30),
+    st.sampled_from(["see_person", "where_person", "call_person", "want_item"]),
+)
 def test_no_generated_hypothesis_is_sensitive(slot, template):
     from app.safety.sensitive import is_sensitive
 
     evidence = {"T1": f"note {slot} note"}
     slots = {"item": slot} if template == "want_item" else {"name": slot, "relation": "friend"}
-    accepted, _ = validate_instantiations([TemplateProposal(template, slots, ["T1"])],
-                                          persons=[], evidence=evidence, existing_ids=set())
+    accepted, _ = validate_instantiations(
+        [TemplateProposal(template, slots, ["T1"])],
+        persons=[],
+        evidence=evidence,
+        existing_ids=set(),
+    )
     for h in accepted:
         assert not is_sensitive(h.text_en) and not is_sensitive(h.text_id)

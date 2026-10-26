@@ -81,6 +81,18 @@ def validate_llm_questions(
     return accepted, rejected
 
 
+def yes_matrix(ids: list[str], questions: list[Question]) -> np.ndarray:
+    """(n_questions, n_hypotheses) float matrix of yes-set membership."""
+    index = {h: i for i, h in enumerate(ids)}
+    mat = np.zeros((len(questions), len(ids)), dtype=float)
+    for qi, q in enumerate(questions):
+        for y in q.yes_ids:
+            j = index.get(y)
+            if j is not None:
+                mat[qi, j] = 1.0
+    return mat
+
+
 def score_questions(
     posterior: np.ndarray,
     ids: list[str],
@@ -88,22 +100,20 @@ def score_questions(
     a: float,
     b: float,
     lambda_words: float,
+    mat: np.ndarray | None = None,
 ) -> list[Scored]:
     """EIG - lambda * word_count for every candidate, best first; ties prefer attribute questions."""
     if not questions:
         return []
-    index = {h: i for i, h in enumerate(ids)}
-    mat = np.zeros((len(questions), len(ids)), dtype=bool)
-    for qi, q in enumerate(questions):
-        for y in q.yes_ids:
-            j = index.get(y)
-            if j is not None:
-                mat[qi, j] = True
-    s = mat.astype(float) @ posterior
+    if mat is None:
+        mat = yes_matrix(ids, questions)
+    s = mat @ posterior
     gains = np.asarray(eig(s, a, b), dtype=float).reshape(-1)
     scored = [
         Scored(q, float(s[i]), float(gains[i]), float(gains[i] - lambda_words * q.word_count))
         for i, q in enumerate(questions)
     ]
-    scored.sort(key=lambda x: (-round(x.score, 9), _KIND_PRIORITY.get(x.question.kind, 3), x.question.id))
+    scored.sort(
+        key=lambda x: (-round(x.score, 9), _KIND_PRIORITY.get(x.question.kind, 3), x.question.id)
+    )
     return scored

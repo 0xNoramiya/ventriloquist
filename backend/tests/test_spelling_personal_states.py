@@ -32,7 +32,14 @@ from app.sessions.state_machine import (
 CFG = EngineConfig()
 
 
-def spell(target: str, lang: str = "en", eps: float = 0.0, seed: int = 0, completions=None, max_q: int = 400):
+def spell(
+    target: str,
+    lang: str = "en",
+    eps: float = 0.0,
+    seed: int = 0,
+    completions=None,
+    max_q: int = 400,
+):
     """Drive the spelling decider with a simulated patient who means `target` then END."""
     rng = np.random.default_rng(seed)
     d = SpellingDecider(lang, CFG, a=max(eps, 0.02), b=max(eps, 0.02))
@@ -96,7 +103,9 @@ def test_spells_word_with_noise_mostly_correct():
 
 def test_completion_shortcut_reduces_questions():
     plain, _, _ = spell("KUCING", "id")
-    fast, out, events = spell("KUCING", "id", completions=lambda cur: [("KUCING", 0.8)] if cur.startswith("KU") else [])
+    fast, out, events = spell(
+        "KUCING", "id", completions=lambda cur: [("KUCING", 0.8)] if cur.startswith("KU") else []
+    )
     assert out.event == SpellEvent.END and fast.text.strip() == "KUCING"
     assert SpellEvent.WORD in events
     assert fast.n_questions < plain.n_questions
@@ -116,14 +125,21 @@ def test_completions_never_offer_sensitive_words():
 
 
 def test_sentence_stage_confirms_before_finalizing():
-    hyps, prior, questions = sentence_stage("KUCING", [("Who is feeding my cat?", "Siapa yang memberi makan kucing saya?", 0.6),
-                                                       ("I miss my cat.", "Saya rindu kucing saya.", 0.4)])
+    hyps, prior, questions = sentence_stage(
+        "KUCING",
+        [
+            ("Who is feeding my cat?", "Siapa yang memberi makan kucing saya?", 0.6),
+            ("I miss my cat.", "Saya rindu kucing saya.", 0.4),
+        ],
+    )
     d = MessageDecider(hyps, prior, questions, CFG)
     act = d.next_action()
     steps = 0
     while act.kind in (ActionKind.ASK, ActionKind.CONFIRM):
         steps += 1
-        act = d.observe(Observation(Answer.YES if "sentence:0" in act.question.yes_ids else Answer.NO, 0.9))
+        act = d.observe(
+            Observation(Answer.YES if "sentence:0" in act.question.yes_ids else Answer.NO, 0.9)
+        )
     assert act.kind == ActionKind.FINALIZE and act.hypothesis.id == "sentence:0"
     assert steps >= 2  # at least one question plus a confirmation
     assert any(h.id == KEEP_ID for h in hyps)

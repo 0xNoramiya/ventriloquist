@@ -8,6 +8,7 @@ share exactly the same logic.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any
@@ -17,7 +18,7 @@ import numpy as np
 from app.config import EngineConfig
 
 from .posterior import bayes_update, confirm_no, effective_error_rates, normalize, to_dict
-from .questions import Scored, score_questions
+from .questions import Scored, score_questions, yes_matrix
 from .taxonomy import confirm_question, spell_offer_question
 from .types import (
     META_OTHER,
@@ -85,6 +86,7 @@ class MessageDecider:
         cfg: EngineConfig,
         a: float | None = None,
         b: float | None = None,
+        selector: Callable[[list[Scored]], Scored] | None = None,
     ) -> None:
         if len(hyps) != len(prior):
             raise ValueError("prior length must match hypotheses")
@@ -108,6 +110,8 @@ class MessageDecider:
         self.pending: Action | None = None
         self.turns: list[Turn] = []
         self.finalized: Hypothesis | None = None
+        self.selector = selector
+        self._mat: np.ndarray | None = None
 
     # ------------------------------------------------------------------ helpers
     def hypothesis(self, hid: str) -> Hypothesis:
@@ -126,6 +130,7 @@ class MessageDecider:
             if q.partition_key not in known:
                 self.pool.append(q)
                 known.add(q.partition_key)
+        self._mat = None
 
     def _mask(self, yes_ids: frozenset[str]) -> np.ndarray:
         mask = np.zeros(len(self.ids), dtype=bool)
@@ -143,7 +148,9 @@ class MessageDecider:
         self.pending = action
         return action
 
-    def _ask(self, kind: ActionKind, question: Question, *, rephrased: bool = False, **kw: Any) -> Action:
+    def _ask(
+        self, kind: ActionKind, question: Question, *, rephrased: bool = False, **kw: Any
+    ) -> Action:
         self.n_questions += 1
         if question.kind != QuestionKind.CONFIRM:
             self.asked_ids.add(question.id)
@@ -176,19 +183,32 @@ class MessageDecider:
             p_other >= cfg.offer_spell_other
             or (self.n_questions >= cfg.offer_spell_after and p_top < 0.5)
         ):
-            return self._offer_spell("other_likely" if p_other >= cfg.offer_spell_other else "slow_progress")
-        candidates = [
-            q
-            for q in self.pool
+            return self._offer_spell(
+                "other_likely" if p_other >= cfg.offer_spell_other else "slow_progress"
+            )
+        if self._mat is None:
+            self._mat = yes_matrix(self.ids, self.pool)
+        keep = [
+            i
+            for i, q in enumerate(self.pool)
             if q.id not in self.asked_ids and q.partition_key not in self.asked_partitions
         ]
         scored = [
             s
-            for s in score_questions(self.p, self.ids, candidates, self.a, self.b, cfg.lambda_words)
+            for s in score_questions(
+                self.p,
+                self.ids,
+                [self.pool[i] for i in keep],
+                self.a,
+                self.b,
+                cfg.lambda_words,
+                mat=self._mat[keep] if keep else None,
+            )
             if s.eig > 1e-4
         ]
         if scored:
-            return self._ask(ActionKind.ASK, scored[0].question, candidates=scored[:5])
+            choice = self.selector(scored) if self.selector else scored[0]
+            return self._ask(ActionKind.ASK, choice.question, candidates=scored[:5])
         if p_top >= 0.3 and top_h.id != META_OTHER:
             return self._confirm(top_h)
         if self.spell_offers < 2:
@@ -212,8 +232,13 @@ class MessageDecider:
                 self.reasked.add(q.id)
                 self.n_questions += 1
                 return self._set(
-                    Action(act.kind if act.kind in QUESTION_ACTIONS else ActionKind.ASK,
-                           question=q, hypothesis=act.hypothesis, rephrased=True, reason="reask")
+                    Action(
+                        act.kind if act.kind in QUESTION_ACTIONS else ActionKind.ASK,
+                        question=q,
+                        hypothesis=act.hypothesis,
+                        rephrased=True,
+                        reason="reask",
+                    )
                 )
             return self._set(Action(ActionKind.CAREGIVER, question=q, reason="tap_answer"))
 
@@ -230,9 +255,13 @@ class MessageDecider:
                 if self.p[i] >= self.cfg.finalize_threshold:
                     h = self.hyps[i]
                     if h.id in (META_SPELL, META_OTHER):
-                        return self._set(Action(ActionKind.ENTER_SPELLING, hypothesis=h, reason="confirmed"))
+                        return self._set(
+                            Action(ActionKind.ENTER_SPELLING, hypothesis=h, reason="confirmed")
+                        )
                     if h.id == META_STOP:
-                        return self._set(Action(ActionKind.PAUSE, hypothesis=h, reason="patient_asked"))
+                        return self._set(
+                            Action(ActionKind.PAUSE, hypothesis=h, reason="patient_asked")
+                        )
                     self.finalized = h
                     return self._set(Action(ActionKind.FINALIZE, hypothesis=h, reason="confirmed"))
             else:
@@ -263,5 +292,7 @@ class MessageDecider:
         """Caregiver skipped the pending question: no update, move on."""
         return self.next_action()
 
-    def _record(self, q: Question, obs: Observation, rephrased: bool, a_eff: float, b_eff: float) -> None:
+    def _record(
+        self, q: Question, obs: Observation, rephrased: bool, a_eff: float, b_eff: float
+    ) -> None:
         self.turns.append(Turn(q, obs, rephrased, a_eff, b_eff, self.posterior()))

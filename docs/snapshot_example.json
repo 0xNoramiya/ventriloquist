@@ -1,0 +1,411 @@
+{
+ "session_id": "ses_0b7ea0d129a3",
+ "patient": {
+  "id": "pt_39369aeea267",
+  "display_name": "Pak Hasan (fictional)",
+  "language": "en",
+  "honorific": "Bapak"
+ },
+ "mode": {
+  "requested": "mock",
+  "effective": "mock",
+  "reason": "mock mode"
+ },
+ "state": "LISTENING",
+ "stage": "main",
+ "prompt": {
+  "id": "p2",
+  "kind": "ask",
+  "stage": "main",
+  "sub": null,
+  "text": "Is it about a person?",
+  "text_en": "Is it about a person?",
+  "question": {
+   "id": "attr:person",
+   "kind": "attribute",
+   "text_en": "Is it about a person?",
+   "text_id": "Apakah ini tentang seseorang?",
+   "text": "Is it about a person?",
+   "yes_ids": [
+    "company",
+    "see_person:aisyah",
+    "see_person:rizal",
+    "see_person:siti",
+    "talk_staff",
+    "tell_family_ok",
+    "where_person:aisyah"
+   ],
+   "target_id": null,
+   "word_count": 5,
+   "evidence_ids": [],
+   "group": []
+  },
+  "group": [],
+  "word": null,
+  "rephrased": false,
+  "asked_at": "2026-10-26T17:32:55.440+00:00"
+ },
+ "listening": true,
+ "posterior": [
+  {
+   "id": "see_person:aisyah",
+   "text_en": "I want to see my daughter, Aisyah.",
+   "text_id": "Saya ingin bertemu putri saya, Aisyah.",
+   "p": 0.1487,
+   "prior": 0.0968,
+   "chips": [
+    {
+     "evidence_id": "S1",
+     "factor": 2.0,
+     "reason": "family photo in view and patient looking at it"
+    },
+    {
+     "evidence_id": "T1",
+     "factor": 4.0,
+     "reason": "Aisyah mentioned"
+    },
+    {
+     "evidence_id": "E3",
+     "factor": 2.0,
+     "reason": "a visitor just left"
+    }
+   ],
+   "bounded": null,
+   "personal": 1.0,
+   "source": "profile",
+   "urgent": false
+  },
+  {
+   "id": "other",
+   "text_en": "Something else.",
+   "text_id": "Hal lain.",
+   "p": 0.1228,
+   "prior": 0.08,
+   "chips": [],
+   "bounded": "other_min",
+   "personal": 1.0,
+   "source": "taxonomy",
+   "urgent": false
+  },
+  {
+   "id": "see_person:rizal",
+   "text_en": "I want to see my son, Rizal.",
+   "text_id": "Saya ingin bertemu putra saya, Rizal.",
+   "p": 0.0743,
+   "prior": 0.0484,
+   "chips": [
+    {
+     "evidence_id": "S1",
+     "factor": 2.0,
+     "reason": "family photo in view and patient looking at it"
+    },
+    {
+     "evidence_id": "E3",
+     "factor": 2.0,
+     "reason": "a visitor just left"
+    }
+   ],
+   "bounded": null,
+   "personal": 1.0,
+   "source": "profile",
+   "urgent": false
+  },
+  {
+   "id": "see_person:siti",
+   "text_en": "I want to see my wife, Siti.",
+   "text_id": "Saya ingin bertemu istri saya, Siti.",
+   "p": 0.0743,
+   "prior": 0.0484,
+   "chips": [
+    {
+     "evidence_id": "S1",
+     "factor": 2.0,
+     "reason": "family photo in view and patient looking at it"
+    },
+    {
+     "evidence_id": "E3",
+     "factor": 2.0,
+     "reason": "a visitor just left"
+    }
+   ],
+   "bounded": null,
+   "personal": 1.0,
+   "source": "profile",
+   "urgent": false
+  },
+  {
+   "id": "company",
+   "text_en": "Please stay with me.",
+   "text_id": "Tolong temani saya.",
+   "p": 0.0669,
+   "prior": 0.0436,
+   "chips": [
+    {
+     "evidence_id": "E3",
+     "factor": 2.0,
+     "reason": "a visitor just left"
+    }
+   ],
+   "bounded": null,
+   "personal": 1.0,
+   "source": "taxonomy",
+   "urgent": false
+  },
+  {
+   "id": "pray",
+   "text_en": "I want to pray or hear prayers.",
+   "text_id": "Saya ingin berdoa atau mendengarkan doa.",
+   "p": 0.0446,
+   "prior": 0.0291,
+   "chips": [
+    {
+     "evidence_id": "T1",
+     "factor": 2.0,
+     "reason": "prayer time mentioned"
+    }
+   ],
+   "bounded": null,
+   "personal": 1.0,
+   "source": "taxonomy",
+   "urgent": false
+  },
+  {
+   "id": "what_happened",
+   "text_en": "What happened to me?",
+   "text_id": "Apa yang terjadi pada saya?",
+   "p": 0.0335,
+   "prior": 0.0218,
+   "chips": [],
+   "bounded": null,
+   "personal": 1.0,
+   "source": "taxonomy",
+   "urgent": false
+  },
+  {
+   "id": "tube_when",
+   "text_en": "When will the tube come out?",
+   "text_id": "Kapan selangnya dilepas?",
+   "p": 0.0335,
+   "prior": 0.0218,
+   "chips": [],
+   "bounded": null,
+   "personal": 1.0,
+   "source": "taxonomy",
+   "urgent": false
+  }
+ ],
+ "other_p": 0.1228,
+ "questions": 2,
+ "max_questions": 10,
+ "trail": [
+  {
+   "n": 1,
+   "prompt_id": "p1",
+   "kind": "ask",
+   "stage": "main",
+   "text": "Is it about your body?",
+   "text_en": "Is it about your body?",
+   "answer": "no",
+   "confidence": 0.95,
+   "overridden": false,
+   "source": "keyboard",
+   "rephrased": false,
+   "sources": {
+    "keyboard": {
+     "answer": "no"
+    }
+   },
+   "group": [],
+   "at": "2026-10-26T17:32:55.439+00:00",
+   "top_after": [
+    {
+     "id": "see_person:aisyah",
+     "text_en": "I want to see my daughter, Aisyah.",
+     "text_id": "Saya ingin bertemu putri saya, Aisyah.",
+     "p": 0.1487,
+     "prior": 0.0968,
+     "chips": [
+      {
+       "evidence_id": "S1",
+       "factor": 2.0,
+       "reason": "family photo in view and patient looking at it"
+      },
+      {
+       "evidence_id": "T1",
+       "factor": 4.0,
+       "reason": "Aisyah mentioned"
+      },
+      {
+       "evidence_id": "E3",
+       "factor": 2.0,
+       "reason": "a visitor just left"
+      }
+     ],
+     "bounded": null,
+     "personal": 1.0,
+     "source": "profile",
+     "urgent": false
+    },
+    {
+     "id": "other",
+     "text_en": "Something else.",
+     "text_id": "Hal lain.",
+     "p": 0.1228,
+     "prior": 0.08,
+     "chips": [],
+     "bounded": "other_min",
+     "personal": 1.0,
+     "source": "taxonomy",
+     "urgent": false
+    },
+    {
+     "id": "see_person:rizal",
+     "text_en": "I want to see my son, Rizal.",
+     "text_id": "Saya ingin bertemu putra saya, Rizal.",
+     "p": 0.0743,
+     "prior": 0.0484,
+     "chips": [
+      {
+       "evidence_id": "S1",
+       "factor": 2.0,
+       "reason": "family photo in view and patient looking at it"
+      },
+      {
+       "evidence_id": "E3",
+       "factor": 2.0,
+       "reason": "a visitor just left"
+      }
+     ],
+     "bounded": null,
+     "personal": 1.0,
+     "source": "profile",
+     "urgent": false
+    }
+   ]
+  }
+ ],
+ "spelling": null,
+ "sentence_options": null,
+ "message": null,
+ "messages": [],
+ "evidence": [
+  {
+   "id": "S1",
+   "kind": "scene",
+   "text": "A family photo stands on the bedside table; the patient is gazing toward it.",
+   "at": "2026-10-26T17:32:55.343+00:00",
+   "ref": "sc_de777430d45e",
+   "minutes_ago": 0.0
+  },
+  {
+   "id": "S2",
+   "kind": "scene",
+   "text": "Monitors and an infusion pole beside the bed.",
+   "at": "2026-10-26T17:32:55.350+00:00",
+   "ref": "sc_5357d7d82339",
+   "minutes_ago": 0.0
+  },
+  {
+   "id": "T1",
+   "kind": "transcript",
+   "text": "Nurse: Your daughter Aisyah went home to rest, she'll be back at four.",
+   "at": "2026-10-26T17:20:55.336+00:00",
+   "ref": "tr_a5469399e9f7",
+   "minutes_ago": 12.0,
+   "speaker": "Nurse"
+  },
+  {
+   "id": "E1",
+   "kind": "event",
+   "text": "Repositioned (3.0 h ago)",
+   "at": "2026-10-26T14:32:55.336+00:00",
+   "ref": "ev_ses_0b7ea0d129a3_repositioned_180",
+   "minutes_ago": 180.0,
+   "event_kind": "repositioned"
+  },
+  {
+   "id": "E2",
+   "kind": "event",
+   "text": "Suctioned (20 min ago)",
+   "at": "2026-10-26T17:12:55.336+00:00",
+   "ref": "ev_ses_0b7ea0d129a3_suctioned_20",
+   "minutes_ago": 20.0,
+   "event_kind": "suctioned"
+  },
+  {
+   "id": "E3",
+   "kind": "event",
+   "text": "Visitor left (10 min ago)",
+   "at": "2026-10-26T17:22:55.336+00:00",
+   "ref": "ev_ses_0b7ea0d129a3_visitor_left_10",
+   "minutes_ago": 10.0,
+   "event_kind": "visitor_left"
+  }
+ ],
+ "caregiver_reason": null,
+ "caregiver_text": null,
+ "alerts": [],
+ "emergency": false,
+ "signals": {
+  "yes": {
+   "body_part": "eyebrows",
+   "motion": "raises both eyebrows",
+   "sam_prompt": "eyebrows",
+   "description": "Both eyebrows lift clearly for about one second."
+  },
+  "no": {
+   "body_part": "eyes",
+   "motion": "closes both eyes tightly",
+   "sam_prompt": "eyes",
+   "description": "Eyes squeeze shut for about one second."
+  },
+  "distinct": true,
+  "notes": "Mock description (no model was called)."
+ },
+ "calibration": {
+  "skipped": true,
+  "error_rates": {
+   "a": 0.1,
+   "b": 0.1
+  },
+  "accuracy": {}
+ },
+ "overlay": null,
+ "llm_calls": [
+  {
+   "role": "prior_builder",
+   "provider": "mock",
+   "model": "mock-spark",
+   "latency_ms": 2.1,
+   "input_tokens": 0,
+   "output_tokens": 0,
+   "usd": 0.0,
+   "repaired": false,
+   "fallback": false,
+   "error": null,
+   "prompt_version": "prior_builder/3"
+  },
+  {
+   "role": "question_proposer",
+   "provider": "mock",
+   "model": "mock-spark",
+   "latency_ms": 0.2,
+   "input_tokens": 0,
+   "output_tokens": 0,
+   "usd": 0.0,
+   "repaired": false,
+   "fallback": false,
+   "error": null,
+   "prompt_version": "question_proposer/2"
+  }
+ ],
+ "rejected": [],
+ "message_index": 1,
+ "ended": false,
+ "budget": {
+  "spent_usd": 0.0,
+  "max_usd": 120.0,
+  "fraction": 0.0,
+  "level": "ok"
+ }
+}

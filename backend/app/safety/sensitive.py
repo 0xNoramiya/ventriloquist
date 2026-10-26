@@ -31,8 +31,22 @@ CATEGORIES = (
 # Minimal built-in list so the detector works even before the full list is generated.
 _FALLBACK: dict[str, dict[str, list[str]]] = {
     "refuse_treatment": {
-        "en": ["STOP TREATMENT", "NO MORE TREATMENT", "TAKE THE TUBE OUT", "PULL THE TUBE", "TURN OFF THE MACHINE", "REFUSE"],
-        "id": ["STOP PENGOBATAN", "CABUT SELANG", "LEPAS SELANG", "MATIKAN MESIN", "TOLAK", "PULANG PAKSA"],
+        "en": [
+            "STOP TREATMENT",
+            "NO MORE TREATMENT",
+            "TAKE THE TUBE OUT",
+            "PULL THE TUBE",
+            "TURN OFF THE MACHINE",
+            "REFUSE",
+        ],
+        "id": [
+            "STOP PENGOBATAN",
+            "CABUT SELANG",
+            "LEPAS SELANG",
+            "MATIKAN MESIN",
+            "TOLAK",
+            "PULANG PAKSA",
+        ],
     },
     "end_of_life": {
         "en": ["DNR", "DO NOT RESUSCITATE", "LET ME GO", "END OF LIFE", "LET ME DIE"],
@@ -47,11 +61,27 @@ _FALLBACK: dict[str, dict[str, list[str]]] = {
         "id": ["DIPUKUL", "MEMUKUL", "DISAKITI", "KEKERASAN", "DILECEHKAN"],
     },
     "consent": {
-        "en": ["CONSENT", "PERMISSION", "SIGN THE", "SIGN PAPERS", "SIGN FORM", "OPERATION", "SURGERY"],
+        "en": [
+            "CONSENT",
+            "PERMISSION",
+            "SIGN THE",
+            "SIGN PAPERS",
+            "SIGN FORM",
+            "OPERATION",
+            "SURGERY",
+        ],
         "id": ["PERSETUJUAN", "IZIN", "TANDA TANGAN", "OPERASI"],
     },
     "legal_financial": {
-        "en": ["MY WILL", "LAST WILL", "TESTAMENT", "INHERITANCE", "BANK", "LAWYER", "TRANSFER MONEY"],
+        "en": [
+            "MY WILL",
+            "LAST WILL",
+            "TESTAMENT",
+            "INHERITANCE",
+            "BANK",
+            "LAWYER",
+            "TRANSFER MONEY",
+        ],
         "id": ["WASIAT", "SURAT WASIAT", "WARISAN", "BANK", "PENGACARA", "TRANSFER UANG"],
     },
 }
@@ -108,7 +138,9 @@ def detect(text: str) -> SensitiveResult:
     matches: list[str] = []
     for cat, words in keyword_table().items():
         for w in words:
-            hit = f" {w} " in spaced or (len(w.replace(" ", "")) >= 6 and w.replace(" ", "") in unspaced)
+            hit = f" {w} " in spaced or (
+                len(w.replace(" ", "")) >= 6 and w.replace(" ", "") in unspaced
+            )
             if hit:
                 if cat not in cats:
                     cats.append(cat)

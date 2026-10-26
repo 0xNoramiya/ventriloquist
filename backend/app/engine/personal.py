@@ -26,7 +26,9 @@ def decayed_counts(
     counts: dict[str, float] = {}
     for m in history:
         age_days = max((now - m.at).total_seconds(), 0.0) / 86400.0
-        counts[m.hypothesis_id] = counts.get(m.hypothesis_id, 0.0) + 0.5 ** (age_days / half_life_days)
+        counts[m.hypothesis_id] = counts.get(m.hypothesis_id, 0.0) + 0.5 ** (
+            age_days / half_life_days
+        )
     return counts
 
 

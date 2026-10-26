@@ -1,0 +1,19 @@
+id: suction
+title: "Secretions after a long gap"
+profile:
+  display_name: "Ibu Wati (fictional)"
+  language: id
+  honorific: Ibu
+  family:
+    - {name: Dewi, relation: daughter}
+  simulation_consent: true
+evidence:
+  transcript:
+    - {speaker: Nurse, text: "Napasnya agak grok-grok, lendirnya banyak pagi ini.", minutes_ago: 6}
+  scene:
+    - "The patient is coughing against the tube."
+  events:
+    - {kind: suctioned, label: "Suctioned", minutes_ago: 125}
+    - {kind: mouth_care, label: "Mouth care", minutes_ago: 60}
+patient:
+  truth: suction

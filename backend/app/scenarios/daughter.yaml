@@ -1,0 +1,27 @@
+id: daughter
+title: "Pak Hasan wants to see his daughter"
+description: >
+  Fictional patient. The nurse mentioned that his daughter Aisyah went home to rest, a family photo
+  sits on the bedside table and he keeps looking at it, and a visitor left ten minutes ago.
+profile:
+  display_name: "Pak Hasan (fictional)"
+  language: en
+  honorific: Bapak
+  family:
+    - {name: Aisyah, relation: daughter}
+    - {name: Rizal, relation: son}
+    - {name: Siti, relation: wife}
+  notes: ["Wears reading glasses"]
+  simulation_consent: true
+evidence:
+  transcript:
+    - {speaker: Nurse, text: "Your daughter Aisyah went home to rest, she'll be back at four.", minutes_ago: 12}
+  scene:
+    - "A family photo stands on the bedside table; the patient is gazing toward it."
+    - "Monitors and an infusion pole beside the bed."
+  events:
+    - {kind: visitor_left, label: "Visitor left", minutes_ago: 10}
+    - {kind: repositioned, label: "Repositioned", minutes_ago: 180}
+    - {kind: suctioned, label: "Suctioned", minutes_ago: 20}
+patient:
+  truth: "see_person:aisyah"

@@ -57,7 +57,8 @@ class PriorTerm:
             "personal": round(self.personal, 4),
             "context": round(self.context, 4),
             "chips": [
-                {"evidence_id": c.evidence_id, "factor": c.factor, "reason": c.reason} for c in self.chips
+                {"evidence_id": c.evidence_id, "factor": c.factor, "reason": c.reason}
+                for c in self.chips
             ],
             "rejected": self.rejected,
             "unbounded": round(self.unbounded, 5),
@@ -91,7 +92,11 @@ def context_factors(
         cited = [e for e in m.evidence_ids if e in valid_evidence]
         if not cited:
             rejected[m.hypothesis_id].append(
-                {"factor": m.factor, "evidence_ids": list(m.evidence_ids), "why": "no valid evidence"}
+                {
+                    "factor": m.factor,
+                    "evidence_ids": list(m.evidence_ids),
+                    "why": "no valid evidence",
+                }
             )
             continue
         if f == 1.0:

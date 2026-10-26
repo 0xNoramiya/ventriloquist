@@ -78,7 +78,11 @@ def build_hypotheses(
     if persons:
         share = float(base_rates.get("see_person", 0.05)) / len(persons)
         for person in persons:
-            hyps.append(instantiate("see_person", person=person, base_rate=share, source=HypothesisSource.PROFILE))
+            hyps.append(
+                instantiate(
+                    "see_person", person=person, base_rate=share, source=HypothesisSource.PROFILE
+                )
+            )
     return hyps
 
 
@@ -120,13 +124,15 @@ def instantiate(
         source=source,
         evidence_ids=evidence_ids,
         direct_en=spec["direct_en"].format(**slots),
-        direct_id=spec["direct_id"].replace("{name}", slots.get("name", "")).replace(
-            "{item_id}", slots.get("item_id", "")
-        ),
+        direct_id=spec["direct_id"]
+        .replace("{name}", slots.get("name", ""))
+        .replace("{item_id}", slots.get("item_id", "")),
     )
 
 
-def attribute_questions(hyps: list[Hypothesis], persons: list[Person] | tuple[Person, ...] = ()) -> list[Question]:
+def attribute_questions(
+    hyps: list[Hypothesis], persons: list[Person] | tuple[Person, ...] = ()
+) -> list[Question]:
     """Attribute partitions, per-person partitions and direct single-item questions."""
     tax = load_taxonomy()
     ids_by_attr: dict[str, set[str]] = {}
