@@ -238,6 +238,9 @@ The dated build log is [`HACKATHON_LOG.md`](HACKATHON_LOG.md) and the task list 
   consenting volunteers and tuning thresholds.
 - Indonesian strings and the sensitive-topic lists need native and clinical review
   ([`docs/I18N_REVIEW.md`](docs/I18N_REVIEW.md)). Indonesian transcription needs testing on real speech.
+- In live mode one question takes about 15 s end to end (speaking the question, the 4 s answer
+  window, about 5 s of perception). SAM 3.1 and the Spark judge are the slow parts; a confident
+  tracker lets the engine move on without the judge.
 - Base rates are starting guesses. Personal learning helps, but only after a few confirmed messages.
 - Zero data retention on the Meta API is an organisation-level setting that has to be requested.
 
