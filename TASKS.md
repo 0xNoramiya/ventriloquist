@@ -46,15 +46,17 @@ Status: `[x]` done, `[~]` in progress, `[ ]` to do. Updated as work proceeds.
 ## Phase 5: Perception tuning (needs recorded clips)
 - [x] `scripts/eval_detector.py` (confusion matrices per source + fused, latency)
 - [ ] Record labeled clips (Rifqi + consenting actors) into `data/labeled/` — needs a human
-- [ ] Tune thresholds, latency work, SAM overlay rendering
+- [~] Tune thresholds, latency work, SAM overlay rendering (DTW temperature now fitted on calibration LOO; overlay in caregiver view)
 
 ## Phase 6: Memory and privacy
 - [x] Live memory curator + learning curve (Wonder curator verified live; caregiver approval UI in frontend)
 - [~] Privacy mode end to end on Baseten (adapter + contract tests done; live run needs `BASETEN_API_KEY`)
-- [ ] Optional: SAM 3.1 on Modal; Muse Image pictograms for intents
+- [x] Muse Image pictograms for all 34 messages
+- [x] On-premises Muse Glimmer tier (text roles), Modal as alternative Spark Open host
+- [ ] Optional: SAM 3.1 open weights self-hosted on Modal (client ready; deployment needs an account)
 
 ## Phase 7: Polish and submission
 - [~] UI polish, final README with eval charts and Mermaid diagram, SAFETY.md (docs drafted)
-- [ ] Hosted simulation-only demo (no camera, no keys)
+- [~] Hosted simulation-only demo (no camera, no keys): Pyodide bridge done and verified under Node; Pages workflow drafted; frontend wiring next
 - [~] `docs/DEMO_SCRIPT.md`, X post draft (drafted); demo rehearsal and video recorded last
 - [ ] Feature freeze 2026-11-03 12:00 UTC; submission due 2026-11-05 02:00 UTC
