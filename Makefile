@@ -2,7 +2,7 @@
 PY := backend/.venv/bin/python
 export PYTHONPATH := $(CURDIR)/backend:$(CURDIR)
 
-.PHONY: setup dev backend frontend test lint format sim probe demo-mock eval-detector letter-stats clean
+.PHONY: setup dev backend frontend frontend-local test lint format sim probe demo-mock eval-detector letter-stats clean
 
 setup:
 	cd backend && uv venv --python 3.12 -q --allow-existing .venv && uv sync -q
@@ -11,10 +11,11 @@ setup:
 	@mkdir -p data
 
 dev:
-	@echo "Backend: http://127.0.0.1:8000  Frontend: https://localhost:5173 (and https://<LAN-IP>:5173 for the phone)"
+	@echo "Laptop: http://localhost:5174  Phone: https://<LAN-IP>:5173  Backend: http://127.0.0.1:8000"
 	@trap 'kill 0' INT TERM EXIT; \
 	  $(MAKE) --no-print-directory backend & \
 	  $(MAKE) --no-print-directory frontend & \
+	  $(MAKE) --no-print-directory frontend-local & \
 	  wait
 
 backend:
@@ -22,6 +23,10 @@ backend:
 
 frontend:
 	cd frontend && npm run dev
+
+# Plain HTTP on 127.0.0.1 only: no certificate warning on the laptop, camera still allowed.
+frontend-local:
+	cd frontend && VENTRILOQUIST_HTTP=1 npx vite
 
 test:
 	cd backend && .venv/bin/pytest

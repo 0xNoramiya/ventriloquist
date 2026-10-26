@@ -1,4 +1,5 @@
 declare const __LAN_HOSTS__: string[];
+declare const __PHONE_PORT__: string;
 
 const STORAGE_KEY = 'ventriloquist.phoneHost';
 
@@ -22,10 +23,20 @@ export function defaultPhoneHost(): string {
   } catch {
     // ignore
   }
-  const { hostname, host, port } = window.location;
+  const { hostname, host, port, protocol } = window.location;
   if (!isLoopback(hostname)) return host;
   const lan = lanHosts()[0];
-  return lan ? `${lan}${port ? `:${port}` : ''}` : host;
+  // The laptop may be on the plain-HTTP server; the phone needs the HTTPS one.
+  const phonePort = protocol === 'http:' ? phonePortOr(port) : port;
+  return lan ? `${lan}${phonePort ? `:${phonePort}` : ''}` : host;
+}
+
+function phonePortOr(fallback: string): string {
+  try {
+    return __PHONE_PORT__;
+  } catch {
+    return fallback;
+  }
 }
 
 export function savePhoneHost(host: string): void {

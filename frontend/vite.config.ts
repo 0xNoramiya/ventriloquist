@@ -8,6 +8,12 @@ import { defineConfig } from 'vitest/config';
 // which proxies /api and /ws, so there is no mixed content and the camera is allowed.
 const backend = process.env.VENTRILOQUIST_API ?? 'http://127.0.0.1:8000';
 
+// VENTRILOQUIST_HTTP=1 serves plain HTTP on 127.0.0.1:5174 for the laptop's own browser: localhost
+// counts as a secure context, so the camera works without the self-signed certificate warning.
+// Phones still need the HTTPS server, so phone links always point at port 5173.
+const plainHttp = process.env.VENTRILOQUIST_HTTP === '1';
+const PHONE_PORT = 5173;
+
 // LAN addresses, so the caregiver screen can print a QR code the phone can actually open.
 // Virtual bridges (Docker, VPN, libvirt) are skipped; home and office ranges come first.
 function lanHosts(): string[] {
@@ -24,13 +30,16 @@ function lanHosts(): string[] {
 }
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), basicSsl({ name: 'ventriloquist' })],
+  plugins: [react(), tailwindcss(), ...(plainHttp ? [] : [basicSsl({ name: 'ventriloquist' })])],
+  // Separate dependency cache, so both dev servers can run side by side.
+  cacheDir: plainHttp ? 'node_modules/.vite-http' : 'node_modules/.vite',
   define: {
     __LAN_HOSTS__: JSON.stringify(lanHosts()),
+    __PHONE_PORT__: JSON.stringify(String(PHONE_PORT)),
   },
   server: {
-    host: true,
-    port: 5173,
+    host: plainHttp ? '127.0.0.1' : true,
+    port: plainHttp ? 5174 : PHONE_PORT,
     strictPort: true,
     // IP addresses are always allowed; these cover `cloudflared` quick tunnels and mDNS names.
     allowedHosts: ['.trycloudflare.com', '.local'],

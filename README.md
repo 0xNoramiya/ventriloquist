@@ -208,19 +208,20 @@ git clone <repo> ventriloquist && cd ventriloquist
 make setup          # backend venv + frontend packages, creates .env from .env.example
 make test           # backend tests + frontend checks
 make demo-mock      # a full simulated session in the terminal, no keys needed
-make dev            # backend :8000 + frontend https://localhost:5173
+make dev            # backend :8000, laptop http://localhost:5174, phone https://<laptop-ip>:5173
 ```
 
-**Mock mode** (default, no keys): open `https://localhost:5173`, start the "daughter" scenario,
+**Mock mode** (default, no keys): open `http://localhost:5174`, start the "daughter" scenario,
 open the patient view on a phone on the same network (`https://<laptop-ip>:5173/patient/<id>`, accept
-the self-signed certificate) and answer with Y / N / U / E on a keyboard, or let the simulated patient
+the self-signed certificate; phones need HTTPS for the camera, the laptop's own localhost does not) and answer with Y / N / U / E on a keyboard, or let the simulated patient
 answer.
 
 **Mock mode with a camera**: calibrate the patient (`/setup`, then `/calibrate`). Once a patient has a
 real calibration, the patient view reads answers from the camera even without keys, using the
 on-device optical-flow tracker; nothing leaves the machine.
 
-**Live mode**: set `MODEL_API_KEY` in `.env` and a `LIVE_PASSCODE`, then switch to live in Settings.
+**Live mode**: set `MODEL_API_KEY` in `.env` and a `LIVE_PASSCODE`, then switch to live in Settings
+(or set `APP_MODE=live` in `.env`; a mode saved from Settings takes precedence over `.env`).
 `make probe` checks every endpoint; `PYTHONPATH=backend:. backend/.venv/bin/python scripts/live_check.py`
 runs every role for well under a dollar. The budget guard warns at 70% of `budget.max_usd` and switches
 to mock at 90%.
