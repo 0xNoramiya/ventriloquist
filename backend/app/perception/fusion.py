@@ -47,12 +47,25 @@ def judge_probs(classification: str, confidence: float) -> dict[str, float]:
     return {k: (c if k == classification else rest) for k in CLASSES}
 
 
-def normalise_probs(probs: dict[str, float]) -> dict[str, float]:
+def normalise_probs(probs: dict[str, float], ceiling: float = 0.98) -> dict[str, float]:
+    """Full distribution over the four classes. No single detector is allowed to be certain:
+    the top class is capped at `ceiling` (DTW on a handful of calibration clips can look perfect)."""
     full = {
         k: max(probs.get("rest" if k == "none" else k, probs.get(k, 0.0)), 0.0) for k in CLASSES
     }
     total = sum(full.values())
-    return {k: v / total for k, v in full.items()} if total > 0 else {k: 0.25 for k in CLASSES}
+    if total <= 0:
+        return {k: 0.25 for k in CLASSES}
+    full = {k: v / total for k, v in full.items()}
+    top = max(full, key=full.get)
+    if full[top] > ceiling:
+        others = sum(v for k, v in full.items() if k != top)
+        rest = 1.0 - ceiling
+        full = {
+            k: ceiling if k == top else (rest * v / others if others > 0 else rest / 3)
+            for k, v in full.items()
+        }
+    return full
 
 
 def fuse(
