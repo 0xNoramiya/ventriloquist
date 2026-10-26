@@ -57,7 +57,7 @@ KEYWORD_RULES: list[tuple[str, list[str], float, str]] = [
     (r"bright|glare|silau|lampu terang", ["light"], 2, "bright light mentioned"),
     (r"noisy|noise|loud|alarm|berisik|bising", ["noise"], 2, "noise mentioned"),
     (
-        r"thirst|dry (mouth|lips)|\\bhaus\\b|bibir kering|mulut kering",
+        r"thirst|dry (mouth|lips)|\bhaus\b|bibir kering|mulut kering",
         ["thirst"],
         2,
         "dry mouth mentioned",
