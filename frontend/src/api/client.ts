@@ -10,6 +10,7 @@ import type {
   SimResults,
   Snapshot,
 } from './types';
+import { demoBridge, isBrowserDemo } from '../demo/bridge';
 
 export class ApiError extends Error {
   constructor(
@@ -193,3 +194,58 @@ export const api = {
   simResults: () => request<SimResults>('/sim/results'),
   runSim: (trials: number) => json<SimResults>('/sim/run', 'POST', { trials, seed: 7 }),
 };
+
+// Hosted demo: the session runs in this browser (Pyodide worker); there is no server.
+if (isBrowserDemo) {
+  const unavailable = () =>
+    Promise.reject(
+      new ApiError(501, 'Not available in the hosted demo. Run Ventriloquist locally for this.'),
+    );
+  const current = async (): Promise<Snapshot> => {
+    const snap = await demoBridge.snapshot();
+    if (!snap) throw new ApiError(404, 'session not found');
+    return snap;
+  };
+  const demoApi: Partial<typeof api> = {
+    config: () => demoBridge.config(),
+    updateSettings: unavailable,
+    startScenario: (name, body) =>
+      demoBridge.scenario(name, body.simulated, body.noise ?? 0.05, body.language),
+    createPatient: unavailable,
+    patient: unavailable,
+    createSession: unavailable,
+    session: () => current(),
+    start: async () => {
+      await demoBridge.send({ type: 'start' });
+      return current();
+    },
+    framing: unavailable,
+    calibrationClip: unavailable,
+    resetCalibrationClips: unavailable,
+    finalizeCalibration: unavailable,
+    calibration: unavailable,
+    editDescription: unavailable,
+    sessionSnapshotImage: async () => ({ facts: [] }),
+    sessionClip: unavailable,
+    sessionAudio: unavailable,
+    transcript: (_sid, speaker, text) => demoBridge.send({ type: 'transcript', speaker, text }),
+    event: (_sid, kind, label) => demoBridge.send({ type: 'event', kind, label }),
+    override: async (_sid, action) => {
+      await demoBridge.send({ type: 'override', action });
+      return { ok: true, snapshot: await current() };
+    },
+    memory: unavailable,
+    addMemory: unavailable,
+    curate: unavailable,
+    approveOp: unavailable,
+    rejectOp: unavailable,
+    deleteMemory: unavailable,
+    simResults: async () => {
+      const res = await fetch(`${import.meta.env.BASE_URL}demo/sim_results.json`);
+      if (!res.ok) throw new ApiError(res.status, 'simulation results missing');
+      return (await res.json()) as SimResults;
+    },
+    runSim: unavailable,
+  };
+  Object.assign(api, demoApi);
+}

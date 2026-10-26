@@ -4,9 +4,18 @@ import { defaultPhoneHost, lanHosts, patientUrl, savePhoneHost } from '../../lib
 import { Button } from '../Button';
 import { inputClass } from '../Form';
 import { QRCode } from '../QRCode';
+import { isBrowserDemo } from '../../demo/bridge';
 
 /** QR code and link that open the patient view on the phone. */
 export function ConnectPanel({ sid, compact = false }: { sid: string; compact?: boolean }) {
+  const t = useT();
+  if (isBrowserDemo) {
+    return <p className="text-[15px] text-ink-soft">{t('demo.connect_note')}</p>;
+  }
+  return <PhoneLink sid={sid} compact={compact} />;
+}
+
+function PhoneLink({ sid, compact }: { sid: string; compact: boolean }) {
   const t = useT();
   const [host, setHost] = useState(defaultPhoneHost);
   const [editing, setEditing] = useState(false);

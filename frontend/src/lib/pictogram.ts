@@ -41,5 +41,5 @@ export const PICTOGRAM_IDS = new Set([
 export function pictogramSrc(hypothesisId: string | null | undefined): string | null {
   if (!hypothesisId) return null;
   const base = hypothesisId.split(':')[0] ?? '';
-  return PICTOGRAM_IDS.has(base) ? `/pictograms/${base}.webp` : null;
+  return PICTOGRAM_IDS.has(base) ? `${import.meta.env.BASE_URL}pictograms/${base}.webp` : null;
 }
