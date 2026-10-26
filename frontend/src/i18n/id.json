@@ -544,5 +544,8 @@
   "demo.stage.ready": "Mesin siap.",
   "demo.stage.error": "Mesin gagal dimuat. Periksa koneksi lalu muat ulang.",
   "demo.connect_note": "Pada demo daring, ponsel pasien ditampilkan di sebelah kanan. Jalankan Ventriloquist secara lokal untuk membukanya di ponsel sungguhan.",
-  "demo.phone_hint": "Klik ponsel, lalu jawab dengan Y dan N (U = tidak jelas, E = darurat)."
+  "demo.phone_hint": "Klik ponsel, lalu jawab dengan Y dan N (U = tidak jelas, E = darurat).",
+  "transcript.mic": "Dengarkan ruangan",
+  "transcript.mic_hint": "Selama aktif, potongan audio 8 detik dikirim ke transkripsi. Aktifkan hanya dengan persetujuan semua orang. Ucapan ponsel sendiri disaring.",
+  "transcript.mic_status": "Mendengarkan. {n} potongan terkirim."
 }

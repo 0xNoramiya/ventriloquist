@@ -544,5 +544,8 @@
   "demo.stage.ready": "Engine ready.",
   "demo.stage.error": "The engine could not load. Check your connection and reload.",
   "demo.connect_note": "In the hosted demo the patient phone is shown on the right. Run Ventriloquist locally to open it on a real phone.",
-  "demo.phone_hint": "Click the phone, then answer with Y and N (U = unclear, E = emergency)."
+  "demo.phone_hint": "Click the phone, then answer with Y and N (U = unclear, E = emergency).",
+  "transcript.mic": "Listen to the room",
+  "transcript.mic_hint": "Sends 8-second audio chunks to the transcriber while on. Turn it on only with everyone's agreement. What the phone itself says is filtered out.",
+  "transcript.mic_status": "Listening. {n} chunks sent."
 }

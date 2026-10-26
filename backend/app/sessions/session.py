@@ -13,8 +13,10 @@ emergency from any state, human override everywhere.
 from __future__ import annotations
 
 import asyncio
+import difflib
 import logging
 import re
+import time
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
@@ -198,6 +200,9 @@ class Session:
         self.retractions = 0
         self.sentence_rounds = 0
         self.rejected: list[dict[str, Any]] = []
+        self.spoken_texts: list[
+            tuple[float, str]
+        ] = []  # what the phone said, to drop its echo from room audio
         self._tasks: set[asyncio.Task[Any]] = set()
 
     # ================================================================ helpers
@@ -478,6 +483,7 @@ class Session:
             rephrased,
             sub,
         )
+        self._remember_spoken(self.prompt.text)
         self._to(state, f"{kind}:{stage}")
         self.log.write(
             "prompt",
@@ -961,6 +967,7 @@ class Session:
         self.prompt_seq += 1
         text = self.message.text_id if self.lang == "id" else self.message.text_en
         self.prompt = Prompt(f"p{self.prompt_seq}", "message", "speak", text, self.message.text_en)
+        self._remember_spoken(text)
         self._to(State.SPEAKING, "speak confirmed message")
         if self.auto_speak:
             self._spawn(self._auto_spoken(self.prompt.id))
@@ -1218,9 +1225,10 @@ class Session:
         tr = self.ctx.hub.transcriber(self.mode)
         result = await tr.transcribe(wav, self.lang, keywords)
         self.ctx.hub.record_transcript(result)
+        kept = [s for s in result.segments if not self._is_own_speech(s.text)]
         added = [
             self.ctx.store.add_transcript(self.pid, self.id, s.speaker, s.text, s.start, s.end)
-            for s in result.segments
+            for s in kept
         ]
         for p in (path, wav):
             p.unlink(missing_ok=True)
@@ -1228,10 +1236,27 @@ class Session:
             "transcribe",
             provider=result.provider,
             segments=len(added),
+            dropped_own_speech=len(result.segments) - len(kept),
             latency_ms=result.latency_ms,
         )
         await self._notify()
         return added
+
+    def _remember_spoken(self, text: str) -> None:
+        now = time.monotonic()
+        self.spoken_texts = [(t, x) for t, x in self.spoken_texts if now - t < 180] + [(now, text)]
+
+    def _is_own_speech(self, text: str) -> bool:
+        """The room microphone also hears the phone. Drop transcript segments that repeat what the
+        phone said in the last three minutes, so its questions never become 'room evidence'."""
+        norm = " ".join(re.findall(r"[a-z0-9]+", text.lower()))
+        if not norm:
+            return True
+        for _, said in self.spoken_texts:
+            ref = " ".join(re.findall(r"[a-z0-9]+", said.lower()))
+            if ref and (norm in ref or difflib.SequenceMatcher(None, norm, ref).ratio() >= 0.6):
+                return True
+        return False
 
     async def add_snapshot(self, path: Path) -> list[str]:
         from app.perception.media import file_hash

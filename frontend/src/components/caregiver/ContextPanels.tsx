@@ -1,10 +1,10 @@
-import { useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { api } from '../../api/client';
 import type { Evidence } from '../../api/types';
 import { useT, type Key } from '../../i18n';
 import { cx } from '../../lib/format';
 import { Button } from '../Button';
-import { Notice, Select, inputClass } from '../Form';
+import { Notice, Select, Switch, inputClass } from '../Form';
 
 function ago(t: ReturnType<typeof useT>, minutes: number | null | undefined): string {
   if (minutes === null || minutes === undefined) return '';
@@ -164,6 +164,96 @@ export function Transcript({
         </div>
       </form>
       {status ? <Notice tone={status.tone}>{status.text}</Notice> : null}
+      {mock ? null : <RoomMic sid={sid} />}
+    </div>
+  );
+}
+
+const CHUNK_MS = 8000;
+
+function audioMime(): string | undefined {
+  for (const m of ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4']) {
+    if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported(m)) return m;
+  }
+  return undefined;
+}
+
+function recordAudio(stream: MediaStream, ms: number): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const mimeType = audioMime();
+    const rec = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+    const parts: Blob[] = [];
+    rec.ondataavailable = (e) => {
+      if (e.data.size) parts.push(e.data);
+    };
+    rec.onerror = () => reject(new Error('recording failed'));
+    rec.onstop = () => resolve(new Blob(parts, { type: rec.mimeType || 'audio/webm' }));
+    rec.start();
+    window.setTimeout(() => rec.state !== 'inactive' && rec.stop(), ms);
+  });
+}
+
+/**
+ * Room listener (live and privacy modes): records the room in 8-second chunks and sends each to
+ * the transcriber. Opt-in, off by default; the backend drops anything that repeats what the phone
+ * itself just said.
+ */
+function RoomMic({ sid }: { sid: string }) {
+  const t = useT();
+  const [on, setOn] = useState(false);
+  const [sent, setSent] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!on) return;
+    let stopped = false;
+    let stream: MediaStream | null = null;
+    void (async () => {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: { echoCancellation: true, noiseSuppression: true },
+        });
+      } catch (e) {
+        setError(e instanceof Error ? e.message : String(e));
+        setOn(false);
+        return;
+      }
+      while (!stopped && stream) {
+        const blob = await recordAudio(stream, CHUNK_MS);
+        if (stopped) break;
+        const ext = blob.type.includes('mp4') ? 'm4a' : 'webm';
+        void api
+          .sessionAudio(sid, blob, `room.${ext}`)
+          .then(async (res) => {
+            setSent((n) => n + 1);
+            if (res.segments.length) await api.override(sid, 'refresh_context');
+          })
+          .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)));
+      }
+    })();
+    return () => {
+      stopped = true;
+      stream?.getTracks().forEach((track) => track.stop());
+    };
+  }, [on, sid]);
+
+  return (
+    <div className="flex flex-col gap-2 border-t border-line pt-3">
+      <Switch
+        checked={on}
+        onChange={(v) => {
+          setError(null);
+          setOn(v);
+        }}
+        label={t('transcript.mic')}
+        description={t('transcript.mic_hint')}
+      />
+      {on ? (
+        <p role="status" className="text-sm text-muted">
+          {t('transcript.mic_status', { n: sent })}
+        </p>
+      ) : null}
+      {error ? <Notice tone="error">{error}</Notice> : null}
     </div>
   );
 }

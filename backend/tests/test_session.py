@@ -338,3 +338,30 @@ async def test_ack_silent_clears_caregiver_reason(ctx):
     assert s.caregiver_reason == "sensitive_verify"
     await s.override("ack_sensitive_silent")
     assert s.caregiver_reason is None and s.state == State.DONE
+
+
+async def test_room_audio_drops_the_phones_own_speech(ctx, tmp_path):
+    s = make_session(ctx, "cold", None)
+    await s.start()
+    q = s.prompt.text
+    audio = tmp_path / "room.webm"
+    import subprocess
+
+    subprocess.run(
+        [
+            "ffmpeg",
+            "-loglevel",
+            "error",
+            "-f",
+            "lavfi",
+            "-i",
+            "sine=frequency=440:duration=1",
+            str(audio),
+        ],
+        check=True,
+    )
+    (audio.with_suffix(".wav")).parent.mkdir(exist_ok=True)
+    # mock transcriber reads a sidecar next to the converted wav
+    (tmp_path / "room.wav.txt").write_text(f"A: {q}\nB: Bapak suka teh manis setiap pagi.\n")
+    added = await s.add_audio(audio)
+    assert [a["text"] for a in added] == ["Bapak suka teh manis setiap pagi."]
