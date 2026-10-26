@@ -233,6 +233,8 @@ Synthetic media and its ground truth: `data/probe_media/` (gitignored), regenera
 13. **Adapter choice**: the probes use the OpenAI SDK with `base_url`; the production adapters call the same OpenAI-compatible endpoints with `httpx` directly so retries (429/5xx with `Retry-After`), timeouts and Meta-specific fields (`input_video.fps`, SAM `metadata`) stay explicit. Request bodies are covered by contract tests (`backend/tests/test_providers.py`).
 14. **Blind judge timeout**: observed Spark video latency (3.8-5.1 s, one 13.3 s outlier) is close to the brief's 6 s. The judge keeps `judge_timeout_s: 6` (+2 s grace); on timeout the tracker path decides alone with reduced confidence.
 
+15. **Resolution and latency** (observed 2026-10-26, synthetic YES clip, 4 s): SAM 3.1 at 640x480 took 5.0 s, at 320x240 3.2 s (same 60 frames billed, eyebrow box still moves 17 px of 240). The Spark judge took 4.1-4.8 s at either size, with half the input tokens at 320x240 (2,390 vs 4,694 at `fps: 8`). Answer windows are now normalised to 320x240; when SAM is at least 90% sure the engine decides without waiting for the judge and attaches the judge's verdict later.
+
 ## Open questions
 
 1. Is `meta-models/muse-spark-open-1026` live on Baseten? Run `scripts/probe_baseten.py --media` once `BASETEN_API_KEY` is set. It also checks video/audio acceptance.
