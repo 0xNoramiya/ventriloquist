@@ -249,3 +249,83 @@ async def test_session_log_redacts_profile_names(ctx):
     raw = s.log.path.read_text()
     assert "Aisyah" not in raw and "Pak Hasan" not in raw
     assert "[daughter]" in raw
+
+
+async def _answer_current(s, truth: str) -> None:
+    q = s.prompt
+    if s.state == State.SPEAKING:
+        await s.spoken(q.id)
+        return
+    if s.state in (State.ASKING, State.CONFIRMING, State.SPELLING, State.POST_CHECK):
+        await s.spoken(q.id)
+    q = s.prompt
+    yes = q.kind == "post_check" or truth in (q.question.yes_ids if q.question else [])
+    await s.answer(q.id, Answer.YES if yes else Answer.NO)
+
+
+async def test_pause_then_resume_continues_same_message(ctx):
+    s = make_session(ctx, "cold", None)
+    await s.start()
+    await _answer_current(s, "cold")
+    asked_before = s.decider.n_questions
+    await s.override("pause")
+    assert s.state == State.PAUSED and s.prompt is None
+    await s.override("resume")
+    assert s.state in (State.ASKING, State.CONFIRMING)
+    assert s.decider.n_questions == asked_before + 1  # same decider, next question
+    for _ in range(12):
+        if s.state == State.DONE:
+            break
+        await _answer_current(s, "cold")
+    assert [m.hypothesis_id for m in s.messages if m.status == "confirmed"] == ["cold"]
+
+
+async def test_emergency_during_spelling_then_resume_spelling(ctx):
+    s = make_session(ctx, "spelling", None)
+    await s.start()
+    await s.override("spell")
+    assert s.state == State.SPELLING and s.stage == "spelling"
+    await s.spoken(s.prompt.id)
+    await s.answer(s.prompt.id, Answer.EMERGENCY)
+    assert s.state == State.EMERGENCY
+    await s.override("ack_emergency")
+    assert s.state == State.PAUSED
+    await s.override("resume")
+    assert s.state == State.SPELLING and s.prompt.kind == "spelling"
+
+
+async def test_caregiver_skip_moves_on_without_update(ctx):
+    s = make_session(ctx, "cold", None)
+    await s.start()
+    first = s.prompt.question.id
+    await s.spoken(s.prompt.id)
+    p_before = dict(s.decider.posterior())
+    await s.override("skip")
+    assert s.prompt.question.id != first
+    assert s.decider.posterior() == p_before
+
+
+async def test_new_message_after_done_resets_counters(ctx):
+    s = make_session(ctx, "cold", SimulatedPatient(truth="cold"))
+    await s.start()
+    await run_until(s)
+    assert s.state == State.DONE
+    s.sim = SimulatedPatient(truth="thirst")
+    await s.new_message()
+    await run_until(s)
+    confirmed = [m.hypothesis_id for m in s.messages if m.status == "confirmed"]
+    assert confirmed == ["cold", "thirst"]
+    assert s.message_index == 2
+    # the first message is now history evidence and feeds personal learning
+    assert any(e["kind"] == "history" for e in s.evidence.to_list())
+
+
+async def test_stale_answers_are_ignored(ctx):
+    s = make_session(ctx, "cold", None)
+    await s.start()
+    old = s.prompt.id
+    await s.spoken(old)
+    await s.answer(old, Answer.NO)
+    n_trail = len(s.trail)
+    assert not await s.answer(old, Answer.YES)  # duplicate / late answer for an old prompt
+    assert len(s.trail) == n_trail

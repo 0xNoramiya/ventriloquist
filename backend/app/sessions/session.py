@@ -1032,6 +1032,8 @@ class Session:
         self.log.write("caregiver_needed", reason=reason)
 
     async def _pause(self, reason: str) -> None:
+        if self.state == State.DONE:
+            return  # nothing in progress to pause
         self.prompt = None
         self._to(State.PAUSED, reason)
         self.log.write("paused", reason=reason)
@@ -1076,10 +1078,21 @@ class Session:
         await self._notify()
         return result
 
+    def _interrupt(self, reason: str) -> None:
+        """Bring a prompt in flight to PROCESSING through valid edges, so a caregiver can redirect."""
+        if self.state in (State.ASKING, State.CONFIRMING, State.SPELLING, State.POST_CHECK):
+            self._to(State.LISTENING, reason)
+        if self.state == State.LISTENING:
+            self._to(State.PROCESSING, reason)
+
     async def _override_locked(self, action: str) -> dict[str, Any]:
+        if self.state == State.EMERGENCY and action not in ("ack_emergency", "end"):
+            return {"ok": False, "reason": "acknowledge the emergency first"}
+        if self.state == State.SPEAKING and action not in ("pause", "end"):
+            return {"ok": False, "reason": "the phone is speaking; try again in a moment"}
+        if action in ("skip", "spell", "new_message"):
+            self._interrupt(f"caregiver {action}")
         if action == "skip":
-            if self.state == State.LISTENING:
-                self._to(State.PROCESSING, "caregiver skip")
             if self.stage == "main" and self.decider is not None:
                 await self._apply_main(self.decider.skip())
             elif self.stage == "spelling" and self.spelling is not None:
@@ -1099,7 +1112,8 @@ class Session:
         elif action == "ack_emergency":
             self.emergency_active = False
             self.alerts = [a for a in self.alerts if a["kind"] != "emergency"]
-            await self._pause("emergency acknowledged")
+            if self.state == State.EMERGENCY:
+                await self._pause("emergency acknowledged")
         elif action in ("ack_sensitive", "ack_sensitive_silent"):
             if self.message and self.message.status == "needs_verification":
                 self.alerts = [a for a in self.alerts if a.get("message_id") != self.message.id]
