@@ -8,7 +8,9 @@ const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, '..', '..');
 const pub = resolve(here, '..', 'public');
 
-execFileSync('python3', [resolve(root, 'scripts', 'build_pyodide_bundle.py')], { stdio: 'inherit' });
+execFileSync('python3', [resolve(root, 'scripts', 'build_pyodide_bundle.py')], {
+  stdio: 'inherit',
+});
 mkdirSync(resolve(pub, 'demo'), { recursive: true });
 for (const name of ['sim_results.json', 'learning_curve.json']) {
   const src = resolve(root, 'docs', name);

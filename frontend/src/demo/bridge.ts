@@ -64,7 +64,10 @@ class DemoBridge {
         else p.reject(new Error(msg.error));
       }
     };
-    const bundleUrl = new URL(`${import.meta.env.BASE_URL}pyodide/backend.zip`, window.location.href).href;
+    const bundleUrl = new URL(
+      `${import.meta.env.BASE_URL}pyodide/backend.zip`,
+      window.location.href,
+    ).href;
     this.ready = this.call({ cmd: 'init', bundleUrl }).then(
       () => undefined,
       (err: Error) => {
@@ -81,9 +84,20 @@ class DemoBridge {
     return JSON.parse((await this.call({ cmd: 'config' })) ?? '{}') as PublicConfig;
   }
 
-  async scenario(name: string, simulated: boolean, noise = 0.05, language?: string): Promise<Snapshot> {
+  async scenario(
+    name: string,
+    simulated: boolean,
+    noise = 0.05,
+    language?: string,
+  ): Promise<Snapshot> {
     await this.init();
-    const raw = await this.call({ cmd: 'scenario', name, simulated, noise, language: language ?? null });
+    const raw = await this.call({
+      cmd: 'scenario',
+      name,
+      simulated,
+      noise,
+      language: language ?? null,
+    });
     return JSON.parse(raw ?? 'null') as Snapshot;
   }
 

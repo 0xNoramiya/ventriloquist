@@ -11,7 +11,14 @@ const PYODIDE_URL = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`
 export type WorkerRequest =
   | { id: number; cmd: 'init'; bundleUrl: string }
   | { id: number; cmd: 'config' }
-  | { id: number; cmd: 'scenario'; name: string; simulated: boolean; noise: number; language: string | null }
+  | {
+      id: number;
+      cmd: 'scenario';
+      name: string;
+      simulated: boolean;
+      noise: number;
+      language: string | null;
+    }
   | { id: number; cmd: 'send'; message: string }
   | { id: number; cmd: 'snapshot' };
 
@@ -76,7 +83,9 @@ async function handle(req: WorkerRequest): Promise<string | null> {
     case 'config':
       return String(demo.config());
     case 'scenario':
-      return String(await (demo.scenario(req.name, req.simulated, req.noise, req.language) as Promise<unknown>));
+      return String(
+        await (demo.scenario(req.name, req.simulated, req.noise, req.language) as Promise<unknown>),
+      );
     case 'send':
       return String(await (demo.handle(req.message) as Promise<unknown>));
     case 'snapshot':
