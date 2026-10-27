@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { api, type SettingsUpdate } from '../api/client';
+import { api, setLivePasscode, type SettingsUpdate } from '../api/client';
 import type { Lang, PublicConfig } from '../api/types';
 import { Button } from '../components/Button';
 import { Field, Notice, Select, Switch, TextInput } from '../components/Form';
@@ -113,6 +113,18 @@ export default function Settings() {
         {error ? <Notice tone="error">{error}</Notice> : null}
         {saved ? <Notice tone="good">{saved}</Notice> : null}
 
+        {config?.passcode_required ? (
+          <UnlockPanel
+            unlocked={Boolean(config.unlocked)}
+            onChange={() =>
+              void loadConfig(true).then((c) => {
+                setCachedConfig(c);
+                setConfig(c);
+              })
+            }
+          />
+        ) : null}
+
         <Section id="mode-title" title={t('settings.mode.title')}>
           <form onSubmit={submitMode} className="flex flex-col gap-5">
             <fieldset className="flex flex-col gap-2">
@@ -153,7 +165,7 @@ export default function Settings() {
               label={t('settings.privacy')}
               description={t('settings.privacy_hint')}
             />
-            {needsPasscode && modeChanged ? (
+            {needsPasscode && modeChanged && !config?.unlocked ? (
               <Field label={t('settings.passcode')} hint={t('settings.passcode_hint')}>
                 {(p) => (
                   <TextInput
@@ -324,5 +336,74 @@ export default function Settings() {
         </form>
       </div>
     </Shell>
+  );
+}
+
+/** Public deployment: live mode (real models, real cost) only for browsers with the passcode. */
+function UnlockPanel({ unlocked, onChange }: { unlocked: boolean; onChange: () => void }) {
+  const t = useT();
+  const [value, setValue] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  async function unlock(e: FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setFailed(false);
+    try {
+      const { ok } = await api.unlock(value);
+      if (ok) {
+        setLivePasscode(value);
+        setValue('');
+        onChange();
+      } else {
+        setFailed(true);
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (unlocked) {
+    return (
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-panel)] bg-good-soft px-5 py-4">
+        <p className="font-semibold text-good">{t('unlock.done')}</p>
+        <Button
+          variant="ghost"
+          onClick={() => {
+            setLivePasscode(null);
+            onChange();
+          }}
+        >
+          {t('unlock.lock')}
+        </Button>
+      </div>
+    );
+  }
+  return (
+    <form
+      onSubmit={(e) => void unlock(e)}
+      className="flex flex-col gap-3 rounded-[var(--radius-panel)] bg-paper p-5 shadow-[inset_0_0_0_1px_var(--color-line)]"
+    >
+      <p className="font-semibold">{t('unlock.title')}</p>
+      <p className="text-[15px] text-muted">{t('unlock.hint')}</p>
+      <div className="flex flex-wrap items-end gap-2">
+        <Field label={t('settings.passcode')}>
+          {(p) => (
+            <TextInput
+              {...p}
+              type="password"
+              autoComplete="off"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+            />
+          )}
+        </Field>
+        <Button type="submit" variant="primary" busy={busy} disabled={!value}>
+          {t('unlock.button')}
+        </Button>
+      </div>
+      {failed ? <Notice tone="error">{t('unlock.wrong')}</Notice> : null}
+    </form>
   );
 }

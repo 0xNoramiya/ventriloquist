@@ -2,7 +2,7 @@
 PY := backend/.venv/bin/python
 export PYTHONPATH := $(CURDIR)/backend:$(CURDIR)
 
-.PHONY: setup dev backend frontend frontend-local test lint format sim probe demo-mock eval-detector letter-stats clean
+.PHONY: setup dev backend frontend frontend-local deploy test lint format sim probe demo-mock eval-detector letter-stats clean
 
 setup:
 	cd backend && uv venv --python 3.12 -q --allow-existing .venv && uv sync -q
@@ -56,3 +56,7 @@ letter-stats:
 
 clean:
 	rm -rf backend/.pytest_cache backend/.ruff_cache frontend/dist
+
+# fly.io (fly.toml, Dockerfile). Secrets once: fly secrets set MODEL_API_KEY=... LIVE_PASSCODE=...
+deploy:
+	flyctl deploy --remote-only --ha=false

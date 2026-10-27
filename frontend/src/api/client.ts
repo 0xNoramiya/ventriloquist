@@ -40,8 +40,31 @@ function detailText(detail: unknown): string {
   return '';
 }
 
+const PASSCODE_KEY = 'ventriloquist.livePasscode';
+
+/** On a public deployment, live mode is for browsers that entered the passcode in Settings. */
+export function livePasscode(): string | null {
+  try {
+    return window.localStorage.getItem(PASSCODE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setLivePasscode(passcode: string | null): void {
+  try {
+    if (passcode) window.localStorage.setItem(PASSCODE_KEY, passcode);
+    else window.localStorage.removeItem(PASSCODE_KEY);
+  } catch {
+    // not kept: this visit only
+  }
+}
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const res = await fetch(`/api${path}`, init);
+  const passcode = livePasscode();
+  const headers = new Headers(init.headers);
+  if (passcode) headers.set('X-Live-Passcode', passcode);
+  const res = await fetch(`/api${path}`, { ...init, headers });
   if (!res.ok) {
     let message = `${res.status} ${res.statusText}`;
     try {
@@ -172,6 +195,7 @@ export const api = {
       'POST',
       { action },
     ),
+  unlock: (passcode: string) => json<{ ok: boolean }>('/unlock', 'POST', { passcode }),
   relayAction: (sid: string, relayId: string, action: 'approve' | 'cancel' | 'read') =>
     json<{ ok: boolean; snapshot: Snapshot }>(
       `/sessions/${encodeURIComponent(sid)}/relays/${encodeURIComponent(relayId)}/${action}`,

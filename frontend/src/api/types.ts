@@ -380,6 +380,8 @@ export interface PublicConfig {
   keep_clips_for_evaluation: boolean;
   budget: Budget;
   passcode_required: boolean;
+  /** This browser sent the right passcode (public deployment). */
+  unlocked?: boolean;
   scenarios: { id: string; title: string }[];
   event_kinds: string[];
   models: Record<string, string>;

@@ -11,6 +11,7 @@ from fastapi import WebSocket
 
 from app.engine.taxonomy import taxonomy_ids
 from app.perception.signals import default_calibration
+from app.providers.registry import Mode
 from app.scenarios import apply as apply_scenario
 from app.scenarios import load as load_scenario
 from app.storage import new_id
@@ -51,11 +52,12 @@ class SessionManager:
         simulated_truth: str | None = None,
         simulated_noise: float = 0.05,
         scenario_name: str | None = None,
+        mode: Mode | None = None,
     ) -> Session:
         existing = self.active_for(patient["id"])
         if existing is not None:
             await existing.end()
-        mode = self.ctx.hub.requested_mode(privacy)
+        mode = mode or self.ctx.hub.requested_mode(privacy)
         calibration = self.ctx.store.get_calibration(patient["id"]) or default_calibration(
             str(mode)
         )

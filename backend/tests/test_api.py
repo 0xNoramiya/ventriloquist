@@ -263,3 +263,62 @@ def test_acknowledging_a_message(client):
     r = client.post(f"/api/sessions/{sid}/messages/{pending[0]['id']}/ack").json()
     assert r["ok"] and r["snapshot"]["pending_ack"] == []
     assert r["snapshot"]["messages"][-1]["acknowledged_at"]
+
+
+@pytest.fixture
+def public_client(tmp_path: Path) -> TestClient:
+    """A public deployment: live mode configured, guarded by a passcode."""
+    settings = load_settings().model_copy(
+        update={
+            "app_mode": "live",
+            "data_dir": tmp_path,
+            "model_api_key": "test-key",
+            "baseten_api_key": None,
+            "live_passcode": "correct horse",
+        }
+    )
+    with TestClient(create_app(settings)) as c:
+        yield c
+
+
+def test_public_deployment_gives_visitors_mock_mode(public_client):
+    c = public_client
+    visitor = c.post("/api/scenarios/cold", json={}).json()
+    assert visitor["mode"]["requested"] == "mock"
+    assert c.get("/api/config").json()["mode"] == "mock"
+    key = {"X-Live-Passcode": "correct horse"}
+    operator = c.post("/api/scenarios/cold", json={}, headers=key).json()
+    assert operator["mode"]["requested"] == "live"
+    assert c.get("/api/config", headers=key).json()["unlocked"]
+    pid = c.post("/api/patients", json=PROFILE).json()["id"]
+    body = {"patient_id": pid, "passcode": "correct horse"}
+    assert c.post("/api/sessions", json=body).json()["mode"]["requested"] == "live"
+    assert c.post("/api/sessions", json={"patient_id": pid}).json()["mode"]["requested"] == "mock"
+
+
+def test_public_deployment_guards_settings_and_unlock(public_client):
+    c = public_client
+    assert c.put("/api/settings", json={"budget_max_usd": 1000}).status_code == 403
+    ok = c.put(
+        "/api/settings", json={"budget_max_usd": 20}, headers={"X-Live-Passcode": "correct horse"}
+    )
+    assert ok.status_code == 200 and ok.json()["budget"]["max_usd"] == 20
+    assert not c.post("/api/unlock", json={"passcode": "wrong"}).json()["ok"]
+    assert c.post("/api/unlock", json={"passcode": "correct horse"}).json()["ok"]
+
+
+def test_serves_the_built_web_app(tmp_path, monkeypatch):
+    dist = tmp_path / "dist"
+    (dist / "assets").mkdir(parents=True)
+    (dist / "index.html").write_text("<html>app</html>")
+    (dist / "assets" / "app.js").write_text("console.log(1)")
+    monkeypatch.setenv("FRONTEND_DIST", str(dist))
+    settings = load_settings().model_copy(
+        update={"data_dir": tmp_path / "data", "live_passcode": None}
+    )
+    with TestClient(create_app(settings)) as c:
+        assert c.get("/assets/app.js").text == "console.log(1)"
+        assert c.get("/patient/ses_123").text == "<html>app</html>"  # client-side route
+        assert c.get("/api/nope").status_code == 404
+        assert c.get("/api/health").json()["ok"]
+        assert c.get("/../../etc/passwd").text == "<html>app</html>"

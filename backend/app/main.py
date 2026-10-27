@@ -6,6 +6,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 import secrets
 import shutil
 from contextlib import asynccontextmanager
@@ -23,7 +24,7 @@ from fastapi import (
     WebSocketDisconnect,
 )
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import PlainTextResponse, Response
+from fastapi.responses import FileResponse, PlainTextResponse, Response
 
 from app.config import ROOT, Settings, get_settings
 from app.engine.taxonomy import load_taxonomy
@@ -105,6 +106,25 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if not secrets.compare_digest(passcode or "", expected):
             raise HTTPException(403, "live mode needs the passcode")
 
+    def unlocked(request: Request, passcode: str | None = None) -> bool:
+        """With LIVE_PASSCODE set (a public deployment), a browser that entered the passcode sends
+        it in X-Live-Passcode. Without one, the operator's .env decides."""
+        expected = settings.live_passcode
+        if not expected:
+            return True
+        given = passcode or request.headers.get("x-live-passcode") or ""
+        return secrets.compare_digest(given, expected)
+
+    def mode_for(
+        request: Request, privacy: bool | None = None, passcode: str | None = None
+    ) -> Mode:
+        """Live and privacy mode spend credit and send media out. On a public deployment only a
+        browser holding the passcode gets them; everyone else quietly gets mock mode."""
+        mode = hub.requested_mode(privacy)
+        if mode != Mode.MOCK and settings.live_passcode and not unlocked(request, passcode):
+            return Mode.MOCK
+        return mode
+
     async def save_upload(upload: UploadFile, dest_dir: Path, stem: str) -> Path:
         dest_dir.mkdir(parents=True, exist_ok=True)
         suffix = Path(upload.filename or "").suffix or {
@@ -145,7 +165,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         }
 
     @app.get("/api/config")
-    async def public_config() -> dict[str, Any]:
+    async def public_config(request: Request) -> dict[str, Any]:
         e, p = settings.engine, settings.perception
         tax = load_taxonomy()
         return {
@@ -164,8 +184,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             },
             "speech": settings.raw.get("speech", {}),
             "flags": hub.flags(),
-            "mode": hub.app_mode(),
+            # the mode this browser gets (mock on a public deployment without the passcode)
+            "mode": "mock" if mode_for(request, False) == Mode.MOCK else hub.app_mode(),
             "privacy_default": hub.privacy_default(),
+            "unlocked": bool(settings.live_passcode) and unlocked(request),
             "language": store.kv_get("language", settings.raw["app"]["default_language"]),
             "keep_clips_for_evaluation": bool(
                 store.kv_get(
@@ -197,12 +219,24 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         }
 
     @app.get("/api/settings")
-    async def get_runtime_settings() -> dict[str, Any]:
-        return await public_config()
+    async def get_runtime_settings(request: Request) -> dict[str, Any]:
+        return await public_config(request)
+
+    @app.post("/api/unlock")
+    async def unlock(request: Request, body: dict[str, Any]) -> dict[str, Any]:
+        """Check a passcode before the browser keeps it for X-Live-Passcode."""
+        ok = bool(settings.live_passcode) and unlocked(request, str(body.get("passcode") or ""))
+        if not ok:
+            await asyncio.sleep(1.0)  # slows guessing
+        return {"ok": ok}
 
     @app.put("/api/settings")
-    async def update_settings(body: SettingsUpdate) -> dict[str, Any]:
-        if body.app_mode == "live" or body.privacy_mode:
+    async def update_settings(request: Request, body: SettingsUpdate) -> dict[str, Any]:
+        if settings.live_passcode:
+            # public deployment: nobody without the passcode changes modes, flags or the budget
+            if not unlocked(request, body.passcode):
+                raise HTTPException(403, "Settings need the passcode")
+        elif body.app_mode == "live" or body.privacy_mode:
             check_passcode(body.passcode, switching=True)
         mapping = {
             "app_mode": body.app_mode,
@@ -220,7 +254,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             v = getattr(body, flag)
             if v is not None:
                 store.kv_set(f"flag:{flag}", v)
-        return await public_config()
+        return await public_config(request)
 
     @app.get("/api/budget")
     async def budget() -> dict[str, Any]:
@@ -282,11 +316,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.post("/api/calibration/{pid}/framing")
     async def calibration_framing(
-        pid: str, file: UploadFile = File(...), privacy: bool = Form(False)
+        request: Request, pid: str, file: UploadFile = File(...), privacy: bool = Form(False)
     ) -> dict[str, Any]:
         patient_or_404(pid)
         path = await save_upload(file, store.media_dir("calibration", pid), "framing")
-        res = await ctx.roles.framing_check(hub.requested_mode(privacy), path)
+        res = await ctx.roles.framing_check(mode_for(request, privacy), path)
         path.unlink(missing_ok=True)
         return {**res.data.model_dump(), "meta": res.meta.to_dict()}
 
@@ -296,10 +330,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return {"counts": {}}
 
     @app.post("/api/calibration/{pid}/finalize")
-    async def calibration_finalize(pid: str, body: dict[str, Any] | None = None) -> dict[str, Any]:
+    async def calibration_finalize(
+        request: Request, pid: str, body: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         patient_or_404(pid)
         body = body or {}
-        mode = hub.requested_mode(bool(body.get("privacy")))
+        mode = mode_for(request, bool(body.get("privacy")))
         if body.get("skip"):
             data = calib.default_calibration(str(mode), hint=body.get("hint"))
             store.save_calibration(pid, data)
@@ -350,13 +386,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     # ---------------------------------------------------------------- sessions
     @app.post("/api/sessions")
-    async def create_session(body: SessionCreate) -> dict[str, Any]:
+    async def create_session(request: Request, body: SessionCreate) -> dict[str, Any]:
         patient = patient_or_404(body.patient_id)
-        mode = hub.requested_mode(body.privacy)
-        if mode != Mode.MOCK:
+        mode = mode_for(request, body.privacy, body.passcode)
+        if mode != Mode.MOCK and not settings.live_passcode:
             check_passcode(body.passcode)
         s = await manager.create(
             patient,
+            mode=mode,
             privacy=body.privacy,
             simulated_truth=body.simulated_patient,
             simulated_noise=body.simulated_noise,
@@ -365,7 +402,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return s.view()
 
     @app.post("/api/scenarios/{name}")
-    async def start_scenario(name: str, body: dict[str, Any] | None = None) -> dict[str, Any]:
+    async def start_scenario(
+        request: Request, name: str, body: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """Create the scenario's fictional patient and a session in one step (mock demos)."""
         try:
             scenario = load_scenario(name)
@@ -378,6 +417,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         pid = store.create_patient(profile.model_dump())
         s = await manager.create(
             patient_or_404(pid),
+            mode=mode_for(request, bool(body.get("privacy"))),
             privacy=bool(body.get("privacy")),
             simulated_truth="scenario" if body.get("simulated") else None,
             simulated_noise=float(body.get("noise", 0.05)),
@@ -581,10 +621,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return store.get_memory(eid) or {}
 
     @app.post("/api/memory/{pid}/curate")
-    async def memory_curate(pid: str, body: dict[str, Any] | None = None) -> dict[str, Any]:
+    async def memory_curate(
+        request: Request, pid: str, body: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         patient_or_404(pid)
         return await curator.curate(
-            store, ctx.roles, pid, hub.requested_mode(bool((body or {}).get("privacy")))
+            store, ctx.roles, pid, mode_for(request, bool((body or {}).get("privacy")))
         )
 
     @app.post("/api/memory/{pid}/ops/{op_id}/approve")
@@ -668,6 +710,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             log.exception("websocket error")
         finally:
             manager.unsubscribe(sid, ws)
+
+    # Production (Dockerfile): the built web app from the same origin as the API.
+    dist = os.environ.get("FRONTEND_DIST")
+    if dist and (Path(dist) / "index.html").is_file():
+        web_root = Path(dist).resolve()
+
+        @app.get("/{path:path}", include_in_schema=False)
+        async def web_app(path: str) -> FileResponse:
+            if path.startswith(("api/", "ws/")):
+                raise HTTPException(404, "not found")
+            target = (web_root / path).resolve()
+            if path and target.is_file() and web_root in target.parents:
+                return FileResponse(target)
+            return FileResponse(web_root / "index.html")  # client-side routes
 
     return app
 
