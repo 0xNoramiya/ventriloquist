@@ -1,8 +1,9 @@
 """Per-frame movement features (brief 9.3).
 
 SAM path: track the calibrated body part with its text prompt; per frame take box area, centroid x/y,
-box height and top edge, normalised against the rest baseline. Lost tracks become NaN, are
-interpolated, and lower the confidence. Works with boxes alone (masks are optional).
+box height and top edge, normalised against the rest baseline, plus whether the part was seen at
+all: eyes squeezed shut are often not found as "eyes", and that absence is the signal. Lost boxes
+are interpolated for the geometric features. Works with boxes alone (masks are optional).
 """
 
 from __future__ import annotations
@@ -13,7 +14,9 @@ import numpy as np
 
 from app.providers.base import TrackResult
 
-SAM_FEATURES = ["area", "cx", "cy", "h", "top"]
+SAM_FEATURES = ["area", "cx", "cy", "h", "top", "seen"]
+# Calibrations made before "seen" was added keep their five features.
+LEGACY_SAM_FEATURES = SAM_FEATURES[:5]
 
 
 @dataclass
@@ -25,7 +28,10 @@ class FeatureSeq:
 
 
 def sam_feature_seq(
-    track: TrackResult, n_frames: int | None = None, fps: float = 15.0
+    track: TrackResult,
+    n_frames: int | None = None,
+    fps: float = 15.0,
+    names: list[str] | None = None,
 ) -> FeatureSeq:
     """Aggregate all objects of each frame (e.g. both eyes) into one box-derived feature row."""
     if track.features is not None:
@@ -38,18 +44,20 @@ def sam_feature_seq(
     for i in range(total):
         f = by_index.get(i)
         if not f or not f.objects:
-            rows.append([np.nan] * len(SAM_FEATURES))
+            rows.append([np.nan] * (len(SAM_FEATURES) - 1) + [0.0])
             missing += 1
             continue
         boxes = np.array([o.box for o in f.objects], dtype=float)
         x0, y0 = boxes[:, 0].min(), boxes[:, 1].min()
         x1, y1 = boxes[:, 2].max(), boxes[:, 3].max()
         area = float(sum((b[2] - b[0]) * (b[3] - b[1]) for b in boxes))
-        rows.append([area, (x0 + x1) / 2, (y0 + y1) / 2, y1 - y0, y0])
+        rows.append([area, (x0 + x1) / 2, (y0 + y1) / 2, y1 - y0, y0, 1.0])
     vals = np.array(rows, dtype=float) if rows else np.zeros((0, len(SAM_FEATURES)))
     vals = _interpolate(vals)
+    names = names or SAM_FEATURES
+    vals = vals[:, [SAM_FEATURES.index(n) for n in names]] if len(vals) else vals
     return FeatureSeq(
-        vals, list(SAM_FEATURES), missing / total if total else 1.0, [i / fps for i in range(total)]
+        vals, list(names), missing / total if total else 1.0, [i / fps for i in range(total)]
     )
 
 

@@ -1,13 +1,16 @@
 """Fusion of per-source class probabilities into one observation (brief 9.5, 9.6).
 
 Sources: the tracker path (SAM 3.1 boxes + DTW, or the local optical-flow baseline) and the blind
-Muse Spark judge. Weighted average with calibration weights; UNCLEAR when the top class is below
-0.65 or two confident sources disagree; EMERGENCY as soon as any source is fairly sure (sensitivity
-is preferred to specificity: a false alarm costs a nurse a few seconds).
+Muse Spark judge. Logarithmic opinion pool with calibration weights: independent sources that agree
+reinforce each other; when one sees nothing and the other a clear movement, the more reliable and
+confident reading wins with lower confidence. UNCLEAR when the top class is below 0.65 or confident
+sources split between YES and NO; EMERGENCY as soon as any source is fairly sure (sensitivity is
+preferred to specificity: a false alarm costs a nurse a few seconds).
 """
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -88,12 +91,19 @@ def fuse(
                 s.probs["emergency"],
                 {"sources": detail, "reason": f"emergency:{s.name}"},
             )
-    total_w = sum(max(weights.get(s.name, 0.5), 1e-3) for s in usable)
-    combined = {k: 0.0 for k in CLASSES}
+    # A weighted average let two agreeing but modest sources (SAM "none" 0.84, judge "none" 0.45)
+    # fall below the threshold together. Multiplying them, each raised to its calibration
+    # weight, treats them as independent evidence.
+    # Weights are relative to the most reliable source, so a single source keeps its own reading.
+    top_w = max(max(weights.get(s.name, 0.5), 1e-3) for s in usable)
+    log_pool = {k: 0.0 for k in CLASSES}
     for s in usable:
-        w = max(weights.get(s.name, 0.5), 1e-3) / total_w
+        w = max(weights.get(s.name, 0.5), 1e-3) / top_w
         for k in CLASSES:
-            combined[k] += w * s.probs.get(k, 0.0)
+            log_pool[k] += w * math.log(max(s.probs.get(k, 0.0), 0.005))
+    peak = max(log_pool.values())
+    total = sum(math.exp(v - peak) for v in log_pool.values())
+    combined = {k: math.exp(v - peak) / total for k, v in log_pool.items()}
     top = max(combined, key=combined.get)
     p = combined[top]
     degraded = len(usable) < len(sources)

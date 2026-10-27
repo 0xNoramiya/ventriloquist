@@ -39,10 +39,17 @@ async def run_async(cmd: list[str], timeout: float = 60) -> None:
 
 
 def normalize_video_cmd(
-    src: Path, dst: Path, width: int, height: int, fps: int, max_s: float | None
+    src: Path,
+    dst: Path,
+    width: int,
+    height: int,
+    fps: int,
+    max_s: float | None,
+    crop: tuple[int, int, int, int] | None = None,
 ) -> list[str]:
     vf = (
-        f"fps={fps},scale={width}:{height}:force_original_aspect_ratio=decrease,"
+        (f"crop={crop[0]}:{crop[1]}:{crop[2]}:{crop[3]}," if crop else "")
+        + f"fps={fps},scale={width}:{height}:force_original_aspect_ratio=decrease,"
         f"pad={width}:{height}:(ow-iw)/2:(oh-ih)/2,format=yuv420p"
     )
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-i", str(src)]
@@ -64,6 +71,30 @@ def normalize_video_cmd(
     ]
 
 
+def roi_crop_px(
+    src_w: int, src_h: int, roi: list[float], out_w: int, out_h: int
+) -> tuple[int, int, int, int]:
+    """Map a region given as fractions of the normalised (scaled and padded) frame back to source
+    pixels, as ffmpeg crop width, height, x, y (even sizes for H.264)."""
+    s = min(out_w / src_w, out_h / src_h)
+    ox, oy = (out_w - src_w * s) / 2, (out_h - src_h * s) / 2
+    x0 = max(0.0, (roi[0] * out_w - ox) / s)
+    y0 = max(0.0, (roi[1] * out_h - oy) / s)
+    x1 = min(float(src_w), (roi[2] * out_w - ox) / s)
+    y1 = min(float(src_h), (roi[3] * out_h - oy) / s)
+    w = max(2, int(x1 - x0) // 2 * 2)
+    h = max(2, int(y1 - y0) // 2 * 2)
+    return w, h, int(x0), int(y0)
+
+
+def frame_size(path: Path) -> tuple[int, int]:
+    cap = cv2.VideoCapture(str(path))
+    try:
+        return int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    finally:
+        cap.release()
+
+
 async def normalize_video(
     src: Path,
     dst: Path,
@@ -71,8 +102,16 @@ async def normalize_video(
     height: int = 480,
     fps: int = 15,
     max_s: float | None = 6.0,
+    roi: list[float] | None = None,
 ) -> Path:
-    await run_async(normalize_video_cmd(src, dst, width, height, fps, max_s))
+    """Scale and pad to width x height at fps. With `roi` (fractions of that normalised frame),
+    crop the source to the region first, at the source's full resolution."""
+    crop = None
+    if roi:
+        w, h = frame_size(src)
+        if w and h:
+            crop = roi_crop_px(w, h, roi, width, height)
+    await run_async(normalize_video_cmd(src, dst, width, height, fps, max_s, crop))
     return dst
 
 

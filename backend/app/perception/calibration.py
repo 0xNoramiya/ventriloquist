@@ -25,7 +25,7 @@ from app.roles import Roles
 from app.schemas import CalibrationDescription
 
 from .dtw import fit_temperature, leave_one_out
-from .features import fit_baseline, normalise, peak_amplitude, sam_feature_seq
+from .features import SAM_FEATURES, fit_baseline, normalise, peak_amplitude, sam_feature_seq
 from .fusion import judge_probs
 from .media import normalize_video, read_frames
 from .signals import default_calibration, signal_text  # noqa: F401  (re-exported)
@@ -64,6 +64,25 @@ async def _track_all(
 
     pairs = await asyncio.gather(*(one(c, p) for c in clips for p in prompts))
     return dict(pairs)
+
+
+def signal_roi(
+    tracks: list[TrackResult], margin: float = 0.6, min_side: float = 0.35
+) -> list[float] | None:
+    """Region around the patient's signal body parts, from SAM boxes over the calibration clips,
+    as fractions of the normalised 4:3 frame (a square in fractions is 4:3 in pixels). The blind
+    judge watches this crop: on a whole 320x240 frame a face is about 110 px wide and Muse Spark
+    missed most eyebrow raises (12/26 vs 24/26 cropped, generated clips)."""
+    boxes = np.array([o.box for r in tracks for f in r.frames for o in f.objects], dtype=float)
+    if len(boxes) < 3:
+        return None
+    x0, y0 = np.percentile(boxes[:, 0], 5), np.percentile(boxes[:, 1], 5)
+    x1, y1 = np.percentile(boxes[:, 2], 95), np.percentile(boxes[:, 3], 95)
+    side = min(1.0, max(max(x1 - x0, y1 - y0) * (1 + 2 * margin), min_side))
+    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+    left = float(np.clip(cx - side / 2, 0.0, 1.0 - side))
+    top = float(np.clip(cy - side / 2, 0.0, 1.0 - side))
+    return [round(left, 4), round(top, 4), round(left + side, 4), round(top + side, 4)]
 
 
 def _seq_for(
@@ -131,6 +150,7 @@ async def finalize(
     workdir.mkdir(parents=True, exist_ok=True)
     pcfg = settings.perception
     clips: dict[str, list[Path]] = {}
+    raw_of: dict[Path, Path] = {}
     for label, paths in raw_clips.items():
         for i, p in enumerate(paths):
             dst = workdir / f"{label}_{i}.mp4"
@@ -138,6 +158,7 @@ async def finalize(
                 p, dst, pcfg.width, pcfg.height, pcfg.fps, max_s=16.0 if label == "rest" else 6.0
             )
             clips.setdefault(label, []).append(dst)
+            raw_of[dst] = p
     info = hub.resolve(mode)
 
     # 4. describe the signals (Muse Spark watches the clips)
@@ -177,6 +198,7 @@ async def finalize(
     tracker = hub.tracker(mode)
     tracker_t: dict[str, Any] | None = None
     overlay = None
+    roi: list[float] | None = None
     if tracker.provider not in ("local", "mock"):
         try:
             # SAM 3.1 runs at its own, lower frame rate (faster, equally accurate)
@@ -198,6 +220,8 @@ async def finalize(
             seqs = {c: _seq_for(results, sam_of[c], prompts) for c in all_clips}
             tracker_t = build_templates(examples_from(seqs, tfps), tfps)
             tracker_t["provider"] = tracker.provider
+            tracker_t["features"] = list(SAM_FEATURES)
+            roi = signal_roi(list(results.values()))
             first_yes = clips.get("yes", [None])[0]
             if first_yes is not None:
                 overlay = results[(sam_of[first_yes], prompts[0])].to_overlay()
@@ -214,6 +238,16 @@ async def finalize(
 
         async def judge_one(label: str, clip: Path) -> dict[str, Any]:
             async with sem:
+                if roi:  # the judge sees what it will see for answers
+                    clip = await normalize_video(
+                        raw_of[clip],
+                        clip.with_name(f"{clip.stem}_judge.mp4"),
+                        pcfg.width,
+                        pcfg.height,
+                        pcfg.fps,
+                        max_s=16.0 if label == "rest" else 6.0,
+                        roi=roi,
+                    )
                 r = await roles.judge(mode, clip, sig)
             probs = judge_probs(r.data.classification, r.data.confidence)
             pred = max(probs, key=probs.get)
@@ -257,6 +291,7 @@ async def finalize(
         "description_meta": desc_meta,
         "signal_text": sig,
         "prompts": prompts,
+        "roi": roi,
         "tracker": tracker_t,
         "local": local_t,
         "judge_loo": judge_loo,

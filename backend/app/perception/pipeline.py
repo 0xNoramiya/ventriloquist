@@ -22,7 +22,13 @@ from app.providers.registry import Mode, ProviderHub
 from app.roles import Roles
 
 from .dtw import classify
-from .features import Baseline, count_repetitions, normalise, sam_feature_seq
+from .features import (
+    LEGACY_SAM_FEATURES,
+    Baseline,
+    count_repetitions,
+    normalise,
+    sam_feature_seq,
+)
 from .fusion import SourceResult, fuse, judge_probs, normalise_probs
 from .media import normalize_video, read_frames
 
@@ -126,6 +132,10 @@ async def perceive(
     )
     fps = read_frames(mp4, max_frames=2).fps or float(base_fps)
     sam_mp4 = mp4 if sam_fps == base_fps else workdir / f"{clip.stem}_sam.mp4"
+    # The judge watches the region around the signal body parts, cut from the full-resolution
+    # upload (calibration.signal_roi); without one it gets the whole frame.
+    roi = calibration.get("roi")
+    judge_mp4 = workdir / f"{clip.stem}_judge.mp4" if roi else mp4
     info = hub.resolve(mode)
     notes: list[str] = []
     usd = 0.0
@@ -162,14 +172,21 @@ async def perceive(
             )
         overlay = results[0].to_overlay()
         track_fps = read_frames(sam_mp4, max_frames=2).fps or float(sam_fps)
-        seqs = [sam_feature_seq(r, fps=track_fps) for r in results]
+        names = tmpl.get("features") or LEGACY_SAM_FEATURES
+        seqs = [sam_feature_seq(r, fps=track_fps, names=names) for r in results]
         n = min(len(s.values) for s in seqs)
         if n < 4:
             return SourceResult(
                 "tracker", {}, ok=False, detail={"error": "track lost"}, calls=calls
             )
         seq = np.concatenate([s.values[:n] for s in seqs], axis=1)
-        missing = float(np.mean([s.missing_fraction for s in seqs]))
+        # With "seen" as a feature, one prompt losing its box is information (eyes shut), so the
+        # best-tracked prompt sets the uncertainty.
+        missing = float(
+            np.min([s.missing_fraction for s in seqs])
+            if "seen" in names
+            else np.mean([s.missing_fraction for s in seqs])
+        )
         res = _template_source("tracker", seq, tmpl, track_fps, pcfg.emergency_yes_count, missing)
         res.calls = calls
         return res
@@ -196,8 +213,12 @@ async def perceive(
             return None  # no model may see the clip in this mode (e.g. on-premises privacy tier)
         timeout = pcfg.judge_timeout_s + 2
         try:
+            if judge_mp4 != mp4:
+                await normalize_video(
+                    clip, judge_mp4, pcfg.width, pcfg.height, base_fps, max_s=6.0, roi=roi
+                )
             r = await asyncio.wait_for(
-                roles.judge(mode, mp4, calibration.get("signal_text", "")), timeout=timeout
+                roles.judge(mode, judge_mp4, calibration.get("signal_text", "")), timeout=timeout
             )
         except TimeoutError:
             notes.append("judge timed out")
@@ -260,7 +281,7 @@ async def perceive(
     if not keep:
 
         def cleanup(_: object = None) -> None:
-            for p in (clip, mp4, sam_mp4):
+            for p in (clip, mp4, sam_mp4, judge_mp4):
                 p.unlink(missing_ok=True)
 
         if late is not None:
