@@ -231,7 +231,7 @@ export default function Patient() {
   return (
     <NightFrame
       lang={snap?.patient.language}
-      top={snap ? <SignalsBar snap={snap} t={t} /> : null}
+      top={snap ? <SignalsBar snap={snap} t={t} clearPreview={cameraOn} /> : null}
       bottom={
         snap && started && !live ? (
           <p className="text-[15px] text-mist-soft">{t('patient.mock_hint')}</p>
@@ -295,14 +295,25 @@ function NightFrame({
   );
 }
 
-function SignalsBar({ snap, t }: { snap: Snapshot; t: TFn }) {
+/** The patient's own YES and NO signals. Leaves room for the camera preview in the top corner. */
+function SignalsBar({ snap, t, clearPreview }: { snap: Snapshot; t: TFn; clearPreview: boolean }) {
   const yes = signalPhrase(snap.signals.yes);
   const no = signalPhrase(snap.signals.no);
   if (!yes || !no) return null;
   const text = (x: NonNullable<typeof yes>) => ('key' in x ? t(x.key) : x.text);
   return (
-    <header className="border-b border-white/10 px-5 py-3 sm:px-10">
-      <p className="flex flex-wrap items-baseline justify-center gap-x-4 gap-y-1 text-center text-[clamp(20px,2.6vw,30px)] leading-tight text-mist">
+    <header
+      className={cx(
+        'border-b border-white/10 px-5 py-3 sm:px-10',
+        clearPreview && 'pr-32 sm:pr-40',
+      )}
+    >
+      <p
+        className={cx(
+          'flex flex-wrap items-baseline gap-x-4 gap-y-1 text-[clamp(20px,2.6vw,30px)] leading-tight text-mist',
+          clearPreview ? 'justify-start text-left' : 'justify-center text-center',
+        )}
+      >
         <span className="sr-only">{t('patient.signals_label')}</span>
         <span>
           {text(yes)} = <strong className="font-bold text-paper">{t('answer.YES')}</strong>
