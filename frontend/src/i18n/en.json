@@ -370,6 +370,7 @@
   "event.logged": "Logged: {what}",
   "overlay.title": "Latest clip",
   "overlay.empty": "No clip yet. In mock mode answers come from the keyboard, so there is nothing to track.",
+  "overlay.empty_live": "No clip yet. After the first answer, the tracked body part is drawn here, from boxes only.",
   "overlay.aria": "Tracking boxes from {provider} for {prompt}",
   "overlay.caption": "{provider} tracking “{prompt}”, {n} frames. Only boxes are kept, never the video.",
   "calls.title": "Recent model calls",

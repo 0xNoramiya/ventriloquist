@@ -370,6 +370,7 @@
   "event.logged": "Tercatat: {what}",
   "overlay.title": "Klip terakhir",
   "overlay.empty": "Belum ada klip. Dalam mode tiruan jawaban berasal dari papan ketik, jadi tidak ada yang dilacak.",
+  "overlay.empty_live": "Belum ada klip. Setelah jawaban pertama, bagian tubuh yang dilacak digambar di sini, hanya dari kotaknya.",
   "overlay.aria": "Kotak pelacakan dari {provider} untuk {prompt}",
   "overlay.caption": "{provider} melacak “{prompt}”, {n} bingkai. Hanya kotak yang disimpan, videonya tidak pernah.",
   "calls.title": "Panggilan model terbaru",

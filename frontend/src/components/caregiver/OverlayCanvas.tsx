@@ -54,7 +54,7 @@ function draw(ctx: CanvasRenderingContext2D, overlay: Overlay, frameIndex: numbe
 }
 
 /** Tracking boxes from the latest clip, drawn on a neutral canvas (no video is kept). */
-export function OverlayCanvas({ overlay }: { overlay: Overlay | null }) {
+export function OverlayCanvas({ overlay, mock }: { overlay: Overlay | null; mock: boolean }) {
   const t = useT();
   const ref = useRef<HTMLCanvasElement | null>(null);
 
@@ -89,7 +89,7 @@ export function OverlayCanvas({ overlay }: { overlay: Overlay | null }) {
   if (!overlay || !overlay.frames.length) {
     return (
       <p className="rounded-[var(--radius-control)] bg-wash px-4 py-3 text-[15px] text-ink-soft">
-        {t('overlay.empty')}
+        {t(mock ? 'overlay.empty' : 'overlay.empty_live')}
       </p>
     );
   }

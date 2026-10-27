@@ -93,7 +93,9 @@ export default function Caregiver() {
               <span>
                 {t(snap.patient.language === 'id' ? 'caregiver.speaks_id' : 'caregiver.speaks_en')}
               </span>
-              <span aria-hidden="true">·</span>
+              <span aria-hidden="true" className="hidden sm:inline">
+                ·
+              </span>
               <span className="tabular">
                 {t('caregiver.error_rates', {
                   a: pct(snap.calibration.error_rates.a),
@@ -178,7 +180,7 @@ export default function Caregiver() {
               />
             </Section>
             <Section id="overlay-title" title={t('overlay.title')}>
-              <OverlayCanvas overlay={snap.overlay} />
+              <OverlayCanvas overlay={snap.overlay} mock={snap.mode.effective === 'mock'} />
             </Section>
             <Section id="calls-title" title={t('calls.title')}>
               <ModelCalls calls={snap.llm_calls} />
