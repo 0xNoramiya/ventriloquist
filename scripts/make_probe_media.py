@@ -4,6 +4,7 @@ Outputs
   face_yes_eyebrows.mp4   4 s, 15 fps, 640x480 H.264: eyebrows rise twice (YES), one blink
   face_nod.mp4            same face, head nods twice, eyebrows still
   face_rest_blinks.mp4    same face, only blinks (REST / no signal)
+  face_emergency_eyebrows.mp4  same face, eyebrows rise three times (EMERGENCY)
   face_still.png          one frame of the face at an eyebrow peak
   hospital_room.png       640x480 drawing: bed, bedside table with a photo frame, no people
   speech_en.wav           espeak-ng English sentence, 24 kHz mono s16 WAV
@@ -135,9 +136,9 @@ def draw_face(
 def render_clip(kind: str) -> tuple[list[np.ndarray], dict]:
     frames: list[np.ndarray] = []
     truth: dict = {"kind": kind, "fps": FPS, "frames": N_FRAMES, "events": []}
-    brow_peaks = [1.0, 2.7] if kind == "yes" else []
+    brow_peaks = {"yes": [1.0, 2.7], "emergency": [0.9, 2.0, 3.1]}.get(kind, [])
     nod_peaks = [1.0, 2.7] if kind == "nod" else []
-    blinks = {"yes": [3.6], "nod": [], "rest": [0.6, 1.9, 3.3]}[kind]
+    blinks = {"yes": [3.6], "nod": [], "rest": [0.6, 1.9, 3.3], "emergency": []}[kind]
     for c in brow_peaks:
         truth["events"].append(
             {"type": "eyebrow_raise", "start_s": c - 0.35, "peak_s": c, "end_s": c + 0.35}
@@ -387,6 +388,7 @@ def main() -> None:
         ("yes", "face_yes_eyebrows.mp4"),
         ("nod", "face_nod.mp4"),
         ("rest", "face_rest_blinks.mp4"),
+        ("emergency", "face_emergency_eyebrows.mp4"),
     ):
         frames, truth = render_clip(kind)
         path = OUT / name

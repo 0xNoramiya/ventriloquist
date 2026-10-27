@@ -59,6 +59,7 @@ class PerceptionConfig(_Section):
     width: int = 640
     height: int = 480
     fps: int = 15
+    tracker_fps: int = 8
     window_s: float = 4.0
     window_delay_ms: int = 300
     unclear_threshold: float = 0.65

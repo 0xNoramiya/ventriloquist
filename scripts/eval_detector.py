@@ -35,13 +35,14 @@ LABELED = ROOT / "data" / "labeled"
 
 def build_synthetic(base: Path) -> None:
     media = ROOT / "data" / "probe_media"
-    if not (media / "face_yes_eyebrows.mp4").exists():
-        subprocess.run([sys.executable, str(ROOT / "scripts" / "make_probe_media.py")], check=True)
     src = {
         "yes": media / "face_yes_eyebrows.mp4",
         "no": media / "face_nod.mp4",
         "rest": media / "face_rest_blinks.mp4",
+        "emergency": media / "face_emergency_eyebrows.mp4",
     }
+    if not all(p.exists() for p in src.values()):
+        subprocess.run([sys.executable, str(ROOT / "scripts" / "make_probe_media.py")], check=True)
     for split, shifts in (("calibration", (0.0, 0.25, 0.5)), ("eval", (0.1, 0.35, 0.6))):
         for label, path in src.items():
             for i, s in enumerate(shifts):

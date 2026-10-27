@@ -154,7 +154,7 @@ async def finalize(
     all_clips = [c for label in LABELS for c in clips.get(label, [])]
     fps = float(pcfg.fps)
 
-    def examples_from(seqs: dict[Path, np.ndarray]) -> list[Example]:
+    def examples_from(seqs: dict[Path, np.ndarray], fps: float) -> list[Example]:
         out: list[Example] = []
         for label in LABELS:
             for clip in clips.get(label, []):
@@ -171,7 +171,7 @@ async def finalize(
     local_seqs = {
         c: np.asarray(r.features or [[0.0]]) for c, r in zip(all_clips, local_results, strict=True)
     }
-    local_t = build_templates(examples_from(local_seqs), fps)
+    local_t = build_templates(examples_from(local_seqs, fps), fps)
 
     # 5b. SAM 3.1 (or the Modal-hosted open weights in privacy mode)
     tracker = hub.tracker(mode)
@@ -179,13 +179,28 @@ async def finalize(
     overlay = None
     if tracker.provider not in ("local", "mock"):
         try:
-            results = await _track_all(tracker, all_clips, prompts, hub, asyncio.Semaphore(4))
-            seqs = {c: _seq_for(results, c, prompts) for c in all_clips}
-            tracker_t = build_templates(examples_from(seqs), fps)
+            # SAM 3.1 runs at its own, lower frame rate (faster, equally accurate)
+            tfps = float(pcfg.tracker_fps)
+            sam_of = {c: c.with_name(f"{c.stem}_sam.mp4") for c in all_clips}
+            if tfps != fps:
+                await asyncio.gather(
+                    *(
+                        normalize_video(
+                            c, sam_of[c], pcfg.width, pcfg.height, pcfg.tracker_fps, max_s=None
+                        )
+                        for c in all_clips
+                    )
+                )
+            else:
+                sam_of = {c: c for c in all_clips}
+            sam_clips = list(sam_of.values())
+            results = await _track_all(tracker, sam_clips, prompts, hub, asyncio.Semaphore(4))
+            seqs = {c: _seq_for(results, sam_of[c], prompts) for c in all_clips}
+            tracker_t = build_templates(examples_from(seqs, tfps), tfps)
             tracker_t["provider"] = tracker.provider
             first_yes = clips.get("yes", [None])[0]
             if first_yes is not None:
-                overlay = results[(first_yes, prompts[0])].to_overlay()
+                overlay = results[(sam_of[first_yes], prompts[0])].to_overlay()
         except Exception as exc:  # keep calibrating with the local baseline
             log.warning("tracker calibration failed: %s", exc)
 

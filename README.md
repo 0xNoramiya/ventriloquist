@@ -176,14 +176,18 @@ disagreed with SAM; UNCLEAR means the question is asked again, which is the inte
 detector's softmin temperature is fitted on the calibration clips (temperature scaling on the
 leave-one-out likelihood); before that fix every window came back UNCLEAR.
 
-On the live models at 8 fps, SAM classified all 9 synthetic windows correctly. The fused answer was
-right on 8; on the ninth the judge read a YES as the emergency signal, and any source that is fairly
-sure of an emergency raises the alarm, by design. The wait after the 4-second window was 3.0 s
-median, 3.5 s p90 (4.0 s and 4.4 s at 15 fps). SAM decides alone only on a clear YES or NO: at least
-90% sure and its best template at least 1.25 times closer than the next. The judge's verdict is then
-attached to the trail when it arrives, with an alert if it disagrees. "No answer" always waits for the
-judge, because a live run showed SAM confidently missing a movement the judge saw. These numbers say
-nothing about real patients.
+On the live models, 12 synthetic windows (YES, NO, no answer, and the emergency signal of three quick
+eyebrow raises) were all classified correctly, by SAM alone and fused
+([`docs/DETECTOR_EVAL_SYNTHETIC.md`](docs/DETECTOR_EVAL_SYNTHETIC.md)). The wait after the 4-second
+window was 3.4 s median, 3.6 s p90, against 4.0 s and 4.4 s when everything ran at 15 fps. SAM 3.1
+gets an 8 fps copy of each clip, which is faster at equal accuracy. Muse Spark keeps 15 fps: on
+8 fps clips the judge counted two eyebrow raises as four and called an emergency on 7 of 9
+two-raise clips; at 15 fps it was right 21 times out of 21. SAM decides alone only on a clear YES
+or NO: at least 90% sure and its best template at least 1.25 times closer than the next. The
+judge's verdict is then attached to the trail when it arrives, with an alert if it disagrees and the
+alarm if it saw the emergency signal. "No answer" always waits for the judge, because a live run
+showed SAM confidently missing a movement the judge saw. These numbers say nothing about real
+patients.
 
 ## Privacy mode
 

@@ -116,15 +116,16 @@ async def perceive(
     t0 = time.perf_counter()
     pcfg = settings.perception
     workdir.mkdir(parents=True, exist_ok=True)
-    # Answer windows use the frame rate the templates were built at, so a calibration keeps
-    # working when the configured rate changes.
-    target_fps = round(
-        (calibration.get("tracker") or calibration.get("local") or {}).get("fps") or pcfg.fps
-    )
+    # Each source gets the frame rate its templates were built at, so a calibration keeps working
+    # when the configured rates change. Muse Spark miscounts movements in 8 fps clips, so the judge
+    # and the on-device tracker get the base rate; SAM 3.1 is faster at its own, lower rate.
+    base_fps = round((calibration.get("local") or {}).get("fps") or pcfg.fps)
+    sam_fps = round((calibration.get("tracker") or {}).get("fps") or pcfg.tracker_fps)
     mp4 = await normalize_video(
-        clip, workdir / f"{clip.stem}_norm.mp4", pcfg.width, pcfg.height, target_fps, max_s=6.0
+        clip, workdir / f"{clip.stem}_norm.mp4", pcfg.width, pcfg.height, base_fps, max_s=6.0
     )
-    fps = read_frames(mp4, max_frames=2).fps or float(target_fps)
+    fps = read_frames(mp4, max_frames=2).fps or float(base_fps)
+    sam_mp4 = mp4 if sam_fps == base_fps else workdir / f"{clip.stem}_sam.mp4"
     info = hub.resolve(mode)
     notes: list[str] = []
     usd = 0.0
@@ -138,7 +139,9 @@ async def perceive(
             return None
         prompts = calibration.get("prompts") or ["face"]
         try:
-            results = await asyncio.gather(*(tracker.track(mp4, p) for p in prompts))
+            if sam_mp4 != mp4:
+                await normalize_video(mp4, sam_mp4, pcfg.width, pcfg.height, sam_fps, max_s=6.0)
+            results = await asyncio.gather(*(tracker.track(sam_mp4, p) for p in prompts))
         except Exception as exc:
             notes.append(f"tracker failed: {exc}")
             return SourceResult("tracker", {}, ok=False, detail={"error": str(exc)[:200]})
@@ -158,7 +161,8 @@ async def perceive(
                 }
             )
         overlay = results[0].to_overlay()
-        seqs = [sam_feature_seq(r, fps=fps) for r in results]
+        track_fps = read_frames(sam_mp4, max_frames=2).fps or float(sam_fps)
+        seqs = [sam_feature_seq(r, fps=track_fps) for r in results]
         n = min(len(s.values) for s in seqs)
         if n < 4:
             return SourceResult(
@@ -166,7 +170,7 @@ async def perceive(
             )
         seq = np.concatenate([s.values[:n] for s in seqs], axis=1)
         missing = float(np.mean([s.missing_fraction for s in seqs]))
-        res = _template_source("tracker", seq, tmpl, fps, pcfg.emergency_yes_count, missing)
+        res = _template_source("tracker", seq, tmpl, track_fps, pcfg.emergency_yes_count, missing)
         res.calls = calls
         return res
 
@@ -256,7 +260,7 @@ async def perceive(
     if not keep:
 
         def cleanup(_: object = None) -> None:
-            for p in (clip, mp4):
+            for p in (clip, mp4, sam_mp4):
                 p.unlink(missing_ok=True)
 
         if late is not None:

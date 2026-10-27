@@ -131,8 +131,10 @@ taxonomy:
 perception:
   width: 320          # answer windows; 320x240 cut SAM latency from 5.0 to 3.2 s and halved judge tokens (live test)
   height: 240
-  fps: 8             # SAM 3.1 median 4.0 -> 3.2 s per window at equal accuracy (live, synthetic clips);
-                     # older calibrations keep the rate their templates were built at
+  fps: 15            # Muse Spark (judge, calibration) and the on-device tracker: at 8 fps the judge
+                     # counted two eyebrow raises as four and called an emergency (live, synthetic clips)
+  tracker_fps: 8     # SAM 3.1: median wait 4.0 -> 3.0 s per window at equal accuracy;
+                     # a calibration keeps the rates its templates were built at
   window_s: 4.0
   window_delay_ms: 300
   unclear_threshold: 0.65
