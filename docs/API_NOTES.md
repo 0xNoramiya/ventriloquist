@@ -173,6 +173,39 @@ Sources: https://docs.baseten.co/inference/model-apis/overview, /inference/model
 - Ventriloquist talks to it through any OpenAI-compatible Chat Completions server (`LOCAL_LLM_URL`, `LOCAL_LLM_MODEL`). Like Baseten, structured output is put in the system prompt and validated with one repair. Text-only roles only; requests with media are routed to Baseten or stay on-device (`providers/onprem.py`).
 - UNTESTED against a real Glimmer server; contract test against a mock endpoint.
 
+## 11c. WhatsApp Cloud API (family relay)
+
+Read on 2026-10-27 from Meta's developer docs (send-messages guide, template overview, webhook
+endpoint, text and status webhook references). **Not yet run against a real account**: the shapes
+below are the documented ones, and `backend/tests/test_relay.py` checks our requests and parsing
+against them. Without an account a simulated relative replies, so the loop still runs end to end.
+
+- **Send:** `POST https://graph.facebook.com/v26.0/<WHATSAPP_BUSINESS_PHONE_NUMBER_ID>/messages`,
+  `Authorization: Bearer <token>`, JSON body with `messaging_product: "whatsapp"`,
+  `recipient_type: "individual"`, `to`, and `type` with the matching object. The response has
+  `messages[0].id` (a `wamid.` id); acceptance is not delivery, which arrives by webhook.
+- **24-hour window:** free-form messages only within 24 hours of the person's last message to the
+  business number; otherwise only an approved template. We always open with the template and use
+  text only inside the window (`WhatsAppChannel.body`).
+- **Template message:** `type: "template"`, `template: {name, language: {code}, components:
+  [{type: "body", parameters: [{type: "text", text}]}]}`; positional parameters follow the order of
+  `{{1}}`, `{{2}}`. Templates must be `APPROVED` before sending. Register this one in WhatsApp
+  Manager (category Utility):
+  - name `patient_message`, language `en`: `{{1}} asked us to send you this message from the
+    hospital: "{{2}}". Reply here and we will read your reply to them.`
+  - same name, language `id`: `{{1}} meminta kami mengirimkan pesan ini dari rumah sakit: "{{2}}".
+    Balas pesan ini dan kami akan membacakan balasan Anda kepadanya.`
+- **Webhook verification:** `GET <callback>?hub.mode=subscribe&hub.challenge=…&hub.verify_token=…`;
+  answer 200 with the challenge when the token matches (`WHATSAPP_VERIFY_TOKEN`). Our callback is
+  `/api/relay/whatsapp`; it needs a public HTTPS address (fly.io).
+- **Webhook payloads:** signed with `X-Hub-Signature-256: sha256=<hex>`, HMAC-SHA256 of the raw body
+  with the app secret (`WHATSAPP_APP_SECRET`). Replies at `entry[].changes[].value.messages[]`
+  (`from`, `id`, `timestamp`, `type: "text"`, `text.body`); receipts at `…value.statuses[]`
+  (`id`, `status` sent/delivered/read/failed, `recipient_id`, `errors[]` on failure). Deliveries
+  are retried for up to 7 days, so handlers must tolerate duplicates.
+- **Opt-in:** WhatsApp requires that people opt in before a business messages them; the patient
+  profile records each relative's agreement (`relay_consent`) and nothing is sent without it.
+
 ## 12. Prices (verified 2026-10-26, https://dev.meta.ai/docs/pricing-rate-limits; config.yaml updated)
 
 | Model | Unit | Price |

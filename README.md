@@ -125,12 +125,13 @@ Details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Client protocol: [`docs
 
 | Model | Role in Ventriloquist |
 |---|---|
-| **Muse Spark 1.3** (Meta Model API) | Calibration describer (watches the YES/NO clips, names the movement, writes the SAM prompt); framing check; scene reader (bedside photo to facts, no identities); prior builder (evidence-cited multipliers and template messages); question proposer; blind answer judge on 4 s video at 8 fps; spelling completer and sentence builder; sensitive-topic classifier |
+| **Muse Spark 1.3** (Meta Model API) | Calibration describer (watches the YES/NO clips, names the movement, writes the SAM prompt); framing check; scene reader (bedside photo to facts, no identities); prior builder (evidence-cited multipliers and template messages); question proposer; blind answer judge on a crop around the patient's signal at 15 fps; spelling completer and sentence builder; sensitive-topic classifier; reader of relatives' WhatsApp replies (what the patient hears, and what a nurse must read first) |
 | **SAM 3.1** (Meta Model API) | Tracks the patient's own signal (e.g. "eyebrows") across each answer clip; box geometry becomes features for DTW against the calibrated templates; boxes are drawn on the caregiver screen |
 | **Muse Voice Transcribe** | Diarized room transcript with family names as keywords and an Indonesian language bias (without it, Indonesian came back empty in our probes) |
 | **Muse Wonder** | Memory curator over the whole stay history (proposals with provenance, caregiver-approved) and memory selector before each session |
 | **Muse Spark Open** (open weights, Baseten or Modal) | Privacy mode: the same Spark roles on an open-weight model, including room audio via its audio input |
 | **Muse Glimmer** (open weights, on your own hardware) | Optional on-premises privacy tier: the text-only roles (priors, questions, completions, sentences, sensitive classifier, memory) on an OpenAI-compatible server in the hospital |
+| **WhatsApp Cloud API** (Meta) | Family relay: carries the patient's confirmed words to a consenting relative as an approved template, and brings the reply back (simulated relative until an account is connected) |
 | **Muse Image** | Generated the 34 AAC pictograms shown next to messages on the patient screen (`scripts/generate_pictograms.py`) |
 | SAM 3.1 open weights (optional, self-hosted on Modal) | Privacy-mode tracker when an endpoint is configured; otherwise an on-device optical-flow tracker |
 
@@ -145,12 +146,32 @@ answer in the trail shows what SAM 3.1 and the blind Muse Spark judge read; the 
 remark (chip T1) that made Aisyah the leading guess; "Latest clip" shows the SAM box for the
 eyebrows; and every model call is listed with its latency and cost.
 
+## When nobody is in the room
+
+A patient on a ventilator for muscle weakness often cannot press the call bell, and family is not
+always there. So a spoken message does not end at the phone's speaker:
+
+- **It reaches a person.** Every message appears on the caregiver screen with a chime until someone
+  taps "I'm coming". Unacknowledged, the idle phone says it again every minute, twice, then the
+  screen escalates. The patient's screen and voice confirm when it was seen.
+- **It can reach family (agentic relay).** For a message about a relative ("Please call my son,
+  Rizal", "I want to see my daughter, Aisyah"), the phone asks "Shall I send this to Aisyah on
+  WhatsApp?". On YES and a caregiver's approval, an agent sends the patient's own words to that
+  relative and tracks delivery and reading. When the reply comes, Muse Spark prepares it for the
+  patient and holds anything about health, bad news or distress for a nurse. Otherwise the phone
+  reads it aloud. With no reply, the agent tells the nurse and asks the patient whether to try the
+  next relative.
+
+The relay runs end to end with a simulated relative until a WhatsApp Business account is connected
+(set-up and the template to register: [`docs/API_NOTES.md`](docs/API_NOTES.md#11c-whatsapp-cloud-api-family-relay)).
+
 ## Safety
 
-Thirteen rules from the build brief, each enforced in code and covered by tests: no advice, no
-AI-proposed sensitive messages, confirm gating, post-speak check, emergency from any state, blind
-judging, bounded priors, fatigue caps, human override everywhere, transparency, privacy, and memory
-hygiene. The table with file and test names is in [`docs/SAFETY.md`](docs/SAFETY.md).
+Thirteen rules from the build brief plus two added since, each enforced in code and covered by
+tests: no advice, no AI-proposed sensitive messages, confirm gating, post-speak check, emergency
+from any state, blind judging, bounded priors, fatigue caps, human override everywhere,
+transparency, privacy, memory hygiene, every spoken message reaching a person, and family relay
+only with consent. The table with file and test names is in [`docs/SAFETY.md`](docs/SAFETY.md).
 
 ## Evaluation
 

@@ -89,6 +89,7 @@ sequenceDiagram
 | `backend/app/roles.py` + `backend/app/prompts/*.md` | every model role: prompt (versioned), inputs, schema, fallback |
 | `backend/app/context/`, `backend/app/memory/` | evidence store; Wonder curator, provenance validation, learning curve |
 | `backend/app/safety/` | sensitive-topic detector (EN/ID keywords + LLM layer), advice and wording validators |
+| `backend/app/relay/` | family relay agent (offer, approval, send, receipts, reply triage, follow-up) and its channels: WhatsApp Cloud API, or a simulated relative |
 | `frontend/` | Vite + React + TypeScript views |
 | `sim/` | engine simulation (`make sim`) |
 | `scripts/` | API probes, live check, detector evaluation, letter statistics, synthetic media |

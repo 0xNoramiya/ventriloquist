@@ -64,6 +64,11 @@ Status: `[x]` done, `[~]` in progress, `[ ]` to do. Updated as work proceeds.
 - [ ] Demo rehearsal and video (recorded last, with a consenting actor)
 - [ ] Feature freeze 2026-11-03 12:00 UTC; submission due 2026-11-05 02:00 UTC
 
+## Session 2 additions (2026-10-27)
+- [x] A spoken message reaches a person: acknowledgement, repeats, escalation, patient told when seen
+- [x] Agentic family relay over WhatsApp (simulated relative until an account is connected)
+- [ ] Connect a WhatsApp Business account and register the `patient_message` template (docs/API_NOTES.md 11c); needs a public HTTPS address for the webhook (fly.io)
+
 ## Needs Rifqi
 - [x] Public repo https://github.com/0xNoramiya/ventriloquist, Pages enabled, release v0.1.0 (2026-10-27)
 - [ ] `BASETEN_API_KEY` (or `MODAL_SPARK_URL`) to run privacy mode live and get the open-weight bonus verified
