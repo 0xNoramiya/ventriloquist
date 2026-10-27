@@ -1,0 +1,271 @@
+{
+  "voice": {
+    "id": "JBFqnCBsd6RMkjVDRZzb",
+    "name": "George",
+    "model": "eleven_v4",
+    "stability": 0.55,
+    "similarityBoost": 0.75
+  },
+  "narration": [
+    {
+      "id": "N1",
+      "slot": 15,
+      "text": "Pak Hasan is awake, but a breathing tube means he can't say a word. So here, he is the ventriloquist. The phone only moves its lips, and it says nothing he hasn't confirmed."
+    },
+    {
+      "id": "N2",
+      "slot": 15,
+      "text": "A nurse clamps a phone to the bed rail, and Pak Hasan picks a movement he can still make. Eyebrows up means yes. Muse Spark names the movement, and SAM 3.1 learns to follow it."
+    },
+    {
+      "id": "N3",
+      "slot": 35,
+      "text": "First, Muse Spark reads the room: what the nurse just said, the family photo he keeps looking at, the visitor who left ten minutes ago. Each clue can only nudge the odds, and each one shows where it came from. Then the phone asks the one question that narrows things most. SAM 3.1 tracks his eyebrows, and a second, blind Muse Spark judge checks every answer."
+    },
+    {
+      "id": "N4",
+      "slot": 30,
+      "text": "But the room is empty, and he can't press a call bell. So his words chime at the nurses' station and stay there until someone taps \"I'm coming\". If nobody does, the phone says them again and the alert gets louder. The WhatsApp message to Aisyah waits for a nurse's approval too."
+    },
+    {
+      "id": "N5",
+      "slot": 25,
+      "text": "Now an agent takes over. It watches the message reach Aisyah's phone and get read. When she answers, Muse Spark reads the reply first. Anything about his health waits for a nurse. This one doesn't, so he hears it."
+    },
+    {
+      "id": "N6",
+      "slot": 15,
+      "text": "Wrong guesses happen. He says no and spells it: three letters, and the completer finds \"kucing\", cat. The message: who is feeding my cat?"
+    },
+    {
+      "id": "N7",
+      "slot": 10,
+      "text": "Three quick yeses, at any moment, raise the alarm on every screen."
+    },
+    {
+      "id": "N8",
+      "slot": 20,
+      "text": "Under the hood it's Meta's stack: Muse Spark from calibration to the blind judge, SAM 3.1, Voice Transcribe, Muse Wonder for a memory nurses approve, and the WhatsApp Cloud API. On generated test clips it read eleven of thirteen answers, none wrong, and asked again on the other two."
+    },
+    {
+      "id": "N9",
+      "slot": 15,
+      "text": "Built in Indonesia, for patients who are awake and unheard. The patient does the talking. The phone just moves its lips."
+    }
+  ],
+  "phoneVoice": {
+    "note": "Stands in for the device's built-in speech, which a screen recording can't capture",
+    "id": "EXAVITQu4vr4xnSDxMaL",
+    "name": "Sarah",
+    "model": "eleven_v4",
+    "stability": 0.8,
+    "similarityBoost": 0.75,
+    "effects": {
+      "filterPresetId": "bright_phone",
+      "environmentId": "small_room",
+      "sendLevel": 0.25,
+      "distance": 0.15
+    }
+  },
+  "phone": [
+    {
+      "id": "P0",
+      "text": "Is it about your body?"
+    },
+    {
+      "id": "P1",
+      "text": "Is it about a person?"
+    },
+    {
+      "id": "P2",
+      "text": "Do you want to see Aisyah?"
+    },
+    {
+      "id": "P3",
+      "text": "Is this your message: “I want to see my daughter, Aisyah.”?"
+    },
+    {
+      "id": "P4",
+      "text": "I want to see my daughter, Aisyah."
+    },
+    {
+      "id": "P5",
+      "text": "Did I say it right?"
+    },
+    {
+      "id": "P6",
+      "text": "Shall I send this to Aisyah on WhatsApp?"
+    },
+    {
+      "id": "P7",
+      "text": "A caregiver has seen your message and is coming."
+    },
+    {
+      "id": "P8",
+      "text": "Aisyah replied: Thank you for telling me. I'm on my way and will be there this evening."
+    }
+  ],
+  "music": {
+    "id": "score",
+    "model": "music_v2_5",
+    "chunks": [
+      {
+        "text": "[Intro] A single quiet piano line, lots of space between notes",
+        "durationMs": 15200,
+        "positiveStyles": [
+          "cinematic",
+          "minimal piano",
+          "soft ambient pads",
+          "intimate",
+          "documentary",
+          "slow",
+          "instrumental"
+        ],
+        "negativeStyles": [
+          "drums",
+          "vocals",
+          "upbeat",
+          "epic"
+        ]
+      },
+      {
+        "text": "[Setup] A soft electronic pulse joins the piano, curious",
+        "durationMs": 14400,
+        "positiveStyles": [
+          "soft pulse",
+          "warm pads",
+          "piano"
+        ],
+        "negativeStyles": [
+          "heavy drums",
+          "vocals"
+        ]
+      },
+      {
+        "text": "[Conversation] The pulse grows gently, light percussion, forward motion",
+        "durationMs": 39400,
+        "positiveStyles": [
+          "gentle build",
+          "light percussion",
+          "warm synths",
+          "hopeful"
+        ],
+        "negativeStyles": [
+          "vocals",
+          "aggressive"
+        ]
+      },
+      {
+        "text": "[Alone at night] The rhythm drops away, sustained low strings, lonely and quiet",
+        "durationMs": 27600,
+        "positiveStyles": [
+          "sustained strings",
+          "sparse",
+          "minor key",
+          "quiet"
+        ],
+        "negativeStyles": [
+          "percussion",
+          "vocals"
+        ]
+      },
+      {
+        "text": "[Reply] Warmth returns, strings swell into a major key",
+        "durationMs": 22900,
+        "positiveStyles": [
+          "warm strings",
+          "swell",
+          "major key",
+          "tender"
+        ],
+        "negativeStyles": [
+          "vocals",
+          "bombastic"
+        ]
+      },
+      {
+        "text": "[Spelling] Light and playful, plucked strings",
+        "durationMs": 12100,
+        "positiveStyles": [
+          "pizzicato",
+          "light",
+          "playful"
+        ],
+        "negativeStyles": [
+          "vocals",
+          "heavy"
+        ]
+      },
+      {
+        "text": "[Hold] A single low sustained tone, tense and very quiet",
+        "durationMs": 9400,
+        "positiveStyles": [
+          "drone",
+          "tense",
+          "very quiet"
+        ],
+        "negativeStyles": [
+          "melody",
+          "drums",
+          "vocals"
+        ]
+      },
+      {
+        "text": "[Under the hood] A steady clean pulse, modern and confident",
+        "durationMs": 22600,
+        "positiveStyles": [
+          "steady pulse",
+          "clean synths",
+          "confident"
+        ],
+        "negativeStyles": [
+          "vocals",
+          "aggressive"
+        ]
+      },
+      {
+        "text": "[Outro] The opening piano line returns and resolves, then fades out",
+        "durationMs": 16400,
+        "positiveStyles": [
+          "piano",
+          "warm",
+          "resolution",
+          "fade out"
+        ],
+        "negativeStyles": [
+          "drums",
+          "vocals"
+        ]
+      }
+    ]
+  },
+  "sfx": [
+    {
+      "id": "icu_room_tone",
+      "text": "Quiet hospital ICU room: soft ventilator hiss and slow, distant monitor beeps",
+      "seconds": 20,
+      "loop": true
+    },
+    {
+      "id": "night_ward",
+      "text": "Hospital ward at night, very quiet hum of machines, almost silent",
+      "seconds": 20,
+      "loop": true
+    },
+    {
+      "id": "clamp_click",
+      "text": "Plastic phone clamp snapping onto a metal bed rail",
+      "seconds": 1.5
+    },
+    {
+      "id": "phone_buzz",
+      "text": "Smartphone vibrating twice on a wooden table",
+      "seconds": 2
+    },
+    {
+      "id": "whoosh",
+      "text": "Soft airy whoosh transition, subtle",
+      "seconds": 1
+    }
+  ]
+}

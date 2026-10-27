@@ -1,0 +1,15 @@
+{
+  "name": "ventriloquist-video",
+  "private": true,
+  "type": "module",
+  "description": "Demo video production: narration, music and effects from ElevenLabs, assembled with HyperFrames. Not part of the app.",
+  "scripts": {
+    "audio": "node --env-file=../.env.local generate-audio.mjs"
+  },
+  "dependencies": {
+    "@elevenlabs/elevenlabs-js": "^2.74.0"
+  },
+  "devDependencies": {
+    "playwright": "^1.63.0"
+  }
+}

@@ -1,0 +1,8 @@
+node_modules/
+# generated audio, Higgsfield clips, app recordings and renders
+media/
+renders/
+# the edit's cut footage, mix, checks and renders are rebuilt by edit/build.mjs
+edit/assets/
+edit/.hyperframes/
+edit/index.html
