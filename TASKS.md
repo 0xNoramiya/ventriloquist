@@ -57,9 +57,10 @@ Status: `[x]` done, `[~]` in progress, `[ ]` to do. Updated as work proceeds.
 
 ## Phase 7: Polish and submission
 - [x] README with eval charts, screenshots and Mermaid diagrams; SAFETY.md, ARCHITECTURE.md, API_NOTES.md, LIVE_CHECK.md
-- [ ] UI polish after a session on real phones (Rifqi)
+- [x] UI polish pass in the browser: generated photos of the fictional patient on the landing and calibration pages, signal picker cards, press and focus states, enter animations with reduced-motion paths
+- [ ] UI check after a session on real phones (Rifqi)
 - [x] Hosted simulation-only demo (no camera, no keys): real engine in the browser via Pyodide, live at https://0xnoramiya.github.io/ventriloquist/ and verified there with Playwright
-- [ ] Host the full app on fly.io (later, Rifqi's call)
+- [x] Host the full app on fly.io: https://ventriloquist.fly.dev (visitors get mock mode, live mode needs the passcode)
 - [x] `docs/DEMO_SCRIPT.md` and X post draft
 - [ ] Demo rehearsal and video (recorded last, with a consenting actor)
 - [ ] Feature freeze 2026-11-03 12:00 UTC; submission due 2026-11-05 02:00 UTC
