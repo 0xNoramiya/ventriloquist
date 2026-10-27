@@ -29,7 +29,7 @@ export default function Demo() {
         <p className="mb-3 text-[14px] text-ink-soft">{t('demo.phone_hint')}</p>
         <iframe
           title={t('demo.phone_label')}
-          src={`${import.meta.env.BASE_URL}patient/${sid ?? ''}`}
+          src={`${import.meta.env.BASE_URL}?r=${encodeURIComponent(`patient/${sid ?? ''}`)}`}
           allow="autoplay"
           className="mx-auto block h-[min(800px,calc(100dvh-7rem))] w-full max-w-[390px] rounded-[28px] border-0 bg-night shadow-[0_0_0_10px_#0b0b0b]"
         />
