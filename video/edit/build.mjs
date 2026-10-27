@@ -87,7 +87,9 @@ const reply = appShot('r2', ses, replyFrom, S.reply, S.spell - S.reply, {
 });
 const listenEmergency = t('emergency queued') + 5.8;
 const alarm1 = appShot('e1', ses, listenEmergency - 0.4, S.alarm, 4.0);
-const alarmAt = t('alarm');
+// measured on the recordings: the phone starts listening 6.0 s after the harness queued the
+// signal, and the red banner shows 1.4 s after the harness saw the alarm
+const alarmAt = t('alarm') + 1.4;
 const alarm2 = appShot('e2', ses, alarmAt - 0.4, 135.6, S.stack - 135.6, {
   vf: [`tpad=stop_mode=clone:stop_duration=3`],
 });
@@ -363,8 +365,8 @@ scene(
   S.stack,
   split([alarm1, { ...alarm2, fade: 0 }], {
     pans: [{ at: S.alarm }],
-    camShots: [{ src: cam.emergency, at: S.alarm + 0.3, length: 3.6, label: 'Phone camera: YES three times' }],
-    notes: [{ at: 135.6, length: 3.4, text: 'Alarm <b>15 s</b> after the signal' }],
+    camShots: [{ src: cam.emergency, at: S.alarm + 0.6, length: 3.4, label: 'Phone camera: YES three times' }],
+    notes: [{ at: 136.0, length: 3.4, text: 'Alarm <b>16 s</b> after the signal' }],
   }),
   { ground: true, cutIn: true },
 );
@@ -478,7 +480,7 @@ mix(ASSETS + 'mix.wav', TOTAL, {
     { file: audio('app_chime.wav'), at: S.station + 0.4, gain: 0.8 },
     { file: audio('app_chime.wav'), at: 86.4, gain: 0.8 },
     { file: audio('phone_buzz.mp3'), at: S.aisyah + 0.4, gain: 0.7 },
-    { file: audio('app_alarm.wav'), at: 135.7, gain: 0.75 },
+    { file: audio('app_alarm.wav'), at: 136.0, gain: 0.75 },
     { file: audio('whoosh.mp3'), at: S.title - 0.2, gain: 0.35 },
     { file: audio('whoosh.mp3'), at: S.end - 0.2, gain: 0.35 },
   ],

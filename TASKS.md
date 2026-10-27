@@ -62,7 +62,8 @@ Status: `[x]` done, `[~]` in progress, `[ ]` to do. Updated as work proceeds.
 - [x] Hosted simulation-only demo (no camera, no keys): real engine in the browser via Pyodide, live at https://0xnoramiya.github.io/ventriloquist/ and verified there with Playwright
 - [x] Host the full app on fly.io: https://ventriloquist.fly.dev (visitors get mock mode, live mode needs the passcode)
 - [x] `docs/DEMO_SCRIPT.md` and X post draft
-- [ ] Demo rehearsal and video (recorded last, with a consenting actor)
+- [x] Demo video: 3:00, live app takes plus generated scenes of a fictional patient (`video/`, script in `docs/DEMO_SCRIPT.md`)
+- [ ] Watch the demo video end to end and give notes (Rifqi)
 - [ ] Feature freeze 2026-11-03 12:00 UTC; submission due 2026-11-05 02:00 UTC
 
 ## Session 2 additions (2026-10-27)
