@@ -1,11 +1,18 @@
 # Ventriloquist
 
+[![CI](https://github.com/0xNoramiya/ventriloquist/actions/workflows/ci.yml/badge.svg)](https://github.com/0xNoramiya/ventriloquist/actions/workflows/ci.yml)
+[![Hosted demo](https://github.com/0xNoramiya/ventriloquist/actions/workflows/pages.yml/badge.svg)](https://0xnoramiya.github.io/ventriloquist/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 **The patient does the talking. The phone just moves its lips.**
 
 A phone on the bed rail gives a voice to awake ICU patients who cannot speak because of a breathing
 tube or tracheostomy. It asks the yes/no question that narrows things down fastest, reads whatever
 movement the patient can make (raised eyebrows, a long blink, a finger lift), and only speaks a
 message aloud, in the first person, after the patient has confirmed it.
+
+**[Try the hosted demo](https://0xnoramiya.github.io/ventriloquist/)**: the real engine runs in your
+browser, with no install, camera or keys.
 
 > **Why the name.** "Vent" is ICU shorthand for a ventilator. In a bad version of this idea the
 > machine is the ventriloquist: it guesses, and puts words in a silent patient's mouth. Ventriloquist
@@ -196,25 +203,25 @@ The demo page runs the real engine, written in Python, inside the browser throug
 console and a phone-sized patient view side by side. No server, no camera, no keys. Answer with Y
 and N, or tick "Simulated patient" and watch.
 
-It deploys to GitHub Pages from `.github/workflows/pages.yml` (Settings > Pages > Source: GitHub
-Actions), at `https://<user>.github.io/<repo>/`. Locally: `cd frontend && npm run dev:demo`.
+Open it at **https://0xnoramiya.github.io/ventriloquist/**. It deploys to GitHub Pages from `.github/workflows/pages.yml` on every
+push to `main`. Locally: `cd frontend && npm run dev:demo`.
 
 ## Quickstart
 
 Requirements: Python 3.11+, [uv](https://docs.astral.sh/uv/), Node 20+, ffmpeg.
 
 ```bash
-git clone <repo> ventriloquist && cd ventriloquist
+git clone https://github.com/0xNoramiya/ventriloquist.git && cd ventriloquist
 make setup          # backend venv + frontend packages, creates .env from .env.example
 make test           # backend tests + frontend checks
 make demo-mock      # a full simulated session in the terminal, no keys needed
 make dev            # backend :8000, laptop http://localhost:5174, phone https://<laptop-ip>:5173
 ```
 
-**Mock mode** (default, no keys): open `http://localhost:5174`, start the "daughter" scenario,
-open the patient view on a phone on the same network (`https://<laptop-ip>:5173/patient/<id>`, accept
-the self-signed certificate; phones need HTTPS for the camera, the laptop's own localhost does not) and answer with Y / N / U / E on a keyboard, or let the simulated patient
-answer.
+**Mock mode** (default, no keys): open `http://localhost:5174` and start the "daughter" scenario.
+Open the patient view on the laptop, or on a phone on the same network
+(`https://<laptop-ip>:5173/patient/<id>`; accept the self-signed certificate, since phones need
+HTTPS for the camera). Answer with Y / N / U / E on a keyboard, or let the simulated patient answer.
 
 **Mock mode with a camera**: calibrate the patient (`/setup`, then `/calibrate`). Once a patient has a
 real calibration, the patient view reads answers from the camera even without keys, using the
@@ -228,6 +235,21 @@ to mock at 90%.
 
 **Privacy mode**: set `BASETEN_API_KEY` (or `MODAL_SPARK_URL`) and/or `LOCAL_LLM_URL` (Muse Glimmer on
 your own server; optionally `MODAL_SAM_URL`), then enable privacy in Settings.
+
+## Repository layout
+
+```
+backend/app/engine      decision engine: priors, information gain, Bayes update, spelling, personal learning
+backend/app/perception  answer detection: SAM 3.1 + DTW, blind judge, fusion, on-device tracker
+backend/app/providers   Meta Model API, Baseten/Modal, on-premises and mock adapters
+backend/app/sessions    session orchestrator and state machine
+backend/app/safety      sensitive-topic and no-advice guards
+backend/app/prompts     versioned prompts for every model role
+frontend/               React app: caregiver console, patient phone view, hosted demo
+sim/                    simulations behind the evaluation charts
+scripts/                API probes, live check, detector evaluation, asset builders
+docs/                   architecture, protocol, safety, evaluation, API notes, sources
+```
 
 ## Built during the hackathon
 
