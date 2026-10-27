@@ -108,6 +108,10 @@ class Settings(BaseModel):
     baseten_api_key: str | None
     modal_sam_url: str | None
     live_passcode: str | None
+    whatsapp_token: str | None = None
+    whatsapp_phone_number_id: str | None = None
+    whatsapp_app_secret: str | None = None
+    whatsapp_verify_token: str | None = None
     data_dir: Path
     engine: EngineConfig
     perception: PerceptionConfig
@@ -165,6 +169,10 @@ def load_settings(config_path: Path | None = None, env_file: Path | None = None)
         baseten_api_key=_env("BASETEN_API_KEY"),
         modal_sam_url=_env("MODAL_SAM_URL"),
         live_passcode=_env("LIVE_PASSCODE"),
+        whatsapp_token=_env("WHATSAPP_TOKEN"),
+        whatsapp_phone_number_id=_env("WHATSAPP_PHONE_NUMBER_ID"),
+        whatsapp_app_secret=_env("WHATSAPP_APP_SECRET"),
+        whatsapp_verify_token=_env("WHATSAPP_VERIFY_TOKEN"),
         data_dir=data_dir,
         engine=EngineConfig(**raw.get("engine", {})),
         perception=PerceptionConfig(**raw.get("perception", {})),

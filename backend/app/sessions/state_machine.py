@@ -41,7 +41,8 @@ TRANSITIONS: dict[State, set[State]] = {
     S.LISTENING: {S.PROCESSING, S.ASKING, S.CONFIRMING, S.SPELLING, S.POST_CHECK},  # re-ask paths
     S.PROCESSING: _NEXT_TURN | {S.POST_CHECK, S.CONTEXT_REFRESH},
     S.SPEAKING: {S.POST_CHECK, S.CAREGIVER_NEEDED},
-    S.DONE: {S.CONTEXT_REFRESH, S.IDLE, S.SPELLING},  # caregiver can start spelling after a message
+    # caregiver can start spelling after a message; the family relay asks between messages
+    S.DONE: {S.CONTEXT_REFRESH, S.IDLE, S.SPELLING, S.ASKING},
     S.PAUSED: {S.CONTEXT_REFRESH, S.ASKING, S.CONFIRMING, S.SPELLING, S.IDLE},
     S.CAREGIVER_NEEDED: {
         S.PROCESSING,  # caregiver entered the answer

@@ -425,6 +425,44 @@ def mock_sensitive(ctx: dict[str, Any]) -> dict[str, Any]:
     return {"sensitive": res.sensitive, "categories": res.categories}
 
 
+REVIEW_WORDS = (
+    "sakit",
+    "dokter",
+    "obat",
+    "operasi",
+    "meninggal",
+    "kecelakaan",
+    "rumah sakit",
+    "hutang",
+    "doctor",
+    "medicine",
+    "surgery",
+    "died",
+    "passed away",
+    "accident",
+    "hospital",
+    "debt",
+)
+
+
+def mock_relay_reply(ctx: dict[str, Any]) -> dict[str, Any]:
+    reply = str(ctx.get("reply", "")).strip()
+    lead = (
+        "Balasan dari" if ctx.get("patient_language") == "id" else f"{ctx.get('from', '')} replied:"
+    )
+    spoken = (
+        f"{lead} {ctx.get('from', '')}: {reply}"
+        if ctx.get("patient_language") == "id"
+        else f"{lead} {reply}"
+    )
+    flagged = detect(reply).sensitive or any(w in reply.lower() for w in REVIEW_WORDS)
+    return {
+        "spoken": spoken[:300],
+        "needs_review": flagged,
+        "reason": "mentions health or bad news" if flagged else "",
+    }
+
+
 def mock_framing(ctx: dict[str, Any]) -> dict[str, Any]:
     return {
         "face_visible": True,
@@ -444,6 +482,7 @@ MOCK_ROLES = {
     "spelling_completer": mock_completer,
     "sentence_builder": mock_sentences,
     "sensitive_classifier": mock_sensitive,
+    "relay_reply": mock_relay_reply,
     "memory_curator": mock_curator,
     "memory_selector": mock_selector,
 }

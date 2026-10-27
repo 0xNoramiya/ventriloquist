@@ -17,6 +17,9 @@ Lang = Literal["en", "id"]
 class FamilyMember(BaseModel):
     name: str = Field(min_length=1, max_length=60)
     relation: str = Field(min_length=1, max_length=40)
+    # Family relay: a WhatsApp number, used only when the relative agreed to receive messages.
+    phone: str | None = Field(default=None, max_length=24)
+    relay_consent: bool = False
 
 
 class PatientProfile(BaseModel):
@@ -205,6 +208,14 @@ class Sentences(_Out):
 class SensitiveOut(_Out):
     sensitive: bool
     categories: list[str] = Field(default_factory=list)
+
+
+class RelayReplyOut(_Out):
+    """A relative's reply, prepared for the patient's phone to read aloud."""
+
+    spoken: str = Field(default="", max_length=300)
+    needs_review: bool = True
+    reason: str = Field(default="", max_length=160)
 
 
 class MemoryOpOut(_Out):

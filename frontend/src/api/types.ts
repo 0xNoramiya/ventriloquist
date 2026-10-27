@@ -227,6 +227,8 @@ export interface Snapshot {
   messages: PatientMessage[];
   /** Spoken messages no caregiver has acknowledged yet, oldest first. */
   pending_ack?: PatientMessage[];
+  /** Family relay: messages carried to relatives on WhatsApp and their replies. */
+  relays?: Relay[];
   evidence: Evidence[];
   caregiver_reason: string | null;
   caregiver_text: string | null;
@@ -282,9 +284,48 @@ export type ClientMessage =
   | { type: 'override'; action: OverrideAction }
   | { type: 'ping' };
 
+export type RelayStatus =
+  | 'awaiting_approval'
+  | 'sending'
+  | 'sent'
+  | 'delivered'
+  | 'read'
+  | 'review'
+  | 'replied'
+  | 'read_to_patient'
+  | 'no_reply'
+  | 'cancelled'
+  | 'failed';
+
+export interface Relay {
+  id: string;
+  message_id: string;
+  to: string;
+  relation: string;
+  /** Masked, for example "+62 ••• 7890". */
+  phone: string;
+  patient_text: string;
+  status: RelayStatus;
+  simulated: boolean;
+  send_kind: string | null;
+  reply: {
+    text: string;
+    spoken: string;
+    needs_review: boolean;
+    reason: string;
+    at: string;
+    read_at: string | null;
+  } | null;
+  events: { at: string; kind: string; text?: string }[];
+  created: string;
+}
+
 export interface FamilyMember {
   name: string;
   relation: string;
+  /** WhatsApp number for the family relay; used only with `relay_consent`. */
+  phone?: string | null;
+  relay_consent?: boolean;
 }
 
 export interface PatientProfile {

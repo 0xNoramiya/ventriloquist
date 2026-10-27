@@ -54,7 +54,15 @@ export default function Setup() {
         language,
         honorific,
         family: family
-          .map((m) => ({ name: m.name.trim(), relation: m.relation.trim() }))
+          .map((m) => {
+            const phone = m.phone?.trim() || null;
+            return {
+              name: m.name.trim(),
+              relation: m.relation.trim(),
+              phone,
+              relay_consent: Boolean(phone && m.relay_consent),
+            };
+          })
           .filter((m) => m.name && m.relation),
         notes: notes
           .split('\n')
@@ -168,50 +176,86 @@ export default function Setup() {
             </datalist>
             <ul className="flex flex-col gap-3">
               {family.map((m, i) => (
-                <li key={i} className="grid grid-cols-[1fr_1fr_auto] items-end gap-2 sm:gap-3">
-                  <label className="flex flex-col gap-1.5">
-                    <span className={cx('text-sm font-semibold', i > 0 && 'sr-only')}>
-                      {t('setup.family_name')}
-                    </span>
-                    <input
-                      className={inputClass}
-                      value={m.name}
-                      maxLength={60}
-                      onChange={(e) => updateMember(i, { name: e.target.value })}
-                      aria-label={i > 0 ? `${t('setup.family_name')} ${i + 1}` : undefined}
-                    />
-                  </label>
-                  <label className="flex flex-col gap-1.5">
-                    <span className={cx('text-sm font-semibold', i > 0 && 'sr-only')}>
-                      {t('setup.family_relation')}
-                    </span>
-                    <input
-                      className={inputClass}
-                      list="relations"
-                      value={m.relation}
-                      maxLength={40}
-                      onChange={(e) => updateMember(i, { relation: e.target.value })}
-                      aria-label={i > 0 ? `${t('setup.family_relation')} ${i + 1}` : undefined}
-                    />
-                  </label>
-                  <Button
-                    variant="ghost"
-                    aria-label={t('setup.family_remove', { n: i + 1 })}
-                    onClick={() =>
-                      setFamily((f) =>
-                        f.length > 1 ? f.filter((_, j) => j !== i) : [{ name: '', relation: '' }],
-                      )
-                    }
-                  >
-                    <svg viewBox="0 0 20 20" className="size-5" aria-hidden="true">
-                      <path
-                        d="M5 5l10 10M15 5L5 15"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
+                <li key={i} className="flex flex-col gap-2">
+                  <div className="grid grid-cols-[1fr_1fr_auto] items-end gap-2 sm:gap-3">
+                    <label className="flex flex-col gap-1.5">
+                      <span className={cx('text-sm font-semibold', i > 0 && 'sr-only')}>
+                        {t('setup.family_name')}
+                      </span>
+                      <input
+                        className={inputClass}
+                        value={m.name}
+                        maxLength={60}
+                        onChange={(e) => updateMember(i, { name: e.target.value })}
+                        aria-label={i > 0 ? `${t('setup.family_name')} ${i + 1}` : undefined}
                       />
-                    </svg>
-                  </Button>
+                    </label>
+                    <label className="flex flex-col gap-1.5">
+                      <span className={cx('text-sm font-semibold', i > 0 && 'sr-only')}>
+                        {t('setup.family_relation')}
+                      </span>
+                      <input
+                        className={inputClass}
+                        list="relations"
+                        value={m.relation}
+                        maxLength={40}
+                        onChange={(e) => updateMember(i, { relation: e.target.value })}
+                        aria-label={i > 0 ? `${t('setup.family_relation')} ${i + 1}` : undefined}
+                      />
+                    </label>
+                    <Button
+                      variant="ghost"
+                      aria-label={t('setup.family_remove', { n: i + 1 })}
+                      onClick={() =>
+                        setFamily((f) =>
+                          f.length > 1 ? f.filter((_, j) => j !== i) : [{ name: '', relation: '' }],
+                        )
+                      }
+                    >
+                      <svg viewBox="0 0 20 20" className="size-5" aria-hidden="true">
+                        <path
+                          d="M5 5l10 10M15 5L5 15"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr] sm:items-center sm:gap-3">
+                    <label className="flex flex-col gap-1.5">
+                      <span className={cx('text-sm font-semibold', i > 0 && 'sr-only')}>
+                        {t('setup.family_phone')}
+                      </span>
+                      <input
+                        className={inputClass}
+                        type="tel"
+                        inputMode="tel"
+                        autoComplete="off"
+                        value={m.phone ?? ''}
+                        maxLength={24}
+                        placeholder="+62 812 3456 7890"
+                        onChange={(e) => updateMember(i, { phone: e.target.value })}
+                        aria-label={i > 0 ? `${t('setup.family_phone')} ${i + 1}` : undefined}
+                      />
+                    </label>
+                    <label
+                      className={cx(
+                        'flex items-start gap-3 text-[15px]',
+                        m.phone?.trim() ? 'cursor-pointer' : 'text-muted',
+                        i === 0 && 'sm:mt-7',
+                      )}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={Boolean(m.relay_consent && m.phone?.trim())}
+                        disabled={!m.phone?.trim()}
+                        onChange={(e) => updateMember(i, { relay_consent: e.target.checked })}
+                        className="mt-0.5 size-5 shrink-0 accent-[var(--color-ink)]"
+                      />
+                      <span>{t('setup.family_consent')}</span>
+                    </label>
+                  </div>
                 </li>
               ))}
             </ul>

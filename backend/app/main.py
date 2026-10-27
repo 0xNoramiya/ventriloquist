@@ -12,14 +12,25 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi import (
+    FastAPI,
+    File,
+    Form,
+    HTTPException,
+    Request,
+    UploadFile,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import PlainTextResponse, Response
 
 from app.config import ROOT, Settings, get_settings
 from app.engine.taxonomy import load_taxonomy
 from app.memory import curator
 from app.perception import calibration as calib
 from app.providers.registry import Mode, ProviderHub
+from app.relay.channels import WhatsAppChannel, parse_webhook, verify_signature
 from app.roles import Roles
 from app.scenarios import load as load_scenario
 from app.scenarios import names as scenario_names
@@ -45,7 +56,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or get_settings()
     store = Store(settings.data_dir)
     hub = ProviderHub(settings, store)
-    ctx = AppContext(settings, store, hub, Roles(hub, settings))
+    relay_channel = (
+        WhatsAppChannel(settings, settings.whatsapp_token, settings.whatsapp_phone_number_id)
+        if settings.whatsapp_token and settings.whatsapp_phone_number_id
+        else None
+    )
+    ctx = AppContext(settings, store, hub, Roles(hub, settings), relay_channel)
     manager = SessionManager(ctx)
 
     @asynccontextmanager
@@ -120,6 +136,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 "meta": bool(settings.model_api_key),
                 "baseten": bool(settings.baseten_api_key),
                 "modal_sam": bool(settings.modal_sam_url),
+                "whatsapp": relay_channel is not None,
             },
             "ffmpeg": shutil.which("ffmpeg") is not None,
             "budget": hub.cost.status().to_dict(),
@@ -461,6 +478,52 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         """A caregiver saw the patient's message and is coming."""
         s = session_or_404(sid)
         return {"ok": await s.acknowledge(mid), "snapshot": s.view()}
+
+    @app.post("/api/sessions/{sid}/relays/{rid}/{action}")
+    async def relay_action(sid: str, rid: str, action: str) -> dict[str, Any]:
+        """Caregiver steps of the family relay: approve the text, cancel, or let the phone read a
+        reply that was held for review."""
+        s = session_or_404(sid)
+        handlers = {
+            "approve": s.relay.approve,
+            "cancel": s.relay.cancel,
+            "read": s.relay.read_to_patient,
+        }
+        if action not in handlers:
+            raise HTTPException(404, "unknown relay action")
+        ok = await handlers[action](rid)
+        await s._notify()  # noqa: SLF001
+        return {"ok": ok, "snapshot": s.view()}
+
+    @app.get("/api/relay/whatsapp")
+    async def whatsapp_verify(request: Request) -> Response:
+        """Webhook verification: echo hub.challenge when the verify token matches."""
+        q = request.query_params
+        expected = settings.whatsapp_verify_token
+        if (
+            expected
+            and q.get("hub.mode") == "subscribe"
+            and secrets.compare_digest(q.get("hub.verify_token") or "", expected)
+        ):
+            return PlainTextResponse(q.get("hub.challenge") or "")
+        raise HTTPException(403, "verification failed")
+
+    @app.post("/api/relay/whatsapp")
+    async def whatsapp_webhook(request: Request) -> dict[str, Any]:
+        """Replies and delivery receipts, signed with the app secret."""
+        raw = await request.body()
+        secret = settings.whatsapp_app_secret
+        if not secret or not verify_signature(
+            secret, raw, request.headers.get("X-Hub-Signature-256")
+        ):
+            raise HTTPException(403, "bad signature")
+        events = parse_webhook(json.loads(raw or b"{}"))
+        channel = ctx.relay_channel
+        for kind, cid, phone, text in events:
+            if kind == "reply" and channel is not None:
+                channel.note_inbound(phone)
+            await manager.relay_event(kind, cid, phone, text)
+        return {"ok": True}
 
     @app.post("/api/sessions/{sid}/end")
     async def end_session(sid: str) -> dict[str, Any]:

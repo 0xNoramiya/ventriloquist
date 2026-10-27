@@ -22,6 +22,7 @@ class SimulatedPatient:
     sentence_en: str | None = None  # which suggested sentence to accept after spelling
     pain_location: str | None = None
     worse: bool = False
+    relay: bool = False  # answers YES when offered to send a message to a relative
     noise: float = 0.0
     seed: int = 0
     rng: np.random.Generator = field(init=False)
@@ -68,6 +69,8 @@ class SimulatedPatient:
             return self._flip(self.pain_location is not None)
         if kind == "worse":
             return self._flip(self.worse)
+        if kind == "relay_offer":
+            return self._flip(self.relay)
         return Answer.NO
 
     def _sentence_yes(self, yes_ids: set[str], view: dict[str, Any]) -> bool:

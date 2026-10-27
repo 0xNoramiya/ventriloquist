@@ -27,6 +27,16 @@ class SessionManager:
         self.sessions: dict[str, Session] = {}
         self.subscribers: dict[str, set[WebSocket]] = {}
 
+    async def relay_event(
+        self, kind: str, channel_id: str | None, phone: str, text: str | None
+    ) -> bool:
+        """A WhatsApp receipt or reply: hand it to the session whose relay it belongs to."""
+        for s in self.sessions.values():
+            if not s.ended and s.relay.owns(channel_id, phone):
+                await s.relay.on_event(kind, channel_id, phone, text)
+                return True
+        return False
+
     def active_for(self, pid: str) -> Session | None:
         for s in self.sessions.values():
             if s.pid == pid and not s.ended:

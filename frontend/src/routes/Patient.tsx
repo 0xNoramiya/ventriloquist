@@ -169,7 +169,8 @@ export default function Patient() {
   useEffect(() => {
     if (!started || !lastEvent) return;
     const { event } = lastEvent;
-    if (event.type === 'reminder' && event.text) speak(event.text, lang, settingsRef.current.rate);
+    if ((event.type === 'reminder' || event.type === 'relay_reply') && event.text)
+      speak(event.text, lang, settingsRef.current.rate);
     if (event.type === 'acknowledged') speak(t('patient.ack.seen'), lang, settingsRef.current.rate);
   }, [started, lastEvent, lang, t]);
 
@@ -381,6 +382,7 @@ function Stage({
     return <CalmScreen title={t('patient.caregiver.title')} body={t('patient.caregiver.body')} />;
   if (state === 'DONE') {
     const last = [...snap.messages].reverse().find((m) => m.status === 'confirmed' && !m.sensitive);
+    const reply = [...(snap.relays ?? [])].reverse().find((r) => r.reply?.read_at)?.reply;
     return (
       <CalmScreen title={t('patient.done.title')} body={t('patient.done.body')}>
         {last ? (
@@ -401,6 +403,11 @@ function Stage({
               {last.acknowledged_at ? `✓ ${t('patient.ack.seen')}` : t('patient.ack.waiting')}
             </p>
           </>
+        ) : null}
+        {reply ? (
+          <p className="mx-auto mt-8 max-w-[34ch] rounded-[16px] bg-night-2 px-5 py-4 text-[clamp(20px,2.6vw,28px)] text-paper">
+            {reply.spoken}
+          </p>
         ) : null}
       </CalmScreen>
     );

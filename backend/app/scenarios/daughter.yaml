@@ -7,9 +7,9 @@ profile:
   display_name: "Pak Hasan (fictional)"
   language: en
   honorific: Bapak
-  family:
-    - {name: Aisyah, relation: daughter}
-    - {name: Rizal, relation: son}
+  family:  # +999 is a reserved, unassigned country code: these can never reach a real person
+    - {name: Aisyah, relation: daughter, phone: "+999 0000 0001", relay_consent: true}
+    - {name: Rizal, relation: son, phone: "+999 0000 0002", relay_consent: true}
     - {name: Siti, relation: wife}
   notes: ["Wears reading glasses"]
   simulation_consent: true

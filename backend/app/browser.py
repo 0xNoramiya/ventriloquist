@@ -159,6 +159,15 @@ class BrowserDemo:
             await s.override(str(msg.get("action")))
         elif kind == "ack":
             await s.acknowledge(str(msg.get("message_id")))
+        elif kind == "relay":
+            action = {
+                "approve": s.relay.approve,
+                "cancel": s.relay.cancel,
+                "read": s.relay.read_to_patient,
+            }.get(str(msg.get("action")))
+            if action is not None:
+                await action(str(msg.get("relay_id")))
+                await s._notify()  # noqa: SLF001
         elif kind == "event":
             await s.add_event(str(msg.get("kind")), msg.get("label"))
         elif kind == "transcript":

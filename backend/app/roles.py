@@ -24,6 +24,7 @@ from app.schemas import (
     MemorySelection,
     PriorProposal,
     QuestionProposal,
+    RelayReplyOut,
     SceneFacts,
     SensitiveOut,
     Sentences,
@@ -266,6 +267,24 @@ class Roles:
             SensitiveOut(sensitive=False),
             {"text": text},
             timeout_s=8,
+            max_tokens=1200,
+        )
+
+    # ----------------------------------------------------------------- relay
+    async def read_relay_reply(
+        self, mode: Mode, payload: dict[str, Any]
+    ) -> RoleResult[RelayReplyOut]:
+        """A relative's WhatsApp reply: what the patient's phone says, and whether a caregiver
+        should read it first."""
+        return await self._call(
+            mode,
+            "relay_reply",
+            [Part("text", text=json.dumps(payload, ensure_ascii=False))],
+            RelayReplyOut,
+            RelayReplyOut(needs_review=True, reason="reply could not be read"),
+            payload,
+            effort="low",
+            timeout_s=15,
             max_tokens=1200,
         )
 

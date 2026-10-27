@@ -172,6 +172,11 @@ export const api = {
       'POST',
       { action },
     ),
+  relayAction: (sid: string, relayId: string, action: 'approve' | 'cancel' | 'read') =>
+    json<{ ok: boolean; snapshot: Snapshot }>(
+      `/sessions/${encodeURIComponent(sid)}/relays/${encodeURIComponent(relayId)}/${action}`,
+      'POST',
+    ),
   ackMessage: (sid: string, messageId: string) =>
     json<{ ok: boolean; snapshot: Snapshot }>(
       `/sessions/${encodeURIComponent(sid)}/messages/${encodeURIComponent(messageId)}/ack`,
@@ -244,6 +249,10 @@ if (isBrowserDemo) {
     event: (_sid, kind, label) => demoBridge.send({ type: 'event', kind, label }),
     override: async (_sid, action) => {
       await demoBridge.send({ type: 'override', action });
+      return { ok: true, snapshot: await current() };
+    },
+    relayAction: async (_sid, relayId, action) => {
+      await demoBridge.send({ type: 'relay', relay_id: relayId, action });
       return { ok: true, snapshot: await current() };
     },
     ackMessage: async (_sid, messageId) => {

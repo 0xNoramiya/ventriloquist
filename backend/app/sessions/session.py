@@ -42,6 +42,7 @@ from app.engine.types import (
     render,
 )
 from app.providers.registry import Mode, ProviderHub
+from app.relay.agent import Contact, RelayAgent, relay_offer_question
 from app.roles import Roles
 from app.safety.sensitive import detect
 from app.storage import Store, new_id, now_iso
@@ -129,6 +130,7 @@ class AppContext:
     store: Store
     hub: ProviderHub
     roles: Roles
+    relay_channel: Any = None  # WhatsApp Cloud API channel when configured (live mode only)
 
 
 Notifier = Callable[["Session", dict[str, Any] | None], Awaitable[None]]
@@ -208,6 +210,8 @@ class Session:
         ] = []  # what the phone said, to drop its echo from room audio
         self._tasks: set[asyncio.Task[Any]] = set()
         self._ack_tasks: dict[str, asyncio.Task[Any]] = {}
+        self.relay = RelayAgent(self)
+        self.pending_relay: tuple[str, Contact] | None = None
 
     # ================================================================ helpers
     @property
@@ -745,6 +749,14 @@ class Session:
                 await self._finalize_text(None, en, idn, "refinement")
             else:
                 await self._done()
+        elif kind == "relay_offer":
+            pending, self.pending_relay = self.pending_relay, None
+            msg = self._find_message(pending[0]) if pending else None
+            if yes and msg is not None and pending is not None:
+                await self.relay.start(msg, pending[1])
+            elif pending is not None:
+                self.log.write("relay_declined", message_id=pending[0])
+            await self._done()
 
     # ================================================================ main stage
     async def _apply_main(self, act: Action) -> None:
@@ -1125,6 +1137,10 @@ class Session:
             self.stage = "worse"
             await self._prompt("worse", "worse", worse_question())
             return
+        contact = self.relay.offer_for(msg)
+        if contact is not None:
+            await self.offer_relay(msg.id, contact)
+            return
         await self._done()
 
     async def _message_retracted(self) -> None:
@@ -1170,6 +1186,25 @@ class Session:
         self.log.write(
             "message_done", index=self.message_index, questions=self.questions_this_message
         )
+        await self.relay.flush()
+
+    # ================================================================ family relay
+    @property
+    def idle(self) -> bool:
+        """Between messages: the phone may speak or ask without interrupting the patient."""
+        return not self.ended and self.state in (State.DONE, State.IDLE)
+
+    async def offer_relay(
+        self, message_id: str, contact: Contact, previous: Contact | None = None
+    ) -> None:
+        """Nothing goes to a relative unless the patient answers YES to this question."""
+        self.pending_relay = (message_id, contact)
+        self.stage = "relay_offer"
+        await self._prompt("relay_offer", "relay_offer", relay_offer_question(contact, previous))
+
+    async def say_to_patient(self, text: str, kind: str) -> None:
+        self._remember_spoken(text)
+        await self._notify({"type": kind, "text": text})
 
     # ================================================================ side states
     async def _caregiver(self, reason: str, keep_prompt: bool = False) -> None:
@@ -1312,6 +1347,7 @@ class Session:
         self.prompt = None
         for task in list(self._ack_tasks.values()):
             task.cancel()
+        self.relay.close()
         self._to(State.DONE, "session ended")
         summary = self.summary()
         self.ctx.store.update_session(self.id, str(self.state), summary, ended=True)
@@ -1457,6 +1493,7 @@ class Session:
             "message": self.message.to_dict() if self.message else None,
             "messages": [m.to_dict() for m in self.messages[-10:]],
             "pending_ack": [m.to_dict() for m in self.pending_ack()],
+            "relays": [r.view() for r in self.relay.relays[-6:]],
             "evidence": self.evidence.to_list(),
             "caregiver_reason": self.caregiver_reason,
             "caregiver_text": CAREGIVER_REASONS.get(self.caregiver_reason or ""),

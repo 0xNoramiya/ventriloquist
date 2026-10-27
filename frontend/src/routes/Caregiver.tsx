@@ -18,6 +18,7 @@ import { ModelCalls } from '../components/caregiver/ModelCalls';
 import { NowPanel } from '../components/caregiver/NowPanel';
 import { OverlayCanvas } from '../components/caregiver/OverlayCanvas';
 import { PendingMessages } from '../components/caregiver/PendingMessages';
+import { RelayActions, Relays } from '../components/caregiver/Relays';
 import { PosteriorBars } from '../components/caregiver/PosteriorBars';
 import { Trail } from '../components/caregiver/Trail';
 import { useCurrentLang, useT } from '../i18n';
@@ -127,6 +128,7 @@ export default function Caregiver() {
         </div>
 
         <PendingMessages snap={snap} />
+        <RelayActions snap={snap} />
         <CaregiverBanners snap={snap} />
 
         {connectOpen ? (
@@ -164,6 +166,9 @@ export default function Caregiver() {
           <div className="flex min-w-0 flex-col gap-8">
             <Section id="messages-title" title={t('messages.title')}>
               <Messages messages={snap.messages} current={snap.message} lang={lang} />
+            </Section>
+            <Section id="relay-title" title={t('relay.title')}>
+              <Relays snap={snap} />
             </Section>
             <Section
               id="trail-title"
