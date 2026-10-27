@@ -259,6 +259,14 @@ and N, or tick "Simulated patient" and watch.
 Open it at **https://0xnoramiya.github.io/ventriloquist/**. It deploys to GitHub Pages from `.github/workflows/pages.yml` on every
 push to `main`. Locally: `cd frontend && npm run dev:demo`.
 
+## Deployed app
+
+**https://ventriloquist.fly.dev** runs the full app: the caregiver console, the patient phone with
+its camera, and the family relay. Visitors get mock mode, which costs nothing. A browser that enters
+the passcode in Settings gets live mode with Meta's models; ask the author for it. Sessions live in
+memory on one machine that suspends when idle; the database and calibrations sit on a volume. Deploy
+with `make deploy` (`fly.toml`, `Dockerfile`; secrets `MODEL_API_KEY` and `LIVE_PASSCODE`).
+
 ## Quickstart
 
 Requirements: Python 3.11+, [uv](https://docs.astral.sh/uv/), Node 20+, ffmpeg.

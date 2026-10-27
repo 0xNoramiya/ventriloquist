@@ -64,7 +64,7 @@ class PerceptionConfig(_Section):
     window_delay_ms: int = 300
     unclear_threshold: float = 0.65
     disagreement_threshold: float = 0.5
-    judge_timeout_s: float = 6.0
+    judge_timeout_s: float = 9.0
     judge_reasoning_effort: str = "minimal"
     judge_frames: int = 8
     emergency_yes_count: int = 3

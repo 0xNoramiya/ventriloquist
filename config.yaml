@@ -139,7 +139,7 @@ perception:
   window_delay_ms: 300
   unclear_threshold: 0.65
   disagreement_threshold: 0.5    # both sources confident (>=0.7) in different classes => UNCLEAR
-  judge_timeout_s: 6
+  judge_timeout_s: 9          # 340 live calls: median 3.2 s, p95 5.6 s, p99 10.8 s; a timeout costs a full re-ask
   judge_reasoning_effort: minimal
   judge_frames: 8
   emergency_yes_count: 3
