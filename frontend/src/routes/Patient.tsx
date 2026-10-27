@@ -8,7 +8,7 @@ import { translate, useT, type TFn } from '../i18n';
 import { unlockAudio } from '../lib/alarm';
 import { cx } from '../lib/format';
 import { grabFrame, keepAwake, recordClip, startCamera, stopStream } from '../lib/media';
-import { signalPhrase } from '../lib/signals';
+import { signalPair } from '../lib/signals';
 import { speak, unlockSpeech, type SpeakHandle } from '../lib/speech';
 import { speechText } from '../lib/promptSpeech';
 import { isHighlighted, LETTERS, SPECIALS } from '../lib/spelling';
@@ -308,10 +308,10 @@ function NightFrame({
 
 /** The patient's own YES and NO signals. Leaves room for the camera preview in the top corner. */
 function SignalsBar({ snap, t, clearPreview }: { snap: Snapshot; t: TFn; clearPreview: boolean }) {
-  const yes = signalPhrase(snap.signals.yes);
-  const no = signalPhrase(snap.signals.no);
-  if (!yes || !no) return null;
-  const text = (x: NonNullable<typeof yes>) => ('key' in x ? t(x.key) : x.text);
+  const pair = signalPair(snap.signals.yes, snap.signals.no);
+  if (!pair) return null;
+  const { yes, no } = pair;
+  const text = (x: typeof yes) => ('key' in x ? t(x.key) : x.text);
   return (
     <header
       className={cx(
