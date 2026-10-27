@@ -32,7 +32,7 @@ hypotheses:
      en: "My hands or arms are uncomfortable.", id_text: "Tangan saya tidak nyaman.",
      direct_en: "Are your hands or arms uncomfortable?", direct_id: "Apakah tangan {hon} terasa tidak nyaman?"}
   - {id: toilet, domain: toilet, attributes: [physical, toilet],
-     en: "I need the toilet, or I'm wet.", id_text: "Saya perlu buang air, atau saya basah.",
+     en: "I need the toilet, or I'm wet.", id_text: "Saya perlu buang air, atau popok saya basah.",
      direct_en: "Do you need the toilet?", direct_id: "Apakah {hon} perlu buang air?"}
   - {id: tired, domain: body, attributes: [physical, rest_move],
      en: "I'm tired. I want to sleep.", id_text: "Saya lelah, ingin tidur.",
@@ -56,7 +56,7 @@ hypotheses:
      en: "Where am I?", id_text: "Saya di mana?",
      direct_en: "Do you want to know where you are?", direct_id: "Apakah {hon} ingin tahu sedang di mana?"}
   - {id: time, domain: information, attributes: [question],
-     en: "What day and time is it?", id_text: "Hari dan jam berapa sekarang?",
+     en: "What day and time is it?", id_text: "Sekarang hari apa, jam berapa?",
      direct_en: "Do you want to know the day and time?", direct_id: "Apakah {hon} ingin tahu hari dan jam?"}
   - {id: tube_when, domain: information, attributes: [question, tube],
      en: "When will the tube come out?", id_text: "Kapan selangnya dilepas?",
@@ -74,7 +74,7 @@ hypotheses:
      en: "Thank you.", id_text: "Terima kasih.",
      direct_en: "Do you want to say thank you?", direct_id: "Apakah {hon} ingin berterima kasih?"}
   - {id: tell_family_ok, domain: people, attributes: [person, family],
-     en: "Tell my family I'm okay.", id_text: "Sampaikan ke keluarga bahwa saya baik-baik saja.",
+     en: "Tell my family I'm okay.", id_text: "Tolong sampaikan ke keluarga saya bahwa saya baik-baik saja.",
      direct_en: "Should we tell your family you're okay?", direct_id: "Apakah keluarga perlu diberi tahu {hon} baik-baik saja?"}
   - {id: pray, domain: spiritual, attributes: [spiritual, feeling],
      en: "I want to pray or hear prayers.", id_text: "Saya ingin berdoa atau mendengarkan doa.",
@@ -83,13 +83,13 @@ hypotheses:
      en: "I want my glasses or hearing aid.", id_text: "Saya ingin kacamata atau alat bantu dengar saya.",
      direct_en: "Do you want your glasses or hearing aid?", direct_id: "Apakah {hon} ingin kacamata atau alat bantu dengar?"}
   - {id: phone_music, domain: items, attributes: [bring],
-     en: "I want my phone or some music.", id_text: "Saya ingin HP saya atau mendengar musik.",
+     en: "I want my phone or some music.", id_text: "Saya ingin HP saya, atau mendengarkan musik.",
      direct_en: "Do you want your phone or some music?", direct_id: "Apakah {hon} ingin HP atau musik?"}
   - {id: spell, domain: communication, attributes: [],
      en: "I want to spell something.", id_text: "Saya ingin mengeja sesuatu.",
      direct_en: "Do you want to spell something?", direct_id: "Apakah {hon} ingin mengeja sesuatu?"}
   - {id: stop, domain: communication, attributes: [],
-     en: "Stop asking for now.", id_text: "Berhenti dulu.",
+     en: "Stop asking for now.", id_text: "Berhenti bertanya dulu.",
      direct_en: "Do you want me to stop asking for now?", direct_id: "Apakah {hon} ingin saya berhenti bertanya dulu?"}
   - {id: other, domain: communication, attributes: [],
      en: "Something else.", id_text: "Hal lain."}
@@ -181,8 +181,12 @@ relations:
   partner: pasangan
   mother: ibu
   father: ayah
-  sister: saudari
-  brother: saudara
+  sister: saudara perempuan
+  brother: saudara laki-laki
+  older sister: kakak
+  younger sister: adik
+  older brother: kakak
+  younger brother: adik
   grandchild: cucu
   granddaughter: cucu
   grandson: cucu
@@ -195,6 +199,10 @@ relations:
   nephew: keponakan
   daughter-in-law: menantu
   son-in-law: menantu
+  mother-in-law: ibu mertua
+  father-in-law: ayah mertua
+  sister-in-law: ipar
+  brother-in-law: ipar
   friend: teman
   neighbour: tetangga
   neighbor: tetangga

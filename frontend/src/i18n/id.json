@@ -103,6 +103,8 @@
   "cal.enable_camera": "Nyalakan kamera",
   "cal.skip": "Lewati kalibrasi (mode tiruan papan ketik)",
   "cal.skip_hint": "Tanpa kalibrasi, jawaban berasal dari papan ketik atau dari perawat.",
+  "cal.skip_live": "Lewati kalibrasi",
+  "cal.skip_live_hint": "Tanpa kalibrasi, Muse Spark memperhatikan sinyal bawaan: kedua alis terangkat untuk YA, mata dipejamkan rapat untuk TIDAK. Perawat selalu bisa mengetuk jawabannya.",
   "cal.no_camera": "Peramban ini tidak dapat memakai kamera di sini. Buka halaman ini lewat HTTPS di ponsel, atau lewati kalibrasi.",
   "cal.camera_denied": "Kamera tidak menyala: {reason}. Izinkan akses kamera di peramban, lalu coba lagi.",
   "cal.preview": "Pratinjau kamera (dicerminkan)",

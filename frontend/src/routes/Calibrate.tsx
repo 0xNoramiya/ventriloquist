@@ -16,6 +16,7 @@ import {
   stopStream,
 } from '../lib/media';
 import { speak } from '../lib/speech';
+import { useConfig } from '../lib/useConfig';
 
 type Label = 'rest' | 'yes' | 'no' | 'emergency';
 
@@ -63,6 +64,8 @@ export default function Calibrate() {
   const { pid } = useParams<{ pid: string }>();
   const t = useT();
   const navigate = useNavigate();
+  // In live mode the camera still reads answers without calibration (blind judge only).
+  const liveMode = useConfig().config?.mode === 'live';
   const [patient, setPatient] = useState<Patient | null>(null);
   const [step, setStep] = useState<Step>('intro');
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -269,10 +272,12 @@ export default function Calibrate() {
                 {t('cal.enable_camera')}
               </Button>
               <Button size="lg" busy={busy === 'skip'} onClick={() => void finalize(true)}>
-                {t('cal.skip')}
+                {t(liveMode ? 'cal.skip_live' : 'cal.skip')}
               </Button>
             </div>
-            <p className="text-[15px] text-muted">{t('cal.skip_hint')}</p>
+            <p className="text-[15px] text-muted">
+              {t(liveMode ? 'cal.skip_live_hint' : 'cal.skip_hint')}
+            </p>
           </div>
         ) : null}
 

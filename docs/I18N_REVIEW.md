@@ -18,7 +18,7 @@ pause texts) and `frontend/src/i18n/id.json` (screens).
 | itch | I'm itchy. | Saya gatal. |
 | position | Please change my position. | Tolong ubah posisi saya. |
 | hands_uncomfortable | My hands or arms are uncomfortable. | Tangan saya tidak nyaman. |
-| toilet | I need the toilet, or I'm wet. | Saya perlu buang air, atau saya basah. |
+| toilet | I need the toilet, or I'm wet. | Saya perlu buang air, atau popok saya basah. |
 | tired | I'm tired. I want to sleep. | Saya lelah, ingin tidur. |
 | hot | I'm too hot. | Saya kepanasan. |
 | cold | I'm cold. | Saya kedinginan. |
@@ -26,7 +26,7 @@ pause texts) and `frontend/src/i18n/id.json` (screens).
 | noise | It's too noisy. | Terlalu berisik. |
 | what_happened | What happened to me? | Apa yang terjadi pada saya? |
 | where | Where am I? | Saya di mana? |
-| time | What day and time is it? | Hari dan jam berapa sekarang? |
+| time | What day and time is it? | Sekarang hari apa, jam berapa? |
 | tube_when | When will the tube come out? | Kapan selangnya dilepas? |
 | talk_staff | I want to talk with my doctor or nurse. | Saya ingin bicara dengan dokter atau perawat. |
 | scared | I'm scared. | Saya takut. |
@@ -36,20 +36,22 @@ pause texts) and `frontend/src/i18n/id.json` (screens).
 | where_person | Where is my {relation}, {name}? | Di mana {relation_id} saya, {name}? |
 | call_person | Please call my {relation}, {name}. | Tolong telepon {relation_id} saya, {name}. |
 | want_item | I want my {item}. | Saya ingin {item_id} saya. |
-| tell_family_ok | Tell my family I'm okay. | Sampaikan ke keluarga bahwa saya baik-baik saja. |
+| tell_family_ok | Tell my family I'm okay. | Tolong sampaikan ke keluarga saya bahwa saya baik-baik saja. |
 | pray | I want to pray or hear prayers. | Saya ingin berdoa atau mendengarkan doa. |
 | glasses_hearing | I want my glasses or hearing aid. | Saya ingin kacamata atau alat bantu dengar saya. |
-| phone_music | I want my phone or some music. | Saya ingin HP saya atau mendengar musik. |
+| phone_music | I want my phone or some music. | Saya ingin HP saya, atau mendengarkan musik. |
 | spell | I want to spell something. | Saya ingin mengeja sesuatu. |
-| stop | Stop asking for now. | Berhenti dulu. |
+| stop | Stop asking for now. | Berhenti bertanya dulu. |
 | other | Something else. | Hal lain. |
 | pain location | The pain is in my chest. | Sakitnya di dada saya. |
 | worse | It is worse than before. | Rasanya lebih sakit dari sebelumnya. |
 
 Relations: daughter putri, son putra, child anak, wife istri, husband suami, mother ibu, father ayah,
-sister saudari, brother saudara, grandchild cucu, grandmother nenek, grandfather kakek, aunt bibi,
-uncle paman, cousin sepupu, niece/nephew keponakan, in-law menantu, friend teman, neighbour tetangga.
-Question: "saudari"/"saudara" are formal; would "kakak/adik" be better (needs older/younger)?
+sister saudara perempuan, brother saudara laki-laki, older sister/brother kakak, younger sister/brother
+adik, grandchild cucu, grandmother nenek, grandfather kakek, aunt bibi, uncle paman, cousin sepupu,
+niece/nephew keponakan, son/daughter-in-law menantu, mother/father-in-law ibu/ayah mertua,
+sister/brother-in-law ipar, friend teman, neighbour tetangga. A relation typed in Indonesian in the
+profile (for example "kakak") is used as typed.
 
 ## Questions (spoken to the patient)
 
@@ -76,9 +78,9 @@ Question: "saudari"/"saudara" are formal; would "kakak/adik" be better (needs ol
 | Shall I say: "..."? | Boleh saya sampaikan: "..."? |
 | Do you want to spell it? | Apakah {hon} ingin mengejanya? |
 | Did I say it right? | Apakah yang saya sampaikan sudah benar? |
-| Is your letter in this group? | Apakah huruf {hon} ada di kelompok ini? |
+| Is your letter in this group? | Apakah hurufnya ada di kelompok ini? |
 | Is everything so far correct? | Apakah sejauh ini sudah benar? |
-| Is your word KUCING? | Apakah kata {hon} KUCING? |
+| Is your word KUCING? | Apakah kata yang {hon} maksud KUCING? |
 | Do you mean: "..."? | Maksud {hon}: "..."? |
 | Do you want to keep spelling? | Apakah {hon} ingin lanjut mengeja? |
 | Can I ask where it hurts? | Boleh saya tanya di mana yang sakit? |
@@ -93,6 +95,19 @@ Each taxonomy message also has a direct question (e.g. "Apakah {hon} merasa saki
 |---|---|
 | The patient needs help now. | Pasien butuh bantuan sekarang. |
 | Responses unclear. Please check with the patient in person. | Jawaban kurang jelas. Mohon periksa pasien secara langsung. |
+
+## Changes after the first review pass (2026-10-27)
+
+- "Apakah kata {hon} KUCING?" could be heard as "Did Bapak say KUCING?" ("kata Bapak" also means
+  "Bapak said"); now "Apakah kata yang {hon} maksud KUCING?". The letter-group question drops the
+  honorific for the same reason: "Apakah hurufnya ada di kelompok ini?".
+- "Hari dan jam berapa" asks for a date; "Sekarang hari apa, jam berapa?" asks for the day.
+- "atau saya basah" was vague; "atau popok saya basah" assumes an adult diaper, which is usual in
+  the ICU. Check this one.
+- "Tolong" added to the family message, "mendengarkan musik" instead of "mendengar musik", and
+  "Berhenti bertanya dulu" so the stop message says what to stop.
+- Siblings: "saudari" is rare in speech; now "saudara perempuan" / "saudara laki-laki", with
+  kakak/adik when the profile says older or younger. In-laws split into menantu, mertua and ipar.
 
 ## Open questions for the reviewer
 

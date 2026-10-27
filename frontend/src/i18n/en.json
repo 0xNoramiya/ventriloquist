@@ -103,6 +103,8 @@
   "cal.enable_camera": "Turn on the camera",
   "cal.skip": "Skip calibration (keyboard mock mode)",
   "cal.skip_hint": "Without calibration, answers come from the keyboard or from the caregiver.",
+  "cal.skip_live": "Skip calibration",
+  "cal.skip_live_hint": "Without calibration, Muse Spark watches for the default signals: both eyebrows up for YES, eyes squeezed shut for NO. The caregiver can always tap the answer instead.",
   "cal.no_camera": "This browser can't use the camera here. Open this page over HTTPS on the phone, or skip calibration.",
   "cal.camera_denied": "The camera didn't start: {reason}. Allow camera access in the browser and try again.",
   "cal.preview": "Mirrored camera preview",

@@ -106,10 +106,10 @@ _FALLBACK_UNIGRAM = {
 TEXTS = {
     "letter_q": {
         "en": "Is your letter in this group?",
-        "id": "Apakah huruf {hon} ada di kelompok ini?",
+        "id": "Apakah hurufnya ada di kelompok ini?",
     },
     "checkpoint": {"en": "Is everything so far correct?", "id": "Apakah sejauh ini sudah benar?"},
-    "word_q": {"en": "Is your word {word}?", "id": "Apakah kata {hon} {word}?"},
+    "word_q": {"en": "Is your word {word}?", "id": "Apakah kata yang {hon} maksud {word}?"},
     "mean": {"en": "Do you mean: “{sentence}”?", "id": "Maksud {hon}: “{sentence}”?"},
     "keep": {"en": "Do you want to keep spelling?", "id": "Apakah {hon} ingin lanjut mengeja?"},
 }
