@@ -198,7 +198,10 @@ def test_scenario_endpoint_and_websocket(client):
 @pytest.mark.skipif(
     subprocess.run(["which", "ffmpeg"], capture_output=True).returncode != 0, reason="ffmpeg"
 )
-def test_answer_clip_through_pipeline(client, tmp_path):
+@pytest.mark.parametrize("spoken_first", [True, False])
+def test_answer_clip_through_pipeline(client, tmp_path, spoken_first):
+    """The phone starts recording when it finishes speaking, so the clip can reach the server
+    before the "spoken" message does."""
     pid = client.post("/api/patients", json=PROFILE).json()["id"]
     for i, (label, motion) in enumerate(
         [("rest", None), ("yes", "up"), ("yes", "up"), ("no", "side"), ("no", "side")]
@@ -214,7 +217,8 @@ def test_answer_clip_through_pipeline(client, tmp_path):
     sid = client.post("/api/sessions", json={"patient_id": pid}).json()["session_id"]
     snap = client.post(f"/api/sessions/{sid}/start").json()
     p = snap["prompt"]["id"]
-    client.post(f"/api/sessions/{sid}/spoken", json={"prompt_id": p})
+    if spoken_first:
+        client.post(f"/api/sessions/{sid}/spoken", json={"prompt_id": p})
     clip = synthetic_clip(tmp_path / "answer.mp4", "up")
     with clip.open("rb") as f:
         r = client.post(
@@ -225,6 +229,11 @@ def test_answer_clip_through_pipeline(client, tmp_path):
     body = r.json()
     assert body["accepted"] and body["observation"]["answer"] in ("yes", "unclear")
     assert "local" in body["observation"]["sources"]["sources"]
+    # a late "spoken" for the answered prompt changes nothing
+    before = client.get(f"/api/sessions/{sid}").json()
+    client.post(f"/api/sessions/{sid}/spoken", json={"prompt_id": p})
+    after = client.get(f"/api/sessions/{sid}").json()
+    assert (after["state"], after["prompt"]["id"]) == (before["state"], before["prompt"]["id"])
 
 
 def test_idle_clip_ignored_after_session_end(client, tmp_path):

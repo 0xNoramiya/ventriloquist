@@ -110,6 +110,31 @@ export default function Patient() {
     if (!latest || latest.message_index === 0) sendMessage({ type: 'start' });
   }, [sid]);
 
+  // One answer clip per prompt, uploaded when the window closes.
+  const recordAnswer = useCallback(
+    (forPrompt: string) => {
+      const stream = streamRef.current;
+      if (!sid || !stream || recordedRef.current === forPrompt) return;
+      recordedRef.current = forPrompt;
+      const { windowMs, delayMs } = settingsRef.current;
+      window.setTimeout(() => {
+        if (useSession.getState().snapshot?.prompt?.id !== forPrompt) return;
+        setRecording({ promptId: forPrompt, ms: windowMs });
+        setUploadError(null);
+        recordClip(stream, windowMs)
+          .then((clip) => {
+            setRecording(null);
+            return api.sessionClip(sid, forPrompt, clip);
+          })
+          .catch((e: unknown) => {
+            setRecording(null);
+            setUploadError(e instanceof Error ? e.message : String(e));
+          });
+      }, delayMs);
+    },
+    [sid],
+  );
+
   // Speak each new prompt once, then tell the backend it was spoken.
   const promptId = snap?.prompt?.id ?? null;
   const state = snap?.state ?? null;
@@ -125,13 +150,18 @@ export default function Patient() {
     const speakable = PROMPTING.has(state) || (state === 'SPEAKING' && p.kind === 'message');
     if (!speakable || spokenRef.current === p.id) return;
     spokenRef.current = p.id;
+    const asksQuestion = PROMPTING.has(state);
     const handle = speak(speechText(p, lang), lang, settingsRef.current.rate);
     speechRef.current = { promptId: p.id, handle };
     void handle.done.then((outcome) => {
       if (speechRef.current?.handle === handle) speechRef.current = null;
-      if (outcome !== 'cancelled') sendMessage({ type: 'spoken', prompt_id: p.id });
+      if (outcome === 'cancelled') return;
+      sendMessage({ type: 'spoken', prompt_id: p.id });
+      // Start the answer window here rather than after the server's reply, so a quick answer
+      // is not lost to the round trip.
+      if (asksQuestion && usesCamera(useSession.getState().snapshot)) recordAnswer(p.id);
     });
-  }, [started, promptId, state, lang]);
+  }, [started, promptId, state, lang, recordAnswer]);
 
   // Emergency: say once, calmly, that help is coming.
   useEffect(() => {
@@ -145,29 +175,11 @@ export default function Patient() {
     }
   }, [started, state, lang]);
 
-  // Camera answers: record one clip per prompt while listening and upload it.
+  // Fallback: listening without a clip yet (speech unavailable, or the page reconnected).
   useEffect(() => {
-    if (!started || !camera || state !== 'LISTENING' || !promptId || !sid) return;
-    if (recordedRef.current === promptId) return;
-    const stream = streamRef.current;
-    if (!stream) return;
-    recordedRef.current = promptId;
-    const { windowMs, delayMs } = settingsRef.current;
-    const timer = window.setTimeout(() => {
-      setRecording({ promptId, ms: windowMs });
-      setUploadError(null);
-      recordClip(stream, windowMs)
-        .then((clip) => {
-          setRecording(null);
-          return api.sessionClip(sid, promptId, clip);
-        })
-        .catch((e: unknown) => {
-          setRecording(null);
-          setUploadError(e instanceof Error ? e.message : String(e));
-        });
-    }, delayMs);
-    return () => window.clearTimeout(timer);
-  }, [started, camera, state, promptId, sid]);
+    if (!started || !camera || state !== 'LISTENING' || !promptId) return;
+    recordAnswer(promptId);
+  }, [started, camera, state, promptId, recordAnswer]);
 
   // Idle watch (brief 9.6): between messages, look for the patient's signal every few seconds.
   // Triple YES raises the alarm; a single YES starts a new message. Off unless the flag is on.

@@ -530,9 +530,18 @@ class Session:
 
     async def clip(self, prompt_id: str, path: Path) -> dict[str, Any]:
         async with self.lock:
-            if not self.prompt or self.prompt.id != prompt_id or self.state != State.LISTENING:
+            prompting = (State.ASKING, State.CONFIRMING, State.SPELLING, State.POST_CHECK)
+            if (
+                not self.prompt
+                or self.prompt.id != prompt_id
+                or self.state not in (State.LISTENING, *prompting)
+            ):
                 path.unlink(missing_ok=True)
                 return {"accepted": False, "reason": "stale prompt"}
+            if self.state in prompting:
+                # The phone starts recording when it finishes speaking; its "spoken" message
+                # can arrive after the clip.
+                self._to(State.LISTENING, "clip before speech end")
             self._to(State.PROCESSING, "clip received")
         await self._notify()
         from app.perception.pipeline import perceive

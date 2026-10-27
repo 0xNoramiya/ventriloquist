@@ -42,10 +42,14 @@ export async function grabFrame(video: HTMLVideoElement): Promise<Blob> {
   );
 }
 
+// The backend scales answer clips down to 320x240, so the browser's default bitrate (often
+// 2.5 Mbps) only slows the upload.
+const CLIP_BITS_PER_SECOND = 800_000;
+
 /** Record `ms` of video from the stream. The backend normalises the container with ffmpeg. */
 export function recordClip(stream: MediaStream, ms: number): Promise<Blob> {
   const mimeType = recorderMime();
-  const rec = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+  const rec = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: CLIP_BITS_PER_SECOND });
   const chunks: Blob[] = [];
   return new Promise((resolve, reject) => {
     rec.ondataavailable = (e) => {
