@@ -174,10 +174,16 @@ prompt, and SAM-based calibration reached 0.86 leave-one-out accuracy. Across ru
 (YES, NO, rest) were classified correctly or, once, returned UNCLEAR because the blind judge
 disagreed with SAM; UNCLEAR means the question is asked again, which is the intended behaviour. The
 detector's softmin temperature is fitted on the calibration clips (temperature scaling on the
-leave-one-out likelihood); before that fix every window came back UNCLEAR. Latency after the
-4-second window is about 4 to 5 s (SAM 3.1 about 3 s at 320x240, the judge about 4 s); when SAM is
-at least 90% sure the engine moves on without waiting for the judge, whose verdict is attached to
-the trail afterwards and raises an alert if it disagrees. These numbers say nothing about real patients.
+leave-one-out likelihood); before that fix every window came back UNCLEAR.
+
+On the live models at 8 fps, SAM classified all 9 synthetic windows correctly. The fused answer was
+right on 8; on the ninth the judge read a YES as the emergency signal, and any source that is fairly
+sure of an emergency raises the alarm, by design. The wait after the 4-second window was 3.0 s
+median, 3.5 s p90 (4.0 s and 4.4 s at 15 fps). SAM decides alone only on a clear YES or NO: at least
+90% sure and its best template at least 1.25 times closer than the next. The judge's verdict is then
+attached to the trail when it arrives, with an alert if it disagrees. "No answer" always waits for the
+judge, because a live run showed SAM confidently missing a movement the judge saw. These numbers say
+nothing about real patients.
 
 ## Privacy mode
 
@@ -264,9 +270,9 @@ The dated build log is [`HACKATHON_LOG.md`](HACKATHON_LOG.md) and the task list 
   consenting volunteers and tuning thresholds.
 - Indonesian strings and the sensitive-topic lists need native and clinical review
   ([`docs/I18N_REVIEW.md`](docs/I18N_REVIEW.md)). Indonesian transcription needs testing on real speech.
-- In live mode one question takes about 15 s end to end (speaking the question, the 4 s answer
-  window, about 5 s of perception). SAM 3.1 and the Spark judge are the slow parts; a confident
-  tracker lets the engine move on without the judge.
+- In live mode one question takes about 10 to 11 s end to end: 2.5 to 3.5 s to speak the question,
+  the 4 s answer window, about 3 s for the models. The window is a setting; shortening it needs
+  testing with real patients.
 - Base rates are starting guesses. Personal learning helps, but only after a few confirmed messages.
 - Zero data retention on the Meta API is an organisation-level setting that has to be requested.
 

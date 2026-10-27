@@ -83,6 +83,25 @@ def _template_source(
     )
 
 
+def early_decision_ok(res: SourceResult | None, p_min: float, margin_min: float) -> bool:
+    """Whether the tracker alone may decide, without waiting for the blind judge.
+
+    Only for a clear YES or NO: confident, and the best template clearly closer than the runner-up.
+    The fitted DTW temperature can be overconfident on a clip unlike the calibration clips, so the
+    distance margin is checked as well. "No answer" always waits for the judge, which may see a
+    movement the templates missed; a missed answer costs more than a few seconds.
+    """
+    if res is None or not res.ok:
+        return False
+    top, p = res.top
+    if top not in ("yes", "no") or p < p_min:
+        return False
+    d = sorted(res.detail.get("distances", {}).values())
+    if len(d) < 2:
+        return False
+    return d[0] <= 0 or d[1] / d[0] >= margin_min
+
+
 async def perceive(
     clip: Path,
     calibration: dict[str, Any],
@@ -96,10 +115,15 @@ async def perceive(
     t0 = time.perf_counter()
     pcfg = settings.perception
     workdir.mkdir(parents=True, exist_ok=True)
-    mp4 = await normalize_video(
-        clip, workdir / f"{clip.stem}_norm.mp4", pcfg.width, pcfg.height, pcfg.fps, max_s=6.0
+    # Answer windows use the frame rate the templates were built at, so a calibration keeps
+    # working when the configured rate changes.
+    target_fps = round(
+        (calibration.get("tracker") or calibration.get("local") or {}).get("fps") or pcfg.fps
     )
-    fps = read_frames(mp4, max_frames=2).fps or float(pcfg.fps)
+    mp4 = await normalize_video(
+        clip, workdir / f"{clip.stem}_norm.mp4", pcfg.width, pcfg.height, target_fps, max_s=6.0
+    )
+    fps = read_frames(mp4, max_frames=2).fps or float(target_fps)
     info = hub.resolve(mode)
     notes: list[str] = []
     usd = 0.0
@@ -174,12 +198,7 @@ async def perceive(
     track_res, local_res = await asyncio.gather(tracker_path(), local_path())
     late: asyncio.Task[SourceResult | None] | None = None
     judge_res: SourceResult | None = None
-    early = (
-        track_res is not None
-        and track_res.ok
-        and track_res.top[1] >= pcfg.early_decision_p
-        and track_res.top[0] in ("yes", "no", "none")
-    )
+    early = early_decision_ok(track_res, pcfg.early_decision_p, pcfg.early_decision_margin)
     if early and not judge_task.done():
         # Latency: SAM is confident, so don't make the patient wait for the slower blind judge.
         # Its verdict is attached to the trail when it arrives (audit, disagreement alert).

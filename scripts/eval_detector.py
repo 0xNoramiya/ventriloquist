@@ -90,6 +90,7 @@ async def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode", default="mock", choices=["mock", "live"])
     ap.add_argument("--synthetic", action="store_true")
+    ap.add_argument("--fps", type=int, help="override perception.fps (calibration and answers)")
     args = ap.parse_args()
     os.environ["APP_MODE"] = args.mode
 
@@ -108,6 +109,9 @@ async def main() -> None:
         print(f"No calibration clips in {cal_dir}. Record them first (see the module docstring).")
         return
     settings = load_settings().model_copy(update={"app_mode": args.mode})
+    if args.fps:
+        perception = settings.perception.model_copy(update={"fps": args.fps})
+        settings = settings.model_copy(update={"perception": perception})
     work = base / "_work"
     store = Store(work / "data")
     store.kv_set("app_mode", args.mode)
@@ -166,7 +170,8 @@ async def main() -> None:
     lines = [
         "# Detector evaluation",
         "",
-        f"Mode `{args.mode}`, {len(rows)} clips{' (SYNTHETIC cartoon clips: not evidence about real patients)' if args.synthetic else ''}.",
+        f"Mode `{args.mode}`, {len(rows)} clips at {settings.perception.fps} fps"
+        f"{' (SYNTHETIC cartoon clips: not evidence about real patients)' if args.synthetic else ''}.",
         f"Calibration leave-one-out accuracy: {cal['accuracy']}; error rates {cal['error_rates']}.",
         f"Latency per answer window: median {result['latency_ms']['median']} ms, p90 {result['latency_ms']['p90']} ms.",
         "",

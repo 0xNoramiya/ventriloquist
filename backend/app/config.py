@@ -71,7 +71,8 @@ class PerceptionConfig(_Section):
     idle_watch_interval_s: float = 20.0
     calibration_min_accuracy: float = 0.80
     early_decision_p: float = 0.90
-    early_grace_s: float = 0.5
+    early_decision_margin: float = 1.25
+    early_grace_s: float = 0.2
 
 
 class FeatureFlags(_Section):
