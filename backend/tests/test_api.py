@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import mimetypes
 import subprocess
 import time
 from pathlib import Path
@@ -322,3 +323,23 @@ def test_serves_the_built_web_app(tmp_path, monkeypatch):
         assert c.get("/api/nope").status_code == 404
         assert c.get("/api/health").json()["ok"]
         assert c.get("/../../etc/passwd").text == "<html>app</html>"
+
+
+def test_serves_webp_as_an_image(tmp_path, monkeypatch):
+    dist = tmp_path / "dist"
+    (dist / "img").mkdir(parents=True)
+    (dist / "index.html").write_text("<html>app</html>")
+    (dist / "img" / "hero.webp").write_bytes(b"RIFF\x00\x00\x00\x00WEBP")
+    monkeypatch.setenv("FRONTEND_DIST", str(dist))
+    settings = load_settings().model_copy(
+        update={"data_dir": tmp_path / "data", "live_passcode": None}
+    )
+    # Like python:3.12-slim: no /etc/mime.types, only Python's own table. monkeypatch puts the
+    # loaded database back afterwards.
+    for name in ("_db", "types_map", "common_types", "encodings_map", "suffix_map"):
+        monkeypatch.setattr(mimetypes, name, getattr(mimetypes, name))
+    monkeypatch.setattr(mimetypes, "knownfiles", [])
+    mimetypes._db = None
+    mimetypes.init()
+    with TestClient(create_app(settings)) as c:
+        assert c.get("/img/hero.webp").headers["content-type"] == "image/webp"

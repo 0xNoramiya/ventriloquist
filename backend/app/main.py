@@ -6,6 +6,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import mimetypes
 import os
 import secrets
 import shutil
@@ -715,6 +716,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     dist = os.environ.get("FRONTEND_DIST")
     if dist and (Path(dist) / "index.html").is_file():
         web_root = Path(dist).resolve()
+        # python:3.12-slim has no /etc/mime.types and 3.12's own table lacks .webp
+        mimetypes.add_type("image/webp", ".webp")
 
         @app.get("/{path:path}", include_in_schema=False)
         async def web_app(path: str) -> FileResponse:
