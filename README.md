@@ -111,7 +111,8 @@ flowchart LR
    error rates a and b, EIG = H(P(observed YES)) - [s H(a) + (1 - s) H(b)]. The engine asks the best
    question minus a small penalty per word.
 4. **Blind judging.** The perception models get the clip and the patient's signal description, never
-   the question or the candidate messages, so they cannot answer for the patient.
+   the question or the candidate messages, so they cannot answer for the patient. The judge watches
+   a crop around the body parts the patient signals with, found by SAM 3.1 during calibration.
 5. **Confirm before speaking, verify after.** Speaking needs a confirmation YES that lifts the message
    to 95%. Afterwards, "Did I say it right?"; NO retracts it on the caregiver screen.
 6. **Memory that compounds.** Confirmed messages feed personal base rates (3-day half-life). After
@@ -195,6 +196,20 @@ judge's verdict is then attached to the trail when it arrives, with an alert if 
 alarm if it saw the emergency signal. "No answer" always waits for the judge, because a live run
 showed SAM confidently missing a movement the judge saw. These numbers say nothing about real
 patients.
+
+**A photoreal face.** The cartoon was too easy, so we generated a fictional ICU patient with
+Higgsfield (GPT Image 2.5, then Seedance 2.0 for each gesture) and checked every label frame by
+frame. On it the first run got only 5 of 13 windows right: on a whole 320x240 frame, Muse Spark
+missed eyebrow raises a few pixels tall and took blinks for the NO squeeze. Four fixes followed:
+- the judge now watches a crop around the signal body parts that SAM found during calibration;
+- prompt v4 tells a blink from a held squeeze;
+- SAM reports whether the body part was seen at all;
+- fusion became a logarithmic opinion pool.
+
+Now 11 of 13 are right, none wrong, and 2 come back as "ask again"; the judge alone was right on all
+12 it answered. Details: [`docs/DETECTOR_DATA_GENERATED.md`](docs/DETECTOR_DATA_GENERATED.md).
+
+![Generated patient and gestures](docs/img/generated-patient.jpg)
 
 ## Privacy mode
 
