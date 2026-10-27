@@ -137,6 +137,13 @@ Every call is schema-validated (strict JSON schema on the Meta API), repaired on
 safely; every call is logged with model, latency, tokens and cost. Verified request and response
 shapes: [`docs/API_NOTES.md`](docs/API_NOTES.md). A live run of every role: [`docs/LIVE_CHECK.md`](docs/LIVE_CHECK.md).
 
+![Caregiver console in live mode](docs/img/caregiver-live.png)
+
+Live mode, three answers into a conversation with a fictional patient (synthetic answer clips). Each
+answer in the trail shows what SAM 3.1 and the blind Muse Spark judge read; the bars cite the nurse's
+remark (chip T1) that made Aisyah the leading guess; "Latest clip" shows the SAM box for the
+eyebrows; and every model call is listed with its latency and cost.
+
 ## Safety
 
 Thirteen rules from the build brief, each enforced in code and covered by tests: no advice, no

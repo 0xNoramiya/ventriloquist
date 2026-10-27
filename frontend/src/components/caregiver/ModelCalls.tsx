@@ -1,6 +1,5 @@
 import type { LlmCall } from '../../api/types';
 import { useT } from '../../i18n';
-import { usd } from '../../lib/format';
 import { Badge } from '../Section';
 
 export function ModelCalls({ calls }: { calls: LlmCall[] }) {
@@ -37,7 +36,7 @@ export function ModelCalls({ calls }: { calls: LlmCall[] }) {
                 <span className="text-ink-soft">{c.provider}</span> · {c.model}
               </td>
               <td className="tabular px-1 py-1.5 text-right">{Math.round(c.latency_ms)} ms</td>
-              <td className="tabular px-1 py-1.5 text-right">{usd(c.usd ?? 0)}</td>
+              <td className="tabular px-1 py-1.5 text-right">${(c.usd ?? 0).toFixed(4)}</td>
               <td className="px-1 py-1.5">
                 {c.fallback ? (
                   <Badge tone="caution" title={c.error ?? undefined}>
