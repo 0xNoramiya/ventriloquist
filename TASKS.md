@@ -45,8 +45,8 @@ Status: `[x]` done, `[~]` in progress, `[ ]` to do. Updated as work proceeds.
 
 ## Phase 5: Perception tuning (needs recorded clips)
 - [x] `scripts/eval_detector.py` (confusion matrices per source + fused, latency)
-- [ ] Record labeled clips (Rifqi + consenting actors) into `data/labeled/` — needs a human
-- [~] Tune thresholds, latency work, SAM overlay rendering (DTW temperature now fitted on calibration LOO; overlay in caregiver view)
+- [ ] Record labeled clips (Rifqi + consenting actors) into `data/labeled/`; deferred, Rifqi judged the synthetic results enough for now
+- [x] Tune thresholds, latency work, SAM overlay rendering (DTW temperature fitted on calibration LOO; 8 fps windows; early decision needs a clear YES/NO with a template margin; recording starts when the phone finishes speaking)
 
 ## Phase 6: Memory and privacy
 - [x] Live memory curator + learning curve (Wonder curator verified live; caregiver approval UI in frontend)
@@ -58,15 +58,16 @@ Status: `[x]` done, `[~]` in progress, `[ ]` to do. Updated as work proceeds.
 ## Phase 7: Polish and submission
 - [x] README with eval charts, screenshots and Mermaid diagrams; SAFETY.md, ARCHITECTURE.md, API_NOTES.md, LIVE_CHECK.md
 - [ ] UI polish after a session on real phones (Rifqi)
-- [x] Hosted simulation-only demo (no camera, no keys): real engine in the browser via Pyodide, verified with Playwright; deploys via the Pages workflow once the repo is on GitHub
+- [x] Hosted simulation-only demo (no camera, no keys): real engine in the browser via Pyodide, live at https://0xnoramiya.github.io/ventriloquist/ and verified there with Playwright
+- [ ] Host the full app on fly.io (later, Rifqi's call)
 - [x] `docs/DEMO_SCRIPT.md` and X post draft
 - [ ] Demo rehearsal and video (recorded last, with a consenting actor)
 - [ ] Feature freeze 2026-11-03 12:00 UTC; submission due 2026-11-05 02:00 UTC
 
-## Next session (needs Rifqi)
-- [ ] Add the GitHub remote, push, make the repo public, enable Pages (Settings > Pages > GitHub Actions)
+## Needs Rifqi
+- [x] Public repo https://github.com/0xNoramiya/ventriloquist, Pages enabled, release v0.1.0 (2026-10-27)
 - [ ] `BASETEN_API_KEY` (or `MODAL_SPARK_URL`) to run privacy mode live and get the open-weight bonus verified
-- [ ] Review `docs/I18N_REVIEW.md` and the sensitive keyword lists
+- [~] Review `docs/I18N_REVIEW.md` and the sensitive keyword lists (first pass done 2026-10-27; the toilet message and open questions still need a native reader)
 - [ ] Record labelled clips with consenting volunteers into `data/labeled/`, run `scripts/eval_detector.py --mode live`
 - [ ] Try a full session on a phone over the LAN (`make dev`, open the QR code)
 - [ ] Test Indonesian Voice Transcribe on real speech (and Banjar if possible)
