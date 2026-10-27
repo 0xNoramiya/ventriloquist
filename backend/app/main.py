@@ -456,6 +456,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             _schedule_curation(s)
         return {**result, "snapshot": s.view()}
 
+    @app.post("/api/sessions/{sid}/messages/{mid}/ack")
+    async def acknowledge_message(sid: str, mid: str) -> dict[str, Any]:
+        """A caregiver saw the patient's message and is coming."""
+        s = session_or_404(sid)
+        return {"ok": await s.acknowledge(mid), "snapshot": s.view()}
+
     @app.post("/api/sessions/{sid}/end")
     async def end_session(sid: str) -> dict[str, Any]:
         s = session_or_404(sid)

@@ -17,6 +17,7 @@ import { Messages } from '../components/caregiver/Messages';
 import { ModelCalls } from '../components/caregiver/ModelCalls';
 import { NowPanel } from '../components/caregiver/NowPanel';
 import { OverlayCanvas } from '../components/caregiver/OverlayCanvas';
+import { PendingMessages } from '../components/caregiver/PendingMessages';
 import { PosteriorBars } from '../components/caregiver/PosteriorBars';
 import { Trail } from '../components/caregiver/Trail';
 import { useCurrentLang, useT } from '../i18n';
@@ -125,6 +126,7 @@ export default function Caregiver() {
           </div>
         </div>
 
+        <PendingMessages snap={snap} />
         <CaregiverBanners snap={snap} />
 
         {connectOpen ? (

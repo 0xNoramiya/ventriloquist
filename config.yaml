@@ -155,6 +155,10 @@ context:
   transcribe_chunk_s: 8
   memory_select_max: 10
 
+messages:
+  ack_repeat_s: 60      # unacknowledged message: the phone says it again after this long (if idle)
+  ack_max_repeats: 2    # then the caregiver screen escalates
+
 speech:
   rate: 0.9
   voices: {en: en-US, id: id-ID}

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { ClientMessage, ServerMessage, Snapshot } from '../api/types';
+import type { ClientMessage, ServerEvent, ServerMessage, Snapshot } from '../api/types';
 
 export type Connection = 'idle' | 'connecting' | 'open' | 'reconnecting' | 'missing';
 
@@ -24,6 +24,8 @@ export interface SessionData {
   /** Increments on every alarm event so views can replay the tone even if already active. */
   alarmSeq: number;
   nextBannerId: number;
+  /** The latest server event, numbered so a view can react to each one exactly once. */
+  lastEvent: { seq: number; event: ServerEvent } | null;
 }
 
 export const initialSession: SessionData = {
@@ -34,6 +36,7 @@ export const initialSession: SessionData = {
   banners: [],
   alarmSeq: 0,
   nextBannerId: 1,
+  lastEvent: null,
 };
 
 const MAX_BANNERS = 4;
@@ -46,6 +49,9 @@ export function reduceServerMessage(state: SessionData, msg: ServerMessage): Ses
   const snap = msg.snapshot;
   const event = msg.event;
   let next: SessionData = { ...state, snapshot: snap, connection: 'open' };
+  if (event) {
+    next = { ...next, lastEvent: { seq: (state.lastEvent?.seq ?? 0) + 1, event } };
+  }
 
   if (event?.type === 'alarm') {
     next = {

@@ -157,6 +157,8 @@ class BrowserDemo:
             await s.answer(str(msg.get("prompt_id")), str(msg.get("answer")), "keyboard")
         elif kind == "override":
             await s.override(str(msg.get("action")))
+        elif kind == "ack":
+            await s.acknowledge(str(msg.get("message_id")))
         elif kind == "event":
             await s.add_event(str(msg.get("kind")), msg.get("label"))
         elif kind == "transcript":

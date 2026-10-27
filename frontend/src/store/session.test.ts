@@ -3,6 +3,25 @@ import { snapshot } from '../test/fixtures';
 import { dismissBanner, initialSession, reduceServerMessage } from './session';
 
 describe('reduceServerMessage', () => {
+  it('numbers each event so the phone repeats or confirms a message exactly once', () => {
+    const reminder = { type: 'reminder', message_id: 'msg_1', text: "I'm cold." };
+    let s = reduceServerMessage(initialSession, {
+      type: 'snapshot',
+      snapshot: snapshot(),
+      event: reminder,
+    });
+    expect(s.lastEvent).toEqual({ seq: 1, event: reminder });
+    s = reduceServerMessage(s, { type: 'snapshot', snapshot: snapshot() });
+    expect(s.lastEvent?.seq).toBe(1); // a plain snapshot is not a new event
+    s = reduceServerMessage(s, {
+      type: 'snapshot',
+      snapshot: snapshot(),
+      event: { type: 'acknowledged', message_id: 'msg_1' },
+    });
+    expect(s.lastEvent?.seq).toBe(2);
+    expect(s.banners).toEqual([]);
+  });
+
   it('stores the snapshot and marks the connection open', () => {
     const s = reduceServerMessage(initialSession, { type: 'snapshot', snapshot: snapshot() });
     expect(s.snapshot?.prompt?.id).toBe('p2');

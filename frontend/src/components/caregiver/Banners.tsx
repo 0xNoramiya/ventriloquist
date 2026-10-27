@@ -73,7 +73,8 @@ const REASONS: Record<string, Key> = {
   internal_error: 'reason.internal_error',
 };
 
-const KNOWN_ALERTS = new Set(['emergency', 'urgent', 'sensitive']);
+// Shown elsewhere: the alarm, the held sensitive message, and the patient's message cards.
+const KNOWN_ALERTS = new Set(['emergency', 'urgent', 'sensitive', 'unacknowledged']);
 
 export function CaregiverBanners({ snap }: { snap: Snapshot }) {
   const t = useT();

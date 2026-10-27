@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import subprocess
+import time
 from pathlib import Path
 
 import cv2
@@ -244,3 +245,21 @@ def test_idle_clip_ignored_after_session_end(client, tmp_path):
     with clip.open("rb") as f:
         r = client.post(f"/api/sessions/{sid}/idle", files={"file": ("idle.mp4", f, "video/mp4")})
     assert r.json() == {"answer": "none", "ignored": "session ended"}
+
+
+def test_acknowledging_a_message(client):
+    started = client.post("/api/scenarios/cold", json={"simulated": True, "noise": 0.0}).json()
+    sid = started["session_id"]
+    client.post(f"/api/sessions/{sid}/start")
+    deadline = time.monotonic() + 15
+    snap = client.get(f"/api/sessions/{sid}").json()
+    while snap["state"] != "DONE" and time.monotonic() < deadline:
+        time.sleep(0.05)
+        snap = client.get(f"/api/sessions/{sid}").json()
+    assert snap["state"] == "DONE"
+    pending = snap["pending_ack"]
+    assert [m["text_en"] for m in pending] == ["I'm cold."]
+    assert not client.post(f"/api/sessions/{sid}/messages/nope/ack").json()["ok"]
+    r = client.post(f"/api/sessions/{sid}/messages/{pending[0]['id']}/ack").json()
+    assert r["ok"] and r["snapshot"]["pending_ack"] == []
+    assert r["snapshot"]["messages"][-1]["acknowledged_at"]

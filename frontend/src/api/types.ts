@@ -126,6 +126,12 @@ export interface PatientMessage {
   categories: string[];
   questions: number;
   at?: string;
+  /** A caregiver tapped "I'm coming". */
+  acknowledged_at?: string | null;
+  /** Times the phone has said it. */
+  announced?: number;
+  /** Still unacknowledged after every repeat. */
+  escalated?: boolean;
 }
 
 export type EvidenceKind = 'scene' | 'transcript' | 'event' | 'memory' | 'history';
@@ -219,6 +225,8 @@ export interface Snapshot {
   spelling: Spelling | null;
   message: PatientMessage | null;
   messages: PatientMessage[];
+  /** Spoken messages no caregiver has acknowledged yet, oldest first. */
+  pending_ack?: PatientMessage[];
   evidence: Evidence[];
   caregiver_reason: string | null;
   caregiver_text: string | null;
@@ -238,10 +246,12 @@ export interface Snapshot {
 }
 
 export interface ServerEvent {
-  type: 'alarm' | 'alert' | 'sensitive' | 'error' | string;
-  text?: string;
+  type: 'alarm' | 'alert' | 'sensitive' | 'error' | 'reminder' | 'acknowledged' | string;
+  /** For a reminder: the words to say again, only when the phone is idle. */
+  text?: string | null;
   text_en?: string;
   message_id?: string;
+  urgent?: boolean;
 }
 
 export type ServerMessage =

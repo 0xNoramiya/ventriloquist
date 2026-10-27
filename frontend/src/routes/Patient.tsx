@@ -163,6 +163,16 @@ export default function Patient() {
     });
   }, [started, promptId, state, lang, recordAnswer]);
 
+  // Nobody acknowledged the message yet: the server asks the idle phone to say it again. When a
+  // caregiver taps "I'm coming", tell the patient (their eyes may be closed).
+  const lastEvent = useSession((s) => s.lastEvent);
+  useEffect(() => {
+    if (!started || !lastEvent) return;
+    const { event } = lastEvent;
+    if (event.type === 'reminder' && event.text) speak(event.text, lang, settingsRef.current.rate);
+    if (event.type === 'acknowledged') speak(t('patient.ack.seen'), lang, settingsRef.current.rate);
+  }, [started, lastEvent, lang, t]);
+
   // Emergency: say once, calmly, that help is coming.
   useEffect(() => {
     if (!started) return;
@@ -374,12 +384,23 @@ function Stage({
     return (
       <CalmScreen title={t('patient.done.title')} body={t('patient.done.body')}>
         {last ? (
-          <p className="mt-8 text-[clamp(20px,2.6vw,28px)] text-mist-soft">
-            {t('patient.done.last')}{' '}
-            <span className="text-mist">
-              “{snap.patient.language === 'id' ? last.text_id : last.text_en}”
-            </span>
-          </p>
+          <>
+            <p className="mt-8 text-[clamp(20px,2.6vw,28px)] text-mist-soft">
+              {t('patient.done.last')}{' '}
+              <span className="text-mist">
+                “{snap.patient.language === 'id' ? last.text_id : last.text_en}”
+              </span>
+            </p>
+            <p
+              role="status"
+              className={cx(
+                'mt-4 text-[clamp(20px,2.6vw,28px)] font-semibold',
+                last.acknowledged_at ? 'text-voice' : 'text-mist-soft',
+              )}
+            >
+              {last.acknowledged_at ? `✓ ${t('patient.ack.seen')}` : t('patient.ack.waiting')}
+            </p>
+          </>
         ) : null}
       </CalmScreen>
     );

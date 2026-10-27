@@ -65,6 +65,13 @@ export function Messages({
                 {m.at ? <span className="tabular">{clockTime(m.at)}</span> : null}
                 {m.urgent ? <Badge tone="alarm">{t('bars.urgent')}</Badge> : null}
                 {m.sensitive ? <Badge tone="caution">{t('messages.sensitive')}</Badge> : null}
+                {retracted || !m.announced ? null : m.acknowledged_at ? (
+                  <Badge tone="good">
+                    {t('messages.seen', { time: clockTime(m.acknowledged_at) })}
+                  </Badge>
+                ) : (
+                  <Badge tone="outline">{t('messages.not_seen')}</Badge>
+                )}
               </div>
             </div>
           </li>

@@ -86,6 +86,13 @@ class FeatureFlags(_Section):
     idle_watch_mock: bool = True
 
 
+class MessagesConfig(_Section):
+    # A spoken message nobody acknowledges is repeated (the room may be empty and the patient
+    # cannot press the call bell), then escalated on the caregiver screen.
+    ack_repeat_s: float = 60.0
+    ack_max_repeats: int = 2
+
+
 class BudgetConfig(_Section):
     max_usd: float = 120.0
     warn_fraction: float = 0.70
@@ -106,6 +113,7 @@ class Settings(BaseModel):
     perception: PerceptionConfig
     features: FeatureFlags
     budget: BudgetConfig
+    messages: MessagesConfig = MessagesConfig()
 
     @property
     def models(self) -> dict[str, str]:
@@ -162,6 +170,7 @@ def load_settings(config_path: Path | None = None, env_file: Path | None = None)
         perception=PerceptionConfig(**raw.get("perception", {})),
         features=FeatureFlags(**raw.get("features", {})),
         budget=BudgetConfig(**raw.get("budget", {})),
+        messages=MessagesConfig(**raw.get("messages", {})),
     )
 
 

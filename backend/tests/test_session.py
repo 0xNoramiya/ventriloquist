@@ -387,3 +387,61 @@ async def test_room_audio_drops_the_phones_own_speech(ctx, tmp_path):
     (tmp_path / "room.wav.txt").write_text(f"A: {q}\nB: Bapak suka teh manis setiap pagi.\n")
     added = await s.add_audio(audio)
     assert [a["text"] for a in added] == ["Bapak suka teh manis setiap pagi."]
+
+
+def fast_reminders(ctx, repeat_s: float = 0.05, repeats: int = 2) -> None:
+    ctx.settings.messages.ack_repeat_s = repeat_s
+    ctx.settings.messages.ack_max_repeats = repeats
+
+
+async def test_unacknowledged_message_is_repeated_then_escalated(ctx):
+    """Nobody in the room: the phone repeats the message, then the caregiver screen escalates."""
+    fast_reminders(ctx)
+    events = []
+    s = make_session(ctx, "cold", SimulatedPatient(truth="cold"), events=events)
+    await s.start()
+    await run_until(s)
+    msg = s.messages[-1]
+    assert [m.id for m in s.pending_ack()] == [msg.id]
+    await asyncio.sleep(0.4)
+    reminders = [e for e in events if e.get("type") == "reminder"]
+    assert len(reminders) == 2 and all(r["text"] == "I'm cold." for r in reminders)  # idle: aloud
+    assert msg.announced == 3 and msg.escalated
+    assert any(a["kind"] == "unacknowledged" for a in s.alerts)
+    assert s.view()["pending_ack"][0]["id"] == msg.id
+
+
+async def test_acknowledging_stops_reminders_and_tells_the_patient(ctx):
+    fast_reminders(ctx, repeat_s=0.2)
+    events = []
+    s = make_session(ctx, "cold", SimulatedPatient(truth="cold"), events=events)
+    await s.start()
+    await run_until(s)
+    msg = s.messages[-1]
+    assert await s.acknowledge(msg.id)
+    assert not await s.acknowledge(msg.id)  # once
+    await asyncio.sleep(0.5)
+    assert not [e for e in events if e.get("type") == "reminder"]
+    assert {"type": "acknowledged", "message_id": msg.id} in events
+    assert msg.acknowledged_at and not msg.escalated and s.pending_ack() == []
+
+
+async def test_retracted_message_needs_no_acknowledgement(ctx):
+    class Picky(SimulatedPatient):
+        said_no = False
+
+        def answer(self, prompt, view):
+            if prompt.get("kind") == "post_check" and not self.said_no:
+                self.said_no = True
+                return Answer.NO
+            return super().answer(prompt, view)
+
+    fast_reminders(ctx)
+    s = make_session(ctx, "cold", Picky(truth="cold"))
+    await s.start()
+    await run_until(s)
+    retracted = s.messages[0]
+    assert retracted.status == "retracted" and retracted.announced == 1
+    assert retracted.id not in [m.id for m in s.pending_ack()]
+    await asyncio.sleep(0.4)
+    assert not retracted.escalated

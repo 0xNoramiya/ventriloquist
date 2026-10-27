@@ -51,3 +51,33 @@ export function startAlarm(): () => void {
   const id = window.setInterval(cycle, 1400);
   return () => window.clearInterval(id);
 }
+
+function tone(c: AudioContext, at: number, freq: number, dur: number, level: number): void {
+  const osc = c.createOscillator();
+  const gain = c.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(freq, at);
+  gain.gain.setValueAtTime(0.0001, at);
+  gain.gain.exponentialRampToValueAtTime(level, at + 0.03);
+  gain.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+  osc.connect(gain).connect(c.destination);
+  osc.start(at);
+  osc.stop(at + dur + 0.02);
+}
+
+/** A message from the patient: a soft rising chime, unlike the emergency alarm. Urgent messages
+ * (breathing, pain, suction) get three firmer notes. */
+export function playChime(urgent = false): void {
+  const c = context();
+  if (!c) return;
+  void c.resume();
+  const t = c.currentTime + 0.02;
+  if (urgent) {
+    tone(c, t, 784, 0.32, 0.3);
+    tone(c, t + 0.22, 988, 0.32, 0.3);
+    tone(c, t + 0.44, 1175, 0.45, 0.3);
+  } else {
+    tone(c, t, 660, 0.4, 0.16);
+    tone(c, t + 0.25, 880, 0.55, 0.16);
+  }
+}

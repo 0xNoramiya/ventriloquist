@@ -172,6 +172,11 @@ export const api = {
       'POST',
       { action },
     ),
+  ackMessage: (sid: string, messageId: string) =>
+    json<{ ok: boolean; snapshot: Snapshot }>(
+      `/sessions/${encodeURIComponent(sid)}/messages/${encodeURIComponent(messageId)}/ack`,
+      'POST',
+    ),
 
   memory: (pid: string) => request<MemoryView>(`/memory/${encodeURIComponent(pid)}`),
   addMemory: (pid: string, text: string, category?: string) =>
@@ -239,6 +244,10 @@ if (isBrowserDemo) {
     event: (_sid, kind, label) => demoBridge.send({ type: 'event', kind, label }),
     override: async (_sid, action) => {
       await demoBridge.send({ type: 'override', action });
+      return { ok: true, snapshot: await current() };
+    },
+    ackMessage: async (_sid, messageId) => {
+      await demoBridge.send({ type: 'ack', message_id: messageId });
       return { ok: true, snapshot: await current() };
     },
     memory: unavailable,

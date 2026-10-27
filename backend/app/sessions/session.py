@@ -115,6 +115,9 @@ class Message:
     categories: list[str] = field(default_factory=list)
     questions: int = 0
     at: str = field(default_factory=now_iso)
+    acknowledged_at: str | None = None  # a caregiver tapped "I'm coming"
+    announced: int = 0  # times the phone has said it
+    escalated: bool = False  # still unacknowledged after every repeat
 
     def to_dict(self) -> dict[str, Any]:
         return self.__dict__.copy()
@@ -204,6 +207,7 @@ class Session:
             tuple[float, str]
         ] = []  # what the phone said, to drop its echo from room audio
         self._tasks: set[asyncio.Task[Any]] = set()
+        self._ack_tasks: dict[str, asyncio.Task[Any]] = {}
 
     # ================================================================ helpers
     @property
@@ -967,11 +971,10 @@ class Session:
             await self._caregiver("sensitive_verify")
             await self._notify({"type": "sensitive", "message_id": msg.id})
             return
-        if urgent:
+        if urgent:  # the caregiver screen's message card shows it with an urgent chime
             self.alerts.append(
                 {"kind": "urgent", "at": now_iso(), "message_id": msg.id, "text": msg.text_en}
             )
-            await self._notify({"type": "alert", "text": msg.text_en})
         self.log.write(
             "message",
             status="speaking",
@@ -989,8 +992,95 @@ class Session:
         self.prompt = Prompt(f"p{self.prompt_seq}", "message", "speak", text, self.message.text_en)
         self._remember_spoken(text)
         self._to(State.SPEAKING, "speak confirmed message")
+        self._announce(self.message)
         if self.auto_speak:
             self._spawn(self._auto_spoken(self.prompt.id))
+
+    # ================================================================ acknowledgement
+    def _announce(self, msg: Message) -> None:
+        msg.announced += 1
+        if msg.acknowledged_at is None and msg.id not in self._ack_tasks:
+            task = asyncio.ensure_future(self._run_ack_watch(msg))
+            self._ack_tasks[msg.id] = task
+            task.add_done_callback(lambda _t, mid=msg.id: self._ack_tasks.pop(mid, None))
+
+    async def _run_ack_watch(self, msg: Message) -> None:
+        # the watch coroutine is created here, so a task cancelled before it starts leaves none behind
+        await self._guard(self._watch_ack(msg))
+
+    def _ack_settled(self, msg: Message) -> bool:
+        return self.ended or msg.acknowledged_at is not None or msg.status == "retracted"
+
+    async def _watch_ack(self, msg: Message) -> None:
+        """The phone says a message to the room, but the room may be empty and the patient cannot
+        press the call bell. Until a caregiver acknowledges it, repeat it (aloud only when the phone
+        is idle, never over a conversation), then escalate on the caregiver screen."""
+        cfg = self.ctx.settings.messages
+        for _ in range(cfg.ack_max_repeats):
+            await asyncio.sleep(cfg.ack_repeat_s)
+            async with self.lock:
+                if self._ack_settled(msg):
+                    return
+                msg.announced += 1
+                aloud = self.state in (State.DONE, State.IDLE)
+                text = msg.text_id if self.lang == "id" else msg.text_en
+                if aloud:
+                    self._remember_spoken(text)
+                self.log.write(
+                    "message_reminder", message_id=msg.id, announced=msg.announced, aloud=aloud
+                )
+            await self._notify(
+                {
+                    "type": "reminder",
+                    "message_id": msg.id,
+                    "text": text if aloud else None,
+                    "text_en": msg.text_en,
+                    "urgent": msg.urgent,
+                }
+            )
+        await asyncio.sleep(cfg.ack_repeat_s)
+        async with self.lock:
+            if self._ack_settled(msg):
+                return
+            msg.escalated = True
+            note = f"Nobody has acknowledged this message yet: {msg.text_en}"
+            self.alerts.append(
+                {"kind": "unacknowledged", "at": now_iso(), "message_id": msg.id, "text": note}
+            )
+            self.log.write("message_unacknowledged", message_id=msg.id, announced=msg.announced)
+        await self._notify({"type": "escalated", "message_id": msg.id, "urgent": msg.urgent})
+
+    def _find_message(self, message_id: str) -> Message | None:
+        if self.message is not None and self.message.id == message_id:
+            return self.message
+        return next((m for m in self.messages if m.id == message_id), None)
+
+    async def acknowledge(self, message_id: str) -> bool:
+        """A caregiver has seen the message and is coming; the patient's screen says so."""
+        async with self.lock:
+            msg = self._find_message(message_id)
+            if msg is None or msg.acknowledged_at is not None or msg.status == "retracted":
+                return False
+            msg.acknowledged_at = now_iso()
+            self.alerts = [
+                a
+                for a in self.alerts
+                if not (a.get("message_id") == message_id and a["kind"] == "unacknowledged")
+            ]
+            task = self._ack_tasks.pop(message_id, None)
+            if task is not None:
+                task.cancel()
+            self.log.write("message_ack", message_id=message_id, announced=msg.announced)
+        await self._notify({"type": "acknowledged", "message_id": message_id})
+        return True
+
+    def pending_ack(self) -> list[Message]:
+        """Spoken messages no caregiver has acknowledged yet, oldest first."""
+        seen: dict[str, Message] = {}
+        for m in [*self.messages, *([self.message] if self.message else [])]:
+            if m.announced and m.acknowledged_at is None and m.status in ("speaking", "confirmed"):
+                seen[m.id] = m
+        return list(seen.values())
 
     async def _post_check(self) -> None:
         self.stage = "post_check"
@@ -1175,6 +1265,7 @@ class Session:
         elif action in ("ack_sensitive", "ack_sensitive_silent"):
             if self.message and self.message.status == "needs_verification":
                 self.alerts = [a for a in self.alerts if a.get("message_id") != self.message.id]
+                self.message.acknowledged_at = now_iso()  # a caregiver checked it in person
                 if action == "ack_sensitive":
                     self.message.status = "speaking"
                     await self._speak_message()
@@ -1219,6 +1310,8 @@ class Session:
             return
         self.ended = True
         self.prompt = None
+        for task in list(self._ack_tasks.values()):
+            task.cancel()
         self._to(State.DONE, "session ended")
         summary = self.summary()
         self.ctx.store.update_session(self.id, str(self.state), summary, ended=True)
@@ -1363,6 +1456,7 @@ class Session:
             else None,
             "message": self.message.to_dict() if self.message else None,
             "messages": [m.to_dict() for m in self.messages[-10:]],
+            "pending_ack": [m.to_dict() for m in self.pending_ack()],
             "evidence": self.evidence.to_list(),
             "caregiver_reason": self.caregiver_reason,
             "caregiver_text": CAREGIVER_REASONS.get(self.caregiver_reason or ""),
