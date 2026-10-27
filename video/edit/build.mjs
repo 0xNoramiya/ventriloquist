@@ -390,7 +390,7 @@ scene(
        </ul>
      </div>
      <div class="col right">
-       <div class="panel" id="st-p1"><p class="big">11 <i>of</i> 13</p><p>answers read on generated test clips of Pak Hasan</p><p class="small">0 wrong · 2 asked again</p></div>
+       <div class="panel" id="st-p1"><p class="big">11 <i>of</i> 13</p><p>answers read on generated test clips of Mr Hasan</p><p class="small">0 wrong · 2 asked again</p></div>
        <div class="panel" id="st-p2"><p class="big">4.89 <i>vs</i> 6.41</p><p>questions per message, against a fixed-order board, at 10% answer noise</p><p class="small">Simulation, not clinical evidence</p></div>
      </div>
    </div>`.replace(/<div class="stack">/, `<div class="clip stack" id="st" data-start="${S.stack}" data-duration="${f(S.close - S.stack + X)}" data-track-index="3">`),

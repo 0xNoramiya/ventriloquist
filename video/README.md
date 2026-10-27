@@ -7,7 +7,7 @@ app's own models are all Meta's (see the main README). The script and timeline a
 Three kinds of material:
 
 - **App footage**: screen recordings of the running app on fly.io. In live mode the camera is the
-  generated Pak Hasan gesture clips from `data/labeled_generated` (the detector eval set), so SAM 3.1
+  generated Mr Hasan gesture clips from `data/labeled_generated` (the detector eval set), so SAM 3.1
   and the blind Muse Spark judge really read every answer. The spelling beat is a mock run with the
   simulated patient, and says so on screen.
 - **Story scenes**: Higgsfield (GPT Image 2.5 stills, Seedance 2.5 image-to-video) of the same
