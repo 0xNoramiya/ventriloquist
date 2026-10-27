@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
+import secrets
 from typing import Any
 
 from fastapi import WebSocket
@@ -86,19 +87,16 @@ class SessionManager:
     def _simulated(
         self, truth: str, noise: float, scenario: dict[str, Any] | None
     ) -> SimulatedPatient:
-        sp = (scenario or {}).get("patient") or {}
         if truth == "scenario":
-            return SimulatedPatient(
-                truth=sp.get("truth"),
-                spell=sp.get("spell"),
-                sentence_en=sp.get("sentence_en"),
-                noise=noise,
-            )
+            return SimulatedPatient.from_scenario(scenario, noise)
+        seed = secrets.randbits(32)  # see SimulatedPatient.from_scenario
         if truth.startswith("spell:"):
-            return SimulatedPatient(truth=None, spell=truth.split(":", 1)[1], noise=noise)
+            return SimulatedPatient(
+                truth=None, spell=truth.split(":", 1)[1], noise=noise, seed=seed
+            )
         if truth not in taxonomy_ids() and not truth.startswith(("see_person:", "where_person:")):
             truth = "other"
-        return SimulatedPatient(truth=truth, noise=noise)
+        return SimulatedPatient(truth=truth, noise=noise, seed=seed)
 
     def get(self, sid: str) -> Session | None:
         return self.sessions.get(sid)

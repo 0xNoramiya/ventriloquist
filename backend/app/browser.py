@@ -115,17 +115,7 @@ class BrowserDemo:
         sid = new_id("ses")
         store.create_session(sid, pid, "mock")
         apply(store, sc, pid, sid)
-        sp = sc.get("patient") or {}
-        sim = (
-            SimulatedPatient(
-                truth=sp.get("truth"),
-                spell=sp.get("spell"),
-                sentence_en=sp.get("sentence_en"),
-                noise=noise,
-            )
-            if simulated
-            else None
-        )
+        sim = SimulatedPatient.from_scenario(sc, noise) if simulated else None
         self.session = Session(
             sid,
             store.get_patient(pid),

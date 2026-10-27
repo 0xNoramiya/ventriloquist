@@ -47,3 +47,14 @@ def test_bridge_imports_without_opencv_httpx_or_fastapi():
     code = "import sys, app.browser; print(sorted(m for m in ('cv2', 'httpx', 'fastapi') if m in sys.modules))"
     out = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=True)
     assert out.stdout.strip() == "[]"
+
+
+async def test_simulated_demo_patients_do_not_share_a_seed(tmp_path):
+    # With one fixed seed every hosted demo flipped the same two answers and the daughter
+    # scenario never reached Aisyah.
+    demo = BrowserDemo(lambda m: None, str(tmp_path))
+    draws = set()
+    for _ in range(3):
+        await demo.scenario("daughter", simulated=True)
+        draws.add(demo.session.sim.rng.random())
+    assert len(draws) == 3

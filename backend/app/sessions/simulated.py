@@ -6,6 +6,7 @@ flipped with probability `noise`. It never sees probabilities.
 
 from __future__ import annotations
 
+import secrets
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -26,6 +27,19 @@ class SimulatedPatient:
     noise: float = 0.0
     seed: int = 0
     rng: np.random.Generator = field(init=False)
+
+    @classmethod
+    def from_scenario(cls, scenario: dict[str, Any] | None, noise: float) -> SimulatedPatient:
+        """The scenario's patient, for demos. Each one draws its own seed: a fixed seed flips the
+        same answers every time (seed 0 at 5% noise flips the third and the fourth)."""
+        sp = (scenario or {}).get("patient") or {}
+        return cls(
+            truth=sp.get("truth"),
+            spell=sp.get("spell"),
+            sentence_en=sp.get("sentence_en"),
+            noise=noise,
+            seed=secrets.randbits(32),
+        )
 
     def __post_init__(self) -> None:
         self.rng = np.random.default_rng(self.seed)
