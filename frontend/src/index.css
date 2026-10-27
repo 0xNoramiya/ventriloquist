@@ -45,6 +45,10 @@
   --radius-chip: 6px;
 
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  /* things entering the screen: fast start reads as an instant response */
+  --ease-enter: cubic-bezier(0.32, 0.72, 0, 1);
+  /* things already on screen that move or resize */
+  --ease-move: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 @layer base {
@@ -117,7 +121,8 @@
   }
 
   .night {
-    --focus: var(--color-voice);
+    /* a neutral ring: a yellow one would read as part of the interface */
+    --focus: #ffffff;
     color-scheme: dark;
   }
 }
@@ -189,7 +194,23 @@
 }
 
 .enter-line {
-  animation: enter-line 420ms var(--ease-out) both;
+  animation: enter-line 260ms var(--ease-enter) both;
+}
+
+/* A caregiver alert card arriving: a short drop into place. */
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.card-in {
+  animation: card-in 240ms var(--ease-enter) both;
 }
 
 @keyframes alarm-flash {
@@ -206,11 +227,91 @@
   animation: alarm-flash 1.4s steps(1, end) infinite;
 }
 
+/* Signal picker: each card shows the movement, rest frame to signal frame. Still by default (on the
+   signal frame); it plays only on the card being hovered, focused or chosen. */
+.signal-on {
+  opacity: 1;
+}
+
+@keyframes signal-once {
+  0%,
+  30% {
+    opacity: 0;
+  }
+  42%,
+  78% {
+    opacity: 1;
+  }
+  90%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes signal-twice {
+  0%,
+  34% {
+    opacity: 0;
+  }
+  38%,
+  46% {
+    opacity: 1;
+  }
+  50%,
+  58% {
+    opacity: 0;
+  }
+  62%,
+  70% {
+    opacity: 1;
+  }
+  74%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes signal-sway {
+  0%,
+  25% {
+    opacity: 0;
+  }
+  32%,
+  45% {
+    opacity: 1;
+  }
+  52%,
+  65% {
+    opacity: 0;
+  }
+  72%,
+  85% {
+    opacity: 1;
+  }
+  92%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.signal-card[data-selected] .signal-on,
+.signal-card:focus-within .signal-on {
+  animation: var(--signal-rhythm, signal-once) 2.6s var(--ease-move) infinite;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .signal-card:hover .signal-on {
+    animation: var(--signal-rhythm, signal-once) 2.6s var(--ease-move) infinite;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .breathe::after,
   .alarm-flash,
-  .enter-line {
-    animation: none;
+  .enter-line,
+  .card-in,
+  .signal-card .signal-on {
+    animation: none !important;
   }
   .breathe::after {
     opacity: 0.35;
@@ -224,7 +325,9 @@
   *,
   *::before,
   *::after {
-    transition-duration: 0.01ms !important;
+    /* none rather than a tiny duration: with transition-property at its default of all, a
+       duration made every element transition, e.g. max-width in ch when the web font loads */
+    transition: none !important;
     scroll-behavior: auto !important;
   }
 }

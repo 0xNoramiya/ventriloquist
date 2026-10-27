@@ -62,7 +62,7 @@ export function PendingMessages({ snap }: { snap: Snapshot }) {
             key={m.id}
             role={loud ? 'alert' : 'status'}
             className={cx(
-              'flex flex-col gap-4 rounded-[var(--radius-panel)] px-5 py-4 sm:flex-row sm:items-center',
+              'card-in flex flex-col gap-4 rounded-[var(--radius-panel)] px-5 py-4 sm:flex-row sm:items-center',
               loud
                 ? 'bg-alarm-soft shadow-[inset_0_0_0_2px_var(--color-alarm)]'
                 : 'bg-voice-soft shadow-[inset_0_0_0_2px_var(--color-voice)]',

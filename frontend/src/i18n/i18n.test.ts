@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import en from './en.json';
+import enRaw from './en.json?raw';
 import id from './id.json';
+import idRaw from './id.json?raw';
 import { translate } from './index';
 
 const placeholders = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
@@ -8,6 +10,15 @@ const placeholders = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1
 describe('i18n', () => {
   it('has every key in both languages', () => {
     expect(Object.keys(id).sort()).toEqual(Object.keys(en).sort());
+  });
+
+  it('defines each key once', () => {
+    // JSON.parse keeps the last of two equal keys, so a clash only shows up in the source text.
+    for (const [lang, raw] of Object.entries({ en: enRaw, id: idRaw })) {
+      const keys = [...raw.matchAll(/^\s*"([^"]+)":/gm)].map((m) => m[1]);
+      const twice = keys.filter((k, i) => keys.indexOf(k) !== i);
+      expect(twice, lang).toEqual([]);
+    }
   });
 
   it('has no empty strings', () => {

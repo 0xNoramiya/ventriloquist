@@ -165,14 +165,16 @@ export function PosteriorBars({
                 <div className="absolute inset-0 rounded-full bg-wash" />
                 <div
                   className={cx(
-                    'absolute inset-y-0 left-0 rounded-full transition-[width] duration-300 ease-out',
+                    // Grows from the left after each answer. clip-path rather than width: no layout
+                    // work per frame, and the rounded end keeps its shape (scaleX would squash it).
+                    'absolute inset-0 transition-[clip-path] duration-300 ease-[var(--ease-move)]',
                     r.other
                       ? 'bg-[repeating-linear-gradient(135deg,var(--color-ink-soft)_0_4px,transparent_4px_8px)] shadow-[inset_0_0_0_1px_var(--color-ink-soft)]'
                       : i === 0
                         ? 'bg-ink'
                         : 'bg-ink-soft',
                   )}
-                  style={{ width: `${width}%` }}
+                  style={{ clipPath: `inset(0 ${100 - width}% 0 0 round 9999px)` }}
                 />
                 {r.prior !== null ? (
                   <div

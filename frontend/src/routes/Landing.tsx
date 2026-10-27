@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import { Button, LinkButton } from '../components/Button';
 import { Notice, Switch } from '../components/Form';
+import { Photo } from '../components/Photo';
+import { SIGNAL_PAIRS } from '../lib/signalPairs';
 import { Shell } from '../components/Shell';
 import { unlockAudio } from '../lib/alarm';
 import { cx } from '../lib/format';
@@ -34,18 +36,45 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 }
 
-/** The one orchestrated moment: a real question trail plays itself and ends in the patient's words. */
+/** The one orchestrated moment: a real question trail plays itself and ends in the patient's words.
+ * It starts when it scrolls into view, so nobody misses it. */
 function TrailDemo() {
   const t = useT();
-  const [shown, setShown] = useState(() => (prefersReducedMotion() ? TRAIL.length : 1));
+  const ref = useRef<HTMLElement | null>(null);
+  const [seen, setSeen] = useState(false);
+  const [shown, setShown] = useState(() => (prefersReducedMotion() ? TRAIL.length : 0));
   useEffect(() => {
-    if (shown >= TRAIL.length) return;
-    const id = window.setTimeout(() => setShown((n) => n + 1), shown === 4 ? 1100 : 750);
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === 'undefined') {
+      setSeen(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          setSeen(true);
+          io.disconnect();
+        }
+      },
+      { threshold: 0.35 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  useEffect(() => {
+    if (!seen || shown >= TRAIL.length) return;
+    const id = window.setTimeout(
+      () => setShown((n) => n + 1),
+      shown === 0 ? 200 : shown === 4 ? 1100 : 750,
+    );
     return () => window.clearTimeout(id);
-  }, [shown]);
+  }, [seen, shown]);
 
   return (
-    <figure className="night relative flex flex-col overflow-hidden rounded-[var(--radius-panel)] bg-night text-mist">
+    <figure
+      ref={ref}
+      className="night relative flex flex-col overflow-hidden rounded-[var(--radius-panel)] bg-night text-mist"
+    >
       <div className="flex items-center justify-between gap-3 border-b border-white/10 px-5 py-3 text-sm text-mist-soft">
         <span>{t('landing.trail.label')}</span>
         <span className="tabular">{t('landing.trail.count')}</span>
@@ -158,7 +187,18 @@ export function Landing() {
             {t('landing.not_device_body')}
           </p>
         </div>
-        <TrailDemo />
+        <figure className="flex flex-col gap-2 lg:pt-8">
+          <Photo
+            name="hero-bedside"
+            widths={[800, 1600]}
+            ratio={3 / 2}
+            sizes="(min-width: 1024px) 40vw, 100vw"
+            alt={t('landing.hero_alt')}
+            eager
+            className="rounded-[20px] bg-wash"
+          />
+          <figcaption className="text-sm text-muted">{t('landing.photo_note')}</figcaption>
+        </figure>
       </section>
 
       <section className="mt-20 grid gap-6 border-t border-line pt-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-14">
@@ -171,6 +211,40 @@ export function Landing() {
             <strong className="text-ink">{t('landing.flip.p2')}</strong>
           </p>
           <p>{t('landing.flip.p3')}</p>
+        </div>
+        <div className="lg:col-span-2 lg:mx-auto lg:w-full lg:max-w-[760px]">
+          <TrailDemo />
+        </div>
+      </section>
+
+      <section
+        className="mt-16 grid items-center gap-8 border-t border-line pt-10 lg:grid-cols-[minmax(0,6fr)_minmax(0,6fr)] lg:gap-14"
+        aria-labelledby="alone-title"
+      >
+        <figure className="flex flex-col gap-2">
+          <Photo
+            name="night-check"
+            widths={[800, 1600]}
+            ratio={1600 / 1062}
+            sizes="(min-width: 1024px) 45vw, 100vw"
+            alt={t('landing.alone.photo_alt')}
+            className="rounded-[20px] bg-night"
+          />
+          <figcaption className="text-sm text-muted">{t('landing.photo_note')}</figcaption>
+        </figure>
+        <div className="flex flex-col gap-5">
+          <h2 id="alone-title" className="text-[30px] font-bold leading-tight sm:text-[36px]">
+            {t('landing.alone.title')}
+          </h2>
+          <p className="max-w-[56ch] text-lg text-ink-soft">{t('landing.alone.lead')}</p>
+          <ul className="flex flex-col gap-4">
+            {(['1', '2', '3'] as const).map((n) => (
+              <li key={n} className="border-l-[3px] border-voice pl-4">
+                <h3 className="text-lg font-bold">{t(`landing.alone.${n}.title` as Key)}</h3>
+                <p className="text-ink-soft">{t(`landing.alone.${n}.body` as Key)}</p>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
@@ -236,6 +310,27 @@ export function Landing() {
               </span>
               <h3 className="text-xl font-bold">{t(`landing.how.${n}.title` as Key)}</h3>
               <p className="text-ink-soft">{t(`landing.how.${n}.body` as Key)}</p>
+              {n === '1' ? (
+                <ul
+                  className="mt-2 grid grid-cols-4 gap-1.5"
+                  aria-label={t('landing.how.1.examples')}
+                >
+                  {SIGNAL_PAIRS.map((p) => (
+                    <li key={p.id}>
+                      <img
+                        src={`${import.meta.env.BASE_URL}img/signals/${p.yes.img}-on.webp`}
+                        alt={t(p.yes.label)}
+                        title={t(p.yes.label)}
+                        width={480}
+                        height={360}
+                        loading="lazy"
+                        draggable={false}
+                        className="aspect-[4/3] w-full select-none rounded-[6px] bg-wash object-cover"
+                      />
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
             </li>
           ))}
         </ol>

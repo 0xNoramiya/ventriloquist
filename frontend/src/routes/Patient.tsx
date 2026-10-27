@@ -394,9 +394,10 @@ function Stage({
               </span>
             </p>
             <p
+              key={last.acknowledged_at ? 'seen' : 'waiting'}
               role="status"
               className={cx(
-                'mt-4 text-[clamp(20px,2.6vw,28px)] font-semibold',
+                'enter-line mt-4 text-[clamp(20px,2.6vw,28px)] font-semibold',
                 last.acknowledged_at ? 'text-voice' : 'text-mist-soft',
               )}
             >
@@ -458,11 +459,28 @@ function Stage({
             state === 'PROCESSING' && 'opacity-70',
           )}
         >
-          {prompt.text}
+          <QuotedPrompt text={prompt.text} />
         </h1>
       </div>
       {status}
     </div>
+  );
+}
+
+/**
+ * Confirmations read "Is this your message: “…”?". The quote starts on its own line at full size,
+ * so the patient reads the message as one piece instead of a fragment wrapped after the colon.
+ */
+function QuotedPrompt({ text }: { text: string }) {
+  const at = text.indexOf(': “');
+  if (at < 0) return <>{text}</>;
+  return (
+    <>
+      <span className="mb-[0.35em] block text-[0.55em] font-semibold leading-tight text-paper/80">
+        {text.slice(0, at + 1)}
+      </span>
+      <span className="block">{text.slice(at + 2)}</span>
+    </>
   );
 }
 

@@ -51,7 +51,7 @@ export function RelayActions({ snap }: { snap: Snapshot }) {
           <div
             key={r.id}
             role="status"
-            className="flex flex-col gap-4 rounded-[var(--radius-panel)] bg-paper px-5 py-4 shadow-[inset_0_0_0_2px_var(--color-ink)] sm:flex-row sm:items-center"
+            className="card-in flex flex-col gap-4 rounded-[var(--radius-panel)] bg-paper px-5 py-4 shadow-[inset_0_0_0_2px_var(--color-ink)] sm:flex-row sm:items-center"
           >
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-ink-soft">
@@ -84,7 +84,7 @@ export function RelayActions({ snap }: { snap: Snapshot }) {
           <div
             key={r.id}
             role="alert"
-            className="flex flex-col gap-4 rounded-[var(--radius-panel)] bg-caution-soft px-5 py-4 shadow-[inset_0_0_0_2px_var(--color-caution)] sm:flex-row sm:items-center"
+            className="card-in flex flex-col gap-4 rounded-[var(--radius-panel)] bg-caution-soft px-5 py-4 shadow-[inset_0_0_0_2px_var(--color-caution)] sm:flex-row sm:items-center"
           >
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-caution">

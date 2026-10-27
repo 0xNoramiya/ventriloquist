@@ -135,6 +135,11 @@ Details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Client protocol: [`docs
 | **Muse Image** | Generated the 34 AAC pictograms shown next to messages on the patient screen (`scripts/generate_pictograms.py`) |
 | SAM 3.1 open weights (optional, self-hosted on Modal) | Privacy-mode tracker when an endpoint is configured; otherwise an on-device optical-flow tracker |
 
+The photos on the landing and calibration pages are not from Meta models and play no part at
+runtime. They show one fictional patient, generated through Higgsfield: GPT Image 2.5 for the
+bedside, night and phone-mount photos, and stills from the Seedance 2.0 gesture clips described in
+[`docs/DETECTOR_DATA_GENERATED.md`](docs/DETECTOR_DATA_GENERATED.md) for the YES/NO signal cards.
+
 Every call is schema-validated (strict JSON schema on the Meta API), repaired once, then falls back
 safely; every call is logged with model, latency, tokens and cost. Verified request and response
 shapes: [`docs/API_NOTES.md`](docs/API_NOTES.md). A live run of every role: [`docs/LIVE_CHECK.md`](docs/LIVE_CHECK.md).

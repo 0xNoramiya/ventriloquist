@@ -16,6 +16,8 @@ import {
   stopStream,
 } from '../lib/media';
 import { speak } from '../lib/speech';
+import { Photo } from '../components/Photo';
+import { SignalPicker } from '../components/SignalPicker';
 import { useConfig } from '../lib/useConfig';
 
 type Label = 'rest' | 'yes' | 'no' | 'emergency';
@@ -255,12 +257,32 @@ export default function Calibrate() {
         {error ? <Notice tone="error">{error}</Notice> : null}
 
         {step === 'intro' ? (
-          <div className="flex flex-col gap-5">
-            <ul className="flex max-w-[62ch] list-disc flex-col gap-2 pl-5 text-ink-soft">
-              <li>{t('cal.intro.1')}</li>
-              <li>{t('cal.intro.2')}</li>
-              <li>{t('cal.intro.3')}</li>
-            </ul>
+          <div className="flex flex-col gap-8">
+            <div className="grid items-start gap-6 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] md:gap-8">
+              <div className="flex flex-col gap-6">
+                <ul className="flex max-w-[62ch] list-disc flex-col gap-2 pl-5 text-ink-soft">
+                  <li>{t('cal.intro.1')}</li>
+                  <li>{t('cal.intro.2')}</li>
+                  <li>{t('cal.intro.3')}</li>
+                </ul>
+                <div className="flex max-w-[62ch] flex-col gap-1">
+                  <h2 className="text-lg font-bold">{t('cal.mount.title')}</h2>
+                  <p className="text-ink-soft">{t('cal.mount.body')}</p>
+                </div>
+              </div>
+              <figure className="flex flex-col gap-2">
+                <Photo
+                  name="phone-mount"
+                  widths={[600, 1200]}
+                  ratio={2336 / 1744}
+                  sizes="(min-width: 768px) 40vw, 100vw"
+                  alt={t('cal.mount.alt')}
+                  className="rounded-[var(--radius-panel)] bg-wash"
+                />
+                <figcaption className="text-sm text-muted">{t('cal.mount.caption')}</figcaption>
+              </figure>
+            </div>
+            <SignalPicker value={hint} onChange={setHint} />
             {!cameraSupported() ? <Notice tone="caution">{t('cal.no_camera')}</Notice> : null}
             <div className="flex flex-col gap-3 sm:flex-row">
               <Button

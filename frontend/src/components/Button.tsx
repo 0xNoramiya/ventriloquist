@@ -7,8 +7,8 @@ export type Size = 'md' | 'lg' | 'xl' | 'sm' | 'answer';
 
 const base =
   'inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] font-semibold ' +
-  'select-none text-center leading-tight transition-[background-color,box-shadow,transform,color] duration-150 ' +
-  'active:translate-y-px disabled:active:translate-y-0';
+  'select-none text-center leading-tight transition-[background-color,box-shadow,scale,color] duration-150 ease-out ' +
+  'active:scale-[0.96] disabled:active:scale-100';
 
 const variants: Record<Variant, string> = {
   primary:
