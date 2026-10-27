@@ -24,6 +24,7 @@ class SourceResult:
     probs: dict[str, float]
     ok: bool = True
     detail: dict[str, Any] = field(default_factory=dict)
+    calls: list[dict[str, Any]] = field(default_factory=list)  # model calls, for the console
 
     @property
     def top(self) -> tuple[str, float]:

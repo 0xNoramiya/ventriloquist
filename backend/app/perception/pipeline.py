@@ -37,6 +37,7 @@ class Perception:
     latency_ms: float = 0.0
     usd: float = 0.0
     notes: list[str] = field(default_factory=list)
+    calls: list[dict[str, Any]] = field(default_factory=list)
     late: asyncio.Task[SourceResult | None] | None = (
         None  # judge still running after an early decision
     )
@@ -141,16 +142,33 @@ async def perceive(
         except Exception as exc:
             notes.append(f"tracker failed: {exc}")
             return SourceResult("tracker", {}, ok=False, detail={"error": str(exc)[:200]})
+        calls = []
         for r in results:
-            usd += hub.record_track(r)
+            cost = hub.record_track(r)
+            usd += cost
+            calls.append(
+                {
+                    "role": "tracker",
+                    "provider": r.provider,
+                    "model": r.model,
+                    "latency_ms": round(r.latency_ms, 1),
+                    "usd": round(cost, 6),
+                    "fallback": False,
+                    "error": None,
+                }
+            )
         overlay = results[0].to_overlay()
         seqs = [sam_feature_seq(r, fps=fps) for r in results]
         n = min(len(s.values) for s in seqs)
         if n < 4:
-            return SourceResult("tracker", {}, ok=False, detail={"error": "track lost"})
+            return SourceResult(
+                "tracker", {}, ok=False, detail={"error": "track lost"}, calls=calls
+            )
         seq = np.concatenate([s.values[:n] for s in seqs], axis=1)
         missing = float(np.mean([s.missing_fraction for s in seqs]))
-        return _template_source("tracker", seq, tmpl, fps, pcfg.emergency_yes_count, missing)
+        res = _template_source("tracker", seq, tmpl, fps, pcfg.emergency_yes_count, missing)
+        res.calls = calls
+        return res
 
     async def local_path() -> SourceResult | None:
         nonlocal overlay
@@ -169,20 +187,32 @@ async def perceive(
         nonlocal usd
         if info.effective == Mode.MOCK or not hub.flag("use_spark_judge"):
             return None
-        vl = hub.vision_language(mode)
-        if getattr(vl, "media", vl).provider == "mock":
+        vl = getattr(hub.vision_language(mode), "media", hub.vision_language(mode))
+        if vl.provider == "mock":
             return None  # no model may see the clip in this mode (e.g. on-premises privacy tier)
+        timeout = pcfg.judge_timeout_s + 2
         try:
             r = await asyncio.wait_for(
-                roles.judge(mode, mp4, calibration.get("signal_text", "")),
-                timeout=pcfg.judge_timeout_s + 2,
+                roles.judge(mode, mp4, calibration.get("signal_text", "")), timeout=timeout
             )
         except TimeoutError:
             notes.append("judge timed out")
-            return SourceResult("spark", {}, ok=False, detail={"error": "timeout"})
+            timed_out = {
+                "role": "blind_judge",
+                "provider": vl.provider,
+                "model": getattr(vl, "model", "") or settings.models.get("spark", ""),
+                "latency_ms": timeout * 1000.0,
+                "usd": 0.0,
+                "fallback": True,
+                "error": "timeout",
+            }
+            return SourceResult(
+                "spark", {}, ok=False, detail={"error": "timeout"}, calls=[timed_out]
+            )
         usd += r.meta.usd
+        calls = [r.meta.to_dict()]
         if not r.ok:
-            return SourceResult("spark", {}, ok=False, detail={"error": r.meta.error})
+            return SourceResult("spark", {}, ok=False, detail={"error": r.meta.error}, calls=calls)
         return SourceResult(
             "spark",
             judge_probs(r.data.classification, r.data.confidence),
@@ -192,6 +222,7 @@ async def perceive(
                 "frame_times": r.data.frame_times,
                 "latency_ms": round(r.meta.latency_ms),
             },
+            calls,
         )
 
     judge_task = asyncio.ensure_future(judge_path())
@@ -232,4 +263,14 @@ async def perceive(
             late.add_done_callback(cleanup)
         else:
             cleanup()
-    return Perception(obs, sources, overlay, (time.perf_counter() - t0) * 1000, usd, notes, late)
+    calls = [c for s in sources for c in s.calls]
+    return Perception(
+        obs,
+        sources,
+        overlay,
+        latency_ms=(time.perf_counter() - t0) * 1000,
+        usd=usd,
+        notes=notes,
+        late=late,
+        calls=calls,
+    )

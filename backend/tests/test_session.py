@@ -134,11 +134,14 @@ async def test_late_judge_emergency_raises_alarm(ctx, judge_top, alarm):
     await s.spoken(pid)
     await s.answer(pid, Answer.YES)
 
+    call = {"role": "judge", "provider": "meta", "model": "muse-spark-1.3", "latency_ms": 3300.0}
+
     async def judge() -> SourceResult:
-        return SourceResult("spark", judge_probs(judge_top, 0.8))
+        return SourceResult("spark", judge_probs(judge_top, 0.8), calls=[call])
 
     await s._attach_late_judge(pid, asyncio.ensure_future(judge()), Observation(Answer.YES, 0.9))
     assert (s.state == State.EMERGENCY) is alarm
+    assert s.llm_calls[-1] == call  # the console's model-call table shows the late judge too
 
 
 async def test_sensitive_spelled_message_held_for_caregiver(ctx):

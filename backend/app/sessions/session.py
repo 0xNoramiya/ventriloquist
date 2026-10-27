@@ -558,6 +558,8 @@ class Session:
         )
         if perc.overlay:
             self.overlay = {**perc.overlay, "prompt_id": prompt_id}
+        for call in perc.calls:
+            self._record_call(call)
         self.log.write("perception", prompt_id=prompt_id, **perc.to_dict())
         await self.observe(prompt_id, perc.observation, "camera", already_processing=True)
         if perc.late is not None:
@@ -573,6 +575,8 @@ class Session:
         res = await task
         if res is None:
             return
+        for call in res.calls:
+            self._record_call(call)
         verdict = res.to_dict()
         entry = next((t for t in self.trail if t["prompt_id"] == prompt_id), None)
         if entry is not None:
