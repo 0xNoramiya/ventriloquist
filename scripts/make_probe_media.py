@@ -36,7 +36,13 @@ EN_TEXT = "Your daughter Aisyah went home to rest, she will be back at four."
 ID_TEXT = "Anak Bapak, Aisyah, pulang dulu untuk istirahat, nanti jam empat dia kembali."
 TWO_VOICE_TURNS = [
     ("A", "en-us", 40, 150, "Good morning. Did you sleep at all last night?"),
-    ("B", "en-gb+f4", 85, 165, "She slept a little after midnight. The nurse gave her something for pain."),
+    (
+        "B",
+        "en-gb+f4",
+        85,
+        165,
+        "She slept a little after midnight. The nurse gave her something for pain.",
+    ),
     ("A", "en-us", 40, 150, "Okay. Let us check the breathing tube in an hour."),
 ]
 
@@ -133,9 +139,13 @@ def render_clip(kind: str) -> tuple[list[np.ndarray], dict]:
     nod_peaks = [1.0, 2.7] if kind == "nod" else []
     blinks = {"yes": [3.6], "nod": [], "rest": [0.6, 1.9, 3.3]}[kind]
     for c in brow_peaks:
-        truth["events"].append({"type": "eyebrow_raise", "start_s": c - 0.35, "peak_s": c, "end_s": c + 0.35})
+        truth["events"].append(
+            {"type": "eyebrow_raise", "start_s": c - 0.35, "peak_s": c, "end_s": c + 0.35}
+        )
     for c in nod_peaks:
-        truth["events"].append({"type": "head_nod_down", "start_s": c - 0.4, "peak_s": c, "end_s": c + 0.4})
+        truth["events"].append(
+            {"type": "head_nod_down", "start_s": c - 0.4, "peak_s": c, "end_s": c + 0.4}
+        )
     for c in blinks:
         truth["events"].append({"type": "blink", "start_s": c - 0.1, "peak_s": c, "end_s": c + 0.1})
 
@@ -144,16 +154,40 @@ def render_clip(kind: str) -> tuple[list[np.ndarray], dict]:
         brow = 28.0 * sum(bump(t, c, 0.35) for c in brow_peaks)
         nod = sum(bump(t, c, 0.4) for c in nod_peaks)
         eye = 1.0 - sum(bump(t, c, 0.1) for c in blinks)
-        frames.append(draw_face(brow_raise_px=brow, eye_open=max(0.0, eye), dy=45.0 * nod, pitch_squash=nod))
+        frames.append(
+            draw_face(brow_raise_px=brow, eye_open=max(0.0, eye), dy=45.0 * nod, pitch_squash=nod)
+        )
     return frames, truth
 
 
 def write_h264(frames: list[np.ndarray], path: Path) -> None:
     cmd = [
-        "ffmpeg", "-y", "-loglevel", "error",
-        "-f", "rawvideo", "-pix_fmt", "bgr24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-",
-        "-c:v", "libx264", "-preset", "medium", "-crf", "23", "-pix_fmt", "yuv420p",
-        "-movflags", "+faststart", "-an", str(path),
+        "ffmpeg",
+        "-y",
+        "-loglevel",
+        "error",
+        "-f",
+        "rawvideo",
+        "-pix_fmt",
+        "bgr24",
+        "-s",
+        f"{W}x{H}",
+        "-r",
+        str(FPS),
+        "-i",
+        "-",
+        "-c:v",
+        "libx264",
+        "-preset",
+        "medium",
+        "-crf",
+        "23",
+        "-pix_fmt",
+        "yuv420p",
+        "-movflags",
+        "+faststart",
+        "-an",
+        str(path),
     ]
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     assert proc.stdin is not None
@@ -220,7 +254,18 @@ def draw_hospital_room() -> np.ndarray:
     # vital-signs monitor on the wall
     cv2.rectangle(img, (470, 60), (600, 150), (40, 40, 40), -1)
     cv2.rectangle(img, (478, 68), (592, 142), (20, 30, 20), -1)
-    ecg = [(480, 100), (500, 100), (506, 85), (512, 115), (518, 100), (545, 100), (551, 82), (557, 118), (563, 100), (590, 100)]
+    ecg = [
+        (480, 100),
+        (500, 100),
+        (506, 85),
+        (512, 115),
+        (518, 100),
+        (545, 100),
+        (551, 82),
+        (557, 118),
+        (563, 100),
+        (590, 100),
+    ]
     cv2.polylines(img, [np.array(ecg, np.int32)], False, (80, 230, 80), 2)
     cv2.putText(img, "98", (548, 136), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (80, 230, 230), 1)
     return img
@@ -230,18 +275,49 @@ def tts(voice: str, pitch: int, speed: int, text: str, out_wav: Path) -> None:
     """espeak-ng -> 24 kHz mono s16 RIFF WAV (the native rate of the transcription model)."""
     with tempfile.TemporaryDirectory() as td:
         raw = Path(td) / "raw.wav"
-        subprocess.run(["espeak-ng", "-v", voice, "-p", str(pitch), "-s", str(speed), "-w", str(raw), text], check=True)
         subprocess.run(
-            ["ffmpeg", "-y", "-loglevel", "error", "-i", str(raw), "-ac", "1", "-ar", "24000",
-             "-c:a", "pcm_s16le", "-map_metadata", "-1", str(out_wav)],
+            ["espeak-ng", "-v", voice, "-p", str(pitch), "-s", str(speed), "-w", str(raw), text],
+            check=True,
+        )
+        subprocess.run(
+            [
+                "ffmpeg",
+                "-y",
+                "-loglevel",
+                "error",
+                "-i",
+                str(raw),
+                "-ac",
+                "1",
+                "-ar",
+                "24000",
+                "-c:a",
+                "pcm_s16le",
+                "-map_metadata",
+                "-1",
+                str(out_wav),
+            ],
             check=True,
         )
 
 
 def silence_wav(seconds: float, out_wav: Path) -> None:
     subprocess.run(
-        ["ffmpeg", "-y", "-loglevel", "error", "-f", "lavfi", "-i", "anullsrc=r=24000:cl=mono",
-         "-t", f"{seconds}", "-c:a", "pcm_s16le", str(out_wav)],
+        [
+            "ffmpeg",
+            "-y",
+            "-loglevel",
+            "error",
+            "-f",
+            "lavfi",
+            "-i",
+            "anullsrc=r=24000:cl=mono",
+            "-t",
+            f"{seconds}",
+            "-c:a",
+            "pcm_s16le",
+            str(out_wav),
+        ],
         check=True,
     )
 
@@ -251,16 +327,46 @@ def concat_wavs(parts: list[Path], out_wav: Path) -> None:
         lst = Path(td) / "list.txt"
         lst.write_text("".join(f"file '{p}'\n" for p in parts))
         subprocess.run(
-            ["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", str(lst),
-             "-ac", "1", "-ar", "24000", "-c:a", "pcm_s16le", "-map_metadata", "-1", str(out_wav)],
+            [
+                "ffmpeg",
+                "-y",
+                "-loglevel",
+                "error",
+                "-f",
+                "concat",
+                "-safe",
+                "0",
+                "-i",
+                str(lst),
+                "-ac",
+                "1",
+                "-ar",
+                "24000",
+                "-c:a",
+                "pcm_s16le",
+                "-map_metadata",
+                "-1",
+                str(out_wav),
+            ],
             check=True,
         )
 
 
 def probe_duration(path: Path) -> float:
     out = subprocess.run(
-        ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=nw=1:nk=1", str(path)],
-        capture_output=True, text=True, check=True,
+        [
+            "ffprobe",
+            "-v",
+            "error",
+            "-show_entries",
+            "format=duration",
+            "-of",
+            "default=nw=1:nk=1",
+            str(path),
+        ],
+        capture_output=True,
+        text=True,
+        check=True,
     )
     return round(float(out.stdout.strip()), 3)
 
@@ -270,31 +376,65 @@ def main() -> None:
         if shutil.which(tool) is None:
             raise SystemExit(f"{tool} not found on PATH")
     OUT.mkdir(parents=True, exist_ok=True)
-    manifest: dict = {"generator": "scripts/make_probe_media.py", "video": {}, "image": {}, "audio": {}}
+    manifest: dict = {
+        "generator": "scripts/make_probe_media.py",
+        "video": {},
+        "image": {},
+        "audio": {},
+    }
 
-    for kind, name in (("yes", "face_yes_eyebrows.mp4"), ("nod", "face_nod.mp4"), ("rest", "face_rest_blinks.mp4")):
+    for kind, name in (
+        ("yes", "face_yes_eyebrows.mp4"),
+        ("nod", "face_nod.mp4"),
+        ("rest", "face_rest_blinks.mp4"),
+    ):
         frames, truth = render_clip(kind)
         path = OUT / name
         write_h264(frames, path)
-        truth.update({"width": W, "height": H, "codec": "h264", "bytes": path.stat().st_size, "duration_s": probe_duration(path)})
+        truth.update(
+            {
+                "width": W,
+                "height": H,
+                "codec": "h264",
+                "bytes": path.stat().st_size,
+                "duration_s": probe_duration(path),
+            }
+        )
         manifest["video"][name] = truth
         if kind == "yes":
             peak_frame = int(truth["events"][0]["peak_s"] * FPS)
             cv2.imwrite(str(OUT / "face_still.png"), frames[peak_frame])
-            manifest["image"]["face_still.png"] = {"width": W, "height": H, "source": f"{name} frame {peak_frame} (eyebrow peak)"}
+            manifest["image"]["face_still.png"] = {
+                "width": W,
+                "height": H,
+                "source": f"{name} frame {peak_frame} (eyebrow peak)",
+            }
 
     room = draw_hospital_room()
     cv2.imwrite(str(OUT / "hospital_room.png"), room)
     manifest["image"]["hospital_room.png"] = {
-        "width": W, "height": H,
-        "objects": {"bed": [260, 170, 600, 400], "bedside table": [85, 252, 205, 400], "photo frame": [110, 180, 175, 250]},
+        "width": W,
+        "height": H,
+        "objects": {
+            "bed": [260, 170, 600, 400],
+            "bedside table": [85, 252, 205, 400],
+            "photo frame": [110, 180, 175, 250],
+        },
         "note": "boxes are [x1, y1, x2, y2] in pixels, approximate",
     }
 
     tts("en-us", 50, 150, EN_TEXT, OUT / "speech_en.wav")
     tts("id", 50, 140, ID_TEXT, OUT / "speech_id.wav")
-    manifest["audio"]["speech_en.wav"] = {"language": "English", "reference": EN_TEXT, "duration_s": probe_duration(OUT / "speech_en.wav")}
-    manifest["audio"]["speech_id.wav"] = {"language": "Indonesian", "reference": ID_TEXT, "duration_s": probe_duration(OUT / "speech_id.wav")}
+    manifest["audio"]["speech_en.wav"] = {
+        "language": "English",
+        "reference": EN_TEXT,
+        "duration_s": probe_duration(OUT / "speech_en.wav"),
+    }
+    manifest["audio"]["speech_id.wav"] = {
+        "language": "Indonesian",
+        "reference": ID_TEXT,
+        "duration_s": probe_duration(OUT / "speech_id.wav"),
+    }
 
     with tempfile.TemporaryDirectory() as td:
         tdp = Path(td)
@@ -308,7 +448,10 @@ def main() -> None:
         concat_wavs(parts[:-1], OUT / "two_voices.wav")
     manifest["audio"]["two_voices.wav"] = {
         "language": "English",
-        "turns": [{"speaker": s, "espeak_voice": v, "pitch": p, "text": t} for s, v, p, _sp, t in TWO_VOICE_TURNS],
+        "turns": [
+            {"speaker": s, "espeak_voice": v, "pitch": p, "text": t}
+            for s, v, p, _sp, t in TWO_VOICE_TURNS
+        ],
         "reference": " ".join(t for *_x, t in TWO_VOICE_TURNS),
         "duration_s": probe_duration(OUT / "two_voices.wav"),
     }

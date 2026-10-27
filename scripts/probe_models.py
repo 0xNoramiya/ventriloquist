@@ -33,8 +33,13 @@ def main() -> None:
             with Timer() as t:
                 r = http.get(f"/models/{model_id}")
             ok = r.status_code == 200
-            run.record(f"GET /models/{model_id}", model_id, t.s, status=f"HTTP {r.status_code}",
-                       extra="" if ok else r.text[:200])
+            run.record(
+                f"GET /models/{model_id}",
+                model_id,
+                t.s,
+                status=f"HTTP {r.status_code}",
+                extra="" if ok else r.text[:200],
+            )
             if ok and role == "spark":
                 run.save_fixture("models_retrieve_spark", r.json())
             if model_id not in ids:

@@ -69,7 +69,9 @@ SUBJECTS = {
 }
 
 
-async def generate(client: httpx.AsyncClient, key: str, hid: str, subject: str, sem: asyncio.Semaphore) -> str:
+async def generate(
+    client: httpx.AsyncClient, key: str, hid: str, subject: str, sem: asyncio.Semaphore
+) -> str:
     async with sem:
         r = await client.post(
             "https://api.meta.ai/v1/images/generations",
@@ -82,10 +84,27 @@ async def generate(client: httpx.AsyncClient, key: str, hid: str, subject: str, 
         data = r.json()
         raw = RAW / f"{hid}.webp"
         raw.write_bytes(base64.b64decode(data["data"][0]["b64_json"]))
-        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(raw), "-vf", "scale=256:256",
-                        "-c:v", "libwebp", "-quality", "82", str(OUT / f"{hid}.webp")], check=True)
-        (RAW / f"{hid}.json").write_text(json.dumps({"prompt": f"{STYLE} Subject: {subject}.",
-                                                     "usage": data.get("usage")}))
+        subprocess.run(
+            [
+                "ffmpeg",
+                "-y",
+                "-loglevel",
+                "error",
+                "-i",
+                str(raw),
+                "-vf",
+                "scale=256:256",
+                "-c:v",
+                "libwebp",
+                "-quality",
+                "82",
+                str(OUT / f"{hid}.webp"),
+            ],
+            check=True,
+        )
+        (RAW / f"{hid}.json").write_text(
+            json.dumps({"prompt": f"{STYLE} Subject: {subject}.", "usage": data.get("usage")})
+        )
         return f"{hid}: ok"
 
 
@@ -97,8 +116,19 @@ def contact_sheet(path: Path) -> None:
     n = len(files)
     cols = 7
     layout = "|".join(f"{(i % cols) * 256}_{(i // cols) * 256}" for i in range(n))
-    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", *inputs, "-filter_complex",
-                    f"xstack=inputs={n}:layout={layout}:fill=white", str(path)], check=True)
+    subprocess.run(
+        [
+            "ffmpeg",
+            "-y",
+            "-loglevel",
+            "error",
+            *inputs,
+            "-filter_complex",
+            f"xstack=inputs={n}:layout={layout}:fill=white",
+            str(path),
+        ],
+        check=True,
+    )
 
 
 async def main() -> None:
@@ -120,7 +150,9 @@ async def main() -> None:
         return
     sem = asyncio.Semaphore(4)
     async with httpx.AsyncClient() as client:
-        for line in await asyncio.gather(*(generate(client, key, h, SUBJECTS[h], sem) for h in todo)):
+        for line in await asyncio.gather(
+            *(generate(client, key, h, SUBJECTS[h], sem) for h in todo)
+        ):
             print(line)
     print(f"generated {len(todo)} images (~${0.01 * len(todo):.2f})")
     if args.sheet:

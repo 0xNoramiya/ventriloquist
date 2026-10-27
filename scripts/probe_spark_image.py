@@ -38,8 +38,10 @@ ROOM_SCHEMA = {
                 "required": ["label", "x_min", "y_min", "x_max", "y_max"],
                 "properties": {
                     "label": {"type": "string"},
-                    "x_min": {"type": "integer"}, "y_min": {"type": "integer"},
-                    "x_max": {"type": "integer"}, "y_max": {"type": "integer"},
+                    "x_min": {"type": "integer"},
+                    "y_min": {"type": "integer"},
+                    "x_max": {"type": "integer"},
+                    "y_max": {"type": "integer"},
                 },
             },
         },
@@ -61,8 +63,12 @@ FACE_SCHEMA = {
 
 
 def to_px(box: dict, w: int, h: int) -> list[int]:
-    return [round(box["x_min"] * w / 1000), round(box["y_min"] * h / 1000),
-            round(box["x_max"] * w / 1000), round(box["y_max"] * h / 1000)]
+    return [
+        round(box["x_min"] * w / 1000),
+        round(box["y_min"] * h / 1000),
+        round(box["x_max"] * w / 1000),
+        round(box["y_max"] * h / 1000),
+    ]
 
 
 def main() -> None:
@@ -74,35 +80,68 @@ def main() -> None:
     truth = manifest()["image"]["hospital_room.png"]["objects"]
 
     def msg(text: str, image_path) -> list[dict]:
-        return [{"type": "message", "role": "user", "content": [
-            {"type": "input_text", "text": text},
-            {"type": "input_image", "image_url": data_url(image_path)},
-        ]}]
+        return [
+            {
+                "type": "message",
+                "role": "user",
+                "content": [
+                    {"type": "input_text", "text": text},
+                    {"type": "input_image", "image_url": data_url(image_path)},
+                ],
+            }
+        ]
 
     # 1. token count for the image alone
-    res = run.attempt("input_tokens 640x480 png", SPARK, lambda: timed_raw(
-        client.responses.input_tokens.with_raw_response.count, model=SPARK, input=msg("Describe.", room)))
+    res = run.attempt(
+        "input_tokens 640x480 png",
+        SPARK,
+        lambda: timed_raw(
+            client.responses.input_tokens.with_raw_response.count,
+            model=SPARK,
+            input=msg("Describe.", room),
+        ),
+    )
     if res:
         body, _h, secs = res
         run.record("input_tokens 640x480 png", SPARK, secs, usd=0.0, extra=json.dumps(body))
 
     # 2. grounding on the room drawing
-    prompt = ("You are an object grounding expert. Provide bounding boxes for: \"bed\", \"bedside table\", "
-              "\"photo frame\". Coordinates are integers on a 0-1000 grid (x right, y down). "
-              "Also say whether a photo frame and whether any people are present.")
+    prompt = (
+        'You are an object grounding expert. Provide bounding boxes for: "bed", "bedside table", '
+        '"photo frame". Coordinates are integers on a 0-1000 grid (x right, y down). '
+        "Also say whether a photo frame and whether any people are present."
+    )
     run.guard(0.02, "room grounding")
-    res = run.attempt("room grounding json_schema", SPARK, lambda: timed_raw(
-        rr.create, model=SPARK, store=False, reasoning={"effort": "minimal"}, max_output_tokens=800,
-        input=msg(prompt, room),
-        text={"format": {"type": "json_schema", "name": "room_objects", "schema": ROOM_SCHEMA, "strict": True}}))
+    res = run.attempt(
+        "room grounding json_schema",
+        SPARK,
+        lambda: timed_raw(
+            rr.create,
+            model=SPARK,
+            store=False,
+            reasoning={"effort": "minimal"},
+            max_output_tokens=800,
+            input=msg(prompt, room),
+            text={
+                "format": {
+                    "type": "json_schema",
+                    "name": "room_objects",
+                    "schema": ROOM_SCHEMA,
+                    "strict": True,
+                }
+            },
+        ),
+    )
     if res:
         body, _h, secs = res
         txt = output_text(body)
         try:
             parsed = json.loads(txt)
             boxes = {o["label"]: to_px(o, 640, 480) for o in parsed["objects"]}
-            extra = (f"photo_frame={parsed['photo_frame_present']} people={parsed['people_present']} "
-                     f"boxes_px={json.dumps(boxes)}")
+            extra = (
+                f"photo_frame={parsed['photo_frame_present']} people={parsed['people_present']} "
+                f"boxes_px={json.dumps(boxes)}"
+            )
         except (json.JSONDecodeError, KeyError) as e:
             extra = f"parse failed: {e}; text={txt[:150]!r}"
         run.record("room grounding json_schema", SPARK, secs, body.get("usage"), extra=extra)
@@ -112,14 +151,38 @@ def main() -> None:
 
     # 3. eyebrow judgement on a still face frame
     run.guard(0.02, "face judge")
-    res = run.attempt("face eyebrows json_schema", SPARK, lambda: timed_raw(
-        rr.create, model=SPARK, store=False, reasoning={"effort": "minimal"}, max_output_tokens=400,
-        input=msg("Cartoon patient face. Are the eyebrows raised above their resting position? Are the eyes open?",
-                  face),
-        text={"format": {"type": "json_schema", "name": "face_state", "schema": FACE_SCHEMA, "strict": True}}))
+    res = run.attempt(
+        "face eyebrows json_schema",
+        SPARK,
+        lambda: timed_raw(
+            rr.create,
+            model=SPARK,
+            store=False,
+            reasoning={"effort": "minimal"},
+            max_output_tokens=400,
+            input=msg(
+                "Cartoon patient face. Are the eyebrows raised above their resting position? Are the eyes open?",
+                face,
+            ),
+            text={
+                "format": {
+                    "type": "json_schema",
+                    "name": "face_state",
+                    "schema": FACE_SCHEMA,
+                    "strict": True,
+                }
+            },
+        ),
+    )
     if res:
         body, _h, secs = res
-        run.record("face eyebrows json_schema", SPARK, secs, body.get("usage"), extra=f"out={output_text(body)}")
+        run.record(
+            "face eyebrows json_schema",
+            SPARK,
+            secs,
+            body.get("usage"),
+            extra=f"out={output_text(body)}",
+        )
         run.save_fixture("spark_responses_image_face", body)
 
     run.finish()

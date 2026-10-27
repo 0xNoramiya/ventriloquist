@@ -38,7 +38,9 @@ def build(out: Path) -> int:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--out", type=Path, default=ROOT / "frontend" / "public" / "pyodide" / "backend.zip")
+    ap.add_argument(
+        "--out", type=Path, default=ROOT / "frontend" / "public" / "pyodide" / "backend.zip"
+    )
     args = ap.parse_args()
     n = build(args.out)
     print(f"wrote {args.out} ({n} files, {args.out.stat().st_size / 1024:.0f} KiB)")

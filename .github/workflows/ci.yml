@@ -16,7 +16,7 @@ jobs:
         run: uv venv --python 3.12 .venv && uv sync
       - name: Lint
         working-directory: backend
-        run: .venv/bin/ruff check app tests ../sim && .venv/bin/ruff format --check app tests ../sim
+        run: .venv/bin/ruff check app tests ../sim ../scripts && .venv/bin/ruff format --check app tests ../sim ../scripts
       - name: Test (mock mode, no keys)
         working-directory: backend
         env:

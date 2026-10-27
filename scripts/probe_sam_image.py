@@ -31,16 +31,24 @@ SAM = MODELS["sam"]
 
 
 def sam_input(prompt: str, image) -> list[dict]:
-    return [{"type": "message", "role": "user", "content": [
-        {"type": "input_text", "text": prompt},
-        {"type": "input_image", "image_url": data_url(image)},
-    ]}]
+    return [
+        {
+            "type": "message",
+            "role": "user",
+            "content": [
+                {"type": "input_text", "text": prompt},
+                {"type": "input_image", "image_url": data_url(image)},
+            ],
+        }
+    ]
 
 
 def summarize(run: ProbeRun, label: str, text: str) -> str:
     recs = parse_sam_text(text)
     dec = decode_sam_masks(text)
-    brief = [{k: r[k] for k in ("object_id", "box", "c", "mask_h", "mask_w", "mask_enc")} for r in recs]
+    brief = [
+        {k: r[k] for k in ("object_id", "box", "c", "mask_h", "mask_w", "mask_enc")} for r in recs
+    ]
     s = f"{len(recs)} match(es): {json.dumps(brief)[:300]}"
     if dec is not None:
         s += f" decoded={dec['decoded']} fg_px={dec['foreground_px'][:4]} errors={dec['errors']}"
@@ -53,17 +61,33 @@ def main() -> None:
     client = meta_client()
     run = ProbeRun("probe_sam_image")
     room, face = media("hospital_room.png"), media("face_still.png")
-    run.note(f"room ground truth (approx px): {json.dumps(manifest()['image']['hospital_room.png']['objects'])}")
+    run.note(
+        f"room ground truth (approx px): {json.dumps(manifest()['image']['hospital_room.png']['objects'])}"
+    )
 
     # 1. streaming, lossless masks, confidence
     run.guard(0.003, "sam photo frame")
-    res = run.attempt("photo frame stream lossless+c", SAM, lambda: stream_response(
-        client, model=SAM, input=sam_input("photo frame", room), store=False,
-        metadata={"include_confidence": "true"}))
+    res = run.attempt(
+        "photo frame stream lossless+c",
+        SAM,
+        lambda: stream_response(
+            client,
+            model=SAM,
+            input=sam_input("photo frame", room),
+            store=False,
+            metadata={"include_confidence": "true"},
+        ),
+    )
     if res:
         usage = res["final"].get("usage") or {}
-        run.record("photo frame stream lossless+c", SAM, res["total_s"], usage,
-                   first_event_s=res["first_delta_s"], extra=summarize(run, "photo frame", res["text"]))
+        run.record(
+            "photo frame stream lossless+c",
+            SAM,
+            res["total_s"],
+            usage,
+            first_event_s=res["first_delta_s"],
+            extra=summarize(run, "photo frame", res["text"]),
+        )
         run.note(f"SSE event types (image, stream): {json.dumps(res['event_types'])}")
         print("first line:", res["text"][:240])
         print(key_tree(res["final"]))
@@ -71,26 +95,54 @@ def main() -> None:
 
     # 2. non-streaming, one_bit
     run.guard(0.003, "sam bed")
-    res = run.attempt("bed non-stream one_bit", SAM, lambda: timed_raw(
-        client.responses.with_raw_response.create, model=SAM, input=sam_input("bed", room), store=False,
-        metadata={"mask_encoding": "one_bit"}))
+    res = run.attempt(
+        "bed non-stream one_bit",
+        SAM,
+        lambda: timed_raw(
+            client.responses.with_raw_response.create,
+            model=SAM,
+            input=sam_input("bed", room),
+            store=False,
+            metadata={"mask_encoding": "one_bit"},
+        ),
+    )
     if res:
         body, headers, secs = res
         text = output_text(body)
-        run.record("bed non-stream one_bit", SAM, secs, body.get("usage"), extra=summarize(run, "bed", text))
+        run.record(
+            "bed non-stream one_bit",
+            SAM,
+            secs,
+            body.get("usage"),
+            extra=summarize(run, "bed", text),
+        )
         print(key_tree(body))
         run.save_fixture("sam_image_nonstream_one_bit", body)
         run.note(f"SAM response headers: {json.dumps(headers)}")
 
     # 3. face, eyebrows
     run.guard(0.003, "sam eyebrows")
-    res = run.attempt("eyebrows stream one_bit+c", SAM, lambda: stream_response(
-        client, model=SAM, input=sam_input("eyebrows", face), store=False,
-        metadata={"mask_encoding": "one_bit", "include_confidence": "true"}))
+    res = run.attempt(
+        "eyebrows stream one_bit+c",
+        SAM,
+        lambda: stream_response(
+            client,
+            model=SAM,
+            input=sam_input("eyebrows", face),
+            store=False,
+            metadata={"mask_encoding": "one_bit", "include_confidence": "true"},
+        ),
+    )
     if res:
         usage = res["final"].get("usage") or {}
-        run.record("eyebrows stream one_bit+c", SAM, res["total_s"], usage, first_event_s=res["first_delta_s"],
-                   extra=summarize(run, "eyebrows", res["text"]))
+        run.record(
+            "eyebrows stream one_bit+c",
+            SAM,
+            res["total_s"],
+            usage,
+            first_event_s=res["first_delta_s"],
+            extra=summarize(run, "eyebrows", res["text"]),
+        )
         run.save_fixture("sam_image_stream_one_bit_eyebrows", {"events": res["events"]})
     run.finish()
 

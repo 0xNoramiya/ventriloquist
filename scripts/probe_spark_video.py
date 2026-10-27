@@ -45,8 +45,10 @@ MOVE_SCHEMA = {
         "confidence": {"type": "number"},
     },
 }
-PROMPT = ("Cartoon patient face, 4 second clip. Count deliberate eyebrow raises, head nods, and blinks. "
-          "signal = the deliberate movement shown (blinks alone are NONE).")
+PROMPT = (
+    "Cartoon patient face, 4 second clip. Count deliberate eyebrow raises, head nods, and blinks. "
+    "signal = the deliberate movement shown (blinks alone are NONE)."
+)
 
 
 def main() -> None:
@@ -54,12 +56,24 @@ def main() -> None:
     run = ProbeRun("probe_spark_video")
     rr = client.responses.with_raw_response
     m = manifest()["video"]
-    yes, nod, rest = media("face_yes_eyebrows.mp4"), media("face_nod.mp4"), media("face_rest_blinks.mp4")
-    run.note(f"clip sizes: yes={yes.stat().st_size} B, nod={nod.stat().st_size} B, rest={rest.stat().st_size} B; "
-             "640x480, 15 fps, 60 frames, H.264, no audio track")
+    yes, nod, rest = (
+        media("face_yes_eyebrows.mp4"),
+        media("face_nod.mp4"),
+        media("face_rest_blinks.mp4"),
+    )
+    run.note(
+        f"clip sizes: yes={yes.stat().st_size} B, nod={nod.stat().st_size} B, rest={rest.stat().st_size} B; "
+        "640x480, 15 fps, 60 frames, H.264, no audio track"
+    )
 
     def video_msg(part: dict) -> list[dict]:
-        return [{"type": "message", "role": "user", "content": [{"type": "input_text", "text": PROMPT}, part]}]
+        return [
+            {
+                "type": "message",
+                "role": "user",
+                "content": [{"type": "input_text", "text": PROMPT}, part],
+            }
+        ]
 
     yes_url = data_url(yes, "video/mp4")
     counts: dict[str, int] = {}
@@ -68,25 +82,56 @@ def main() -> None:
         ("fps=2", {"type": "input_video", "video_url": yes_url, "fps": 2}),
         ("fps=15", {"type": "input_video", "video_url": yes_url, "fps": 15}),
     ):
-        res = run.attempt(f"input_tokens video {label}", SPARK, lambda part=part: timed_raw(
-            client.responses.input_tokens.with_raw_response.count, model=SPARK, input=video_msg(part)))
+        res = run.attempt(
+            f"input_tokens video {label}",
+            SPARK,
+            lambda part=part: timed_raw(
+                client.responses.input_tokens.with_raw_response.count,
+                model=SPARK,
+                input=video_msg(part),
+            ),
+        )
         if res:
             body, _h, secs = res
             counts[label] = body.get("input_tokens", 0)
             run.record(f"input_tokens video {label}", SPARK, secs, usd=0.0, extra=json.dumps(body))
     worst = max(counts.values() or [20000])
     est = estimate_cost(SPARK, {"input_tokens": worst, "output_tokens": 800})
-    run.note(f"token counts for the 4 s clip: {json.dumps(counts)}; per-call upper estimate ${est:.4f}")
+    run.note(
+        f"token counts for the 4 s clip: {json.dumps(counts)}; per-call upper estimate ${est:.4f}"
+    )
 
     def classify(label: str, part: dict, fixture: str, truth_kind: str) -> None:
         run.guard(est, label)
-        res = run.attempt(label, SPARK, lambda: timed_raw(
-            rr.create, model=SPARK, store=False, reasoning={"effort": "minimal"}, max_output_tokens=800,
-            input=video_msg(part),
-            text={"format": {"type": "json_schema", "name": "movement", "schema": MOVE_SCHEMA, "strict": True}}))
+        res = run.attempt(
+            label,
+            SPARK,
+            lambda: timed_raw(
+                rr.create,
+                model=SPARK,
+                store=False,
+                reasoning={"effort": "minimal"},
+                max_output_tokens=800,
+                input=video_msg(part),
+                text={
+                    "format": {
+                        "type": "json_schema",
+                        "name": "movement",
+                        "schema": MOVE_SCHEMA,
+                        "strict": True,
+                    }
+                },
+            ),
+        )
         if res:
             body, _h, secs = res
-            run.record(label, SPARK, secs, body.get("usage"), extra=f"truth={truth_kind} out={output_text(body)}")
+            run.record(
+                label,
+                SPARK,
+                secs,
+                body.get("usage"),
+                extra=f"truth={truth_kind} out={output_text(body)}",
+            )
             if fixture:
                 run.save_fixture(fixture, body)
             return body
@@ -95,13 +140,21 @@ def main() -> None:
     # 4. inline data URL (default sampling), then an fps sweep on the same clip
     sweep_only = "--fps-sweep-only" in sys.argv
     if not sweep_only:
-        body = classify("YES clip inline data URL", {"type": "input_video", "video_url": yes_url},
-                        "spark_responses_video_inline", "2 eyebrow raises, 1 blink")
+        body = classify(
+            "YES clip inline data URL",
+            {"type": "input_video", "video_url": yes_url},
+            "spark_responses_video_inline",
+            "2 eyebrow raises, 1 blink",
+        )
         if body:
             print(key_tree(body))
     for fps in (4, 8):
-        classify(f"YES clip inline fps={fps}", {"type": "input_video", "video_url": yes_url, "fps": fps},
-                 f"spark_responses_video_inline_fps{fps}" if fps == 4 else "", "2 eyebrow raises, 1 blink")
+        classify(
+            f"YES clip inline fps={fps}",
+            {"type": "input_video", "video_url": yes_url, "fps": fps},
+            f"spark_responses_video_inline_fps{fps}" if fps == 4 else "",
+            "2 eyebrow raises, 1 blink",
+        )
     if sweep_only:
         run.finish()
         return
@@ -109,17 +162,34 @@ def main() -> None:
     # 5/6. Files API upload, then reference by id
     uploaded = []
     for path, part_type, label, fixture, truth_kind in (
-        (nod, "input_video", "NOD clip input_video file_id", "spark_responses_video_file_id", "2 head nods"),
+        (
+            nod,
+            "input_video",
+            "NOD clip input_video file_id",
+            "spark_responses_video_file_id",
+            "2 head nods",
+        ),
         (rest, "input_file", "REST clip input_file file_id", "", "3 blinks only"),
     ):
         t0 = time.perf_counter()
-        f = run.attempt(f"upload {path.name}", "-", lambda path=path: client.files.create(
-            file=(path.name, path.read_bytes(), "video/mp4"), purpose="user_data",
-            expires_after={"anchor": "created_at", "seconds": 3600}))
+        f = run.attempt(
+            f"upload {path.name}",
+            "-",
+            lambda path=path: client.files.create(
+                file=(path.name, path.read_bytes(), "video/mp4"),
+                purpose="user_data",
+                expires_after={"anchor": "created_at", "seconds": 3600},
+            ),
+        )
         if f is None:
             continue
-        run.record(f"POST /files {path.name}", "-", time.perf_counter() - t0, usd=0.0,
-                   extra=f"id={f.id} status={getattr(f, 'status', None)} expires_at={getattr(f, 'expires_at', None)}")
+        run.record(
+            f"POST /files {path.name}",
+            "-",
+            time.perf_counter() - t0,
+            usd=0.0,
+            extra=f"id={f.id} status={getattr(f, 'status', None)} expires_at={getattr(f, 'expires_at', None)}",
+        )
         if not uploaded:
             run.save_fixture("files_upload_video", f)
         uploaded.append(f.id)
@@ -130,8 +200,16 @@ def main() -> None:
         t0 = time.perf_counter()
         d = run.attempt(f"delete {fid}", "-", lambda fid=fid: client.files.delete(fid))
         if d is not None:
-            run.record(f"DELETE /files/{fid}", "-", time.perf_counter() - t0, usd=0.0, extra=f"deleted={d.deleted}")
-    run.note(f"ground truth: {json.dumps({k: [e['type'] for e in v['events']] for k, v in m.items()})}")
+            run.record(
+                f"DELETE /files/{fid}",
+                "-",
+                time.perf_counter() - t0,
+                usd=0.0,
+                extra=f"deleted={d.deleted}",
+            )
+    run.note(
+        f"ground truth: {json.dumps({k: [e['type'] for e in v['events']] for k, v in m.items()})}"
+    )
     run.finish()
 
 

@@ -31,7 +31,9 @@ def main() -> None:
         t0 = time.perf_counter()
         print(f"\n##### {name}", flush=True)
         try:
-            code = subprocess.run([sys.executable, str(HERE / name)], cwd=HERE.parent, timeout=900).returncode
+            code = subprocess.run(
+                [sys.executable, str(HERE / name)], cwd=HERE.parent, timeout=900
+            ).returncode
         except subprocess.TimeoutExpired:
             code = "timeout"
         results.append((name, code, time.perf_counter() - t0))

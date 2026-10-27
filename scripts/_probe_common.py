@@ -43,7 +43,13 @@ PRICING: dict = CONFIG["pricing"]
 META_BASE_URL: str = CONFIG["providers"]["meta_api"]["base_url"]
 BASETEN_BASE_URL: str = CONFIG["providers"]["baseten"]["base_url"]
 
-_SECRET_ENV = ("MODEL_API_KEY", "BASETEN_API_KEY", "MODAL_TOKEN_ID", "MODAL_TOKEN_SECRET", "LIVE_PASSCODE")
+_SECRET_ENV = (
+    "MODEL_API_KEY",
+    "BASETEN_API_KEY",
+    "MODAL_TOKEN_ID",
+    "MODAL_TOKEN_SECRET",
+    "LIVE_PASSCODE",
+)
 
 
 def env(name: str) -> str | None:
@@ -66,7 +72,9 @@ def require_env(name: str) -> str:
 def meta_client(timeout: float = 120.0):
     from openai import OpenAI
 
-    return OpenAI(base_url=META_BASE_URL, api_key=require_env("MODEL_API_KEY"), timeout=timeout, max_retries=0)
+    return OpenAI(
+        base_url=META_BASE_URL, api_key=require_env("MODEL_API_KEY"), timeout=timeout, max_retries=0
+    )
 
 
 def media(name: str) -> Path:
@@ -160,8 +168,14 @@ def to_jsonable(obj: Any) -> Any:
     return obj
 
 
-RATE_HEADERS = ("x-ratelimit-limit-requests", "x-ratelimit-remaining-requests", "x-ratelimit-limit-tokens",
-                "x-ratelimit-remaining-tokens", "retry-after", "x-request-id")
+RATE_HEADERS = (
+    "x-ratelimit-limit-requests",
+    "x-ratelimit-remaining-requests",
+    "x-ratelimit-limit-tokens",
+    "x-ratelimit-remaining-tokens",
+    "retry-after",
+    "x-request-id",
+)
 
 
 def timed_raw(create_fn: Callable[..., Any], **kwargs: Any) -> tuple[dict, dict, float]:
@@ -195,8 +209,14 @@ def stream_response(client: Any, **kwargs: Any) -> dict:
     types: dict[str, int] = {}
     for e in events:
         types[e.get("type", "?")] = types.get(e.get("type", "?"), 0) + 1
-    return {"events": events, "text": "".join(text_parts), "final": final or {}, "first_delta_s": first,
-            "total_s": time.perf_counter() - t0, "event_types": types}
+    return {
+        "events": events,
+        "text": "".join(text_parts),
+        "final": final or {},
+        "first_delta_s": first,
+        "total_s": time.perf_counter() - t0,
+        "event_types": types,
+    }
 
 
 def output_text(body: dict) -> str:
@@ -227,15 +247,20 @@ def parse_sam_text(text: str) -> list[dict]:
         for m in _SAM_RECORD.finditer(line, fm.end()):
             box = dict(kv.split("=", 1) for kv in m.group(2).split(";") if "=" in kv)
             mask_kv = dict(kv.split("=", 1) for kv in m.group(3).split(";") if "=" in kv)
-            records.append({
-                "frame": frame, "object_id": int(m.group(1)),
-                "box": [int(box["x1"]), int(box["y1"]), int(box["x2"]), int(box["y2"])],
-                "frame_w": int(box["w"]), "frame_h": int(box["h"]),
-                "c": float(box["c"]) if "c" in box else None,
-                "mask_c": float(mask_kv["c"]) if "c" in mask_kv else None,
-                "mask_h": int(m.group(4)), "mask_w": int(m.group(5)),
-                "mask_enc": {"~": "lossless", "!": "one_bit"}.get(m.group(6), m.group(6)),
-            })
+            records.append(
+                {
+                    "frame": frame,
+                    "object_id": int(m.group(1)),
+                    "box": [int(box["x1"]), int(box["y1"]), int(box["x2"]), int(box["y2"])],
+                    "frame_w": int(box["w"]),
+                    "frame_h": int(box["h"]),
+                    "c": float(box["c"]) if "c" in box else None,
+                    "mask_c": float(mask_kv["c"]) if "c" in mask_kv else None,
+                    "mask_h": int(m.group(4)),
+                    "mask_w": int(m.group(5)),
+                    "mask_enc": {"~": "lossless", "!": "one_bit"}.get(m.group(6), m.group(6)),
+                }
+            )
     return records
 
 
@@ -246,8 +271,19 @@ def sam_mask_payloads(text: str) -> list[tuple[int, int, str, int, int, str]]:
         fm = re.match(r"<(\d+)f>", line.strip())
         if not fm:
             continue
-        for m in re.finditer(r"(\d+)<\|box;[^|]*\|><\|mask;[^|]*?data=(\d+),(\d+),(.)(.*?)\|>", line):
-            out.append((int(fm.group(1)), int(m.group(1)), m.group(4), int(m.group(2)), int(m.group(3)), m.group(5)))
+        for m in re.finditer(
+            r"(\d+)<\|box;[^|]*\|><\|mask;[^|]*?data=(\d+),(\d+),(.)(.*?)\|>", line
+        ):
+            out.append(
+                (
+                    int(fm.group(1)),
+                    int(m.group(1)),
+                    m.group(4),
+                    int(m.group(2)),
+                    int(m.group(3)),
+                    m.group(5),
+                )
+            )
     return out
 
 
@@ -261,8 +297,14 @@ def decode_sam_masks(text: str) -> dict | None:
     for _frame, _oid, enc, h, w, payload in sam_mask_payloads(text):
         try:
             # payload passed to the parser keeps its leading encoding marker (~ or !)
-            raster = decode_mask_to_raster(SegmentationMask(
-                encoding="lossless" if enc == "~" else "one_bit", payload=enc + payload, width=w, height=h))
+            raster = decode_mask_to_raster(
+                SegmentationMask(
+                    encoding="lossless" if enc == "~" else "one_bit",
+                    payload=enc + payload,
+                    width=w,
+                    height=h,
+                )
+            )
             stats["decoded"] += 1
             stats["foreground_px"].append(sum(raster))
         except Exception:
@@ -275,7 +317,9 @@ def usage_of(resp: Any) -> dict:
     if isinstance(data, dict):
         if isinstance(data.get("usage"), dict):
             return data["usage"]
-        if isinstance(data.get("response"), dict) and isinstance(data["response"].get("usage"), dict):
+        if isinstance(data.get("response"), dict) and isinstance(
+            data["response"].get("usage"), dict
+        ):
             return data["response"]["usage"]
     return {}
 
@@ -329,7 +373,9 @@ class ProbeRun:
         if est_usd > 0.50:
             raise BudgetExceeded(f"{label}: estimated ${est_usd:.3f} > $0.50 single-call limit")
         if total + est_usd > BUDGET_CAP_USD:
-            raise BudgetExceeded(f"{label}: ledger ${total:.4f} + est ${est_usd:.4f} > cap ${BUDGET_CAP_USD}")
+            raise BudgetExceeded(
+                f"{label}: ledger ${total:.4f} + est ${est_usd:.4f} > cap ${BUDGET_CAP_USD}"
+            )
 
     def record(
         self,
@@ -346,16 +392,34 @@ class ProbeRun:
         if usd is None:
             usd = estimate_cost(model, usage) if usage else 0.0
         row = {
-            "label": label, "model": model, "status": status, "latency_s": latency_s,
-            "first_event_s": first_event_s, "usage": usage, "usd": usd, "extra": extra,
+            "label": label,
+            "model": model,
+            "status": status,
+            "latency_s": latency_s,
+            "first_event_s": first_event_s,
+            "usage": usage,
+            "usd": usd,
+            "extra": extra,
         }
         self.rows.append(row)
         with LEDGER.open("a") as f:
-            f.write(json.dumps({"ts": dt.datetime.now(dt.UTC).isoformat(), "probe": self.name, "label": label,
-                                "model": model, "usd": usd}) + "\n")
+            f.write(
+                json.dumps(
+                    {
+                        "ts": dt.datetime.now(dt.UTC).isoformat(),
+                        "probe": self.name,
+                        "label": label,
+                        "model": model,
+                        "usd": usd,
+                    }
+                )
+                + "\n"
+            )
         lat = f"{latency_s:.2f}s" if latency_s is not None else "-"
         fe = f" (first event {first_event_s:.2f}s)" if first_event_s is not None else ""
-        print(f"[{status}] {label}: {model} {lat}{fe} usage={compact_usage(usage)} est=${usd:.5f} {extra}")
+        print(
+            f"[{status}] {label}: {model} {lat}{fe} usage={compact_usage(usage)} est=${usd:.5f} {extra}"
+        )
         return usd
 
     def note(self, text: str) -> None:
@@ -365,11 +429,15 @@ class ProbeRun:
     def save_fixture(self, fixture: str, data: Any) -> Path:
         FIXTURES.mkdir(parents=True, exist_ok=True)
         path = FIXTURES / f"{fixture}.json"
-        path.write_text(json.dumps(sanitize(to_jsonable(data)), indent=2, ensure_ascii=False) + "\n")
+        path.write_text(
+            json.dumps(sanitize(to_jsonable(data)), indent=2, ensure_ascii=False) + "\n"
+        )
         print(f"  fixture: {path.relative_to(REPO)}")
         return path
 
-    def attempt(self, label: str, model: str, fn: Callable[[], Any], fixture: str | None = None) -> Any:
+    def attempt(
+        self, label: str, model: str, fn: Callable[[], Any], fixture: str | None = None
+    ) -> Any:
         """Run fn(); on an API error, record status + error body (saved as fixture if named)."""
         from openai import APIConnectionError, APIStatusError, APITimeoutError
 
@@ -381,18 +449,27 @@ class ProbeRun:
                 body = e.response.json()
             except Exception:
                 body = {"raw_text": e.response.text[:2000]}
-            self.record(label, model, time.perf_counter() - t0, status=f"HTTP {e.status_code}",
-                        extra=json.dumps(sanitize(body))[:300])
+            self.record(
+                label,
+                model,
+                time.perf_counter() - t0,
+                status=f"HTTP {e.status_code}",
+                extra=json.dumps(sanitize(body))[:300],
+            )
             if fixture:
                 self.save_fixture(fixture, {"http_status": e.status_code, "body": body})
             return None
         except (APIConnectionError, APITimeoutError) as e:
-            self.record(label, model, time.perf_counter() - t0, status="network-error", extra=str(e)[:200])
+            self.record(
+                label, model, time.perf_counter() - t0, status="network-error", extra=str(e)[:200]
+            )
             return None
 
     def finish(self) -> None:
         total = sum(r["usd"] for r in self.rows)
-        print(f"=== {self.name} done: {len(self.rows)} calls, est ${total:.5f}; ledger ${ledger_total():.4f}")
+        print(
+            f"=== {self.name} done: {len(self.rows)} calls, est ${total:.5f}; ledger ${ledger_total():.4f}"
+        )
         append_probe_log(self.name, self.started, self.rows, self.notes)
 
 
@@ -400,12 +477,23 @@ def compact_usage(u: dict) -> str:
     if not u:
         return "{}"
     keep = {}
-    for k in ("input_tokens", "output_tokens", "prompt_tokens", "completion_tokens", "images_processed",
-              "video_frames_processed", "audio_ms"):
+    for k in (
+        "input_tokens",
+        "output_tokens",
+        "prompt_tokens",
+        "completion_tokens",
+        "images_processed",
+        "video_frames_processed",
+        "audio_ms",
+    ):
         if k in u:
             keep[k] = u[k]
-    for parent, child in (("input_tokens_details", "cached_tokens"), ("output_tokens_details", "reasoning_tokens"),
-                          ("prompt_tokens_details", "cached_tokens"), ("completion_tokens_details", "reasoning_tokens")):
+    for parent, child in (
+        ("input_tokens_details", "cached_tokens"),
+        ("output_tokens_details", "reasoning_tokens"),
+        ("prompt_tokens_details", "cached_tokens"),
+        ("completion_tokens_details", "reasoning_tokens"),
+    ):
         d = u.get(parent)
         if isinstance(d, dict) and d.get(child):
             keep[child] = d[child]
@@ -416,16 +504,24 @@ def append_probe_log(name: str, started: dt.datetime, rows: list[dict], notes: l
     NOTES.parent.mkdir(parents=True, exist_ok=True)
     text = NOTES.read_text() if NOTES.exists() else "# API notes\n"
     if "\n## Probe log" not in text:
-        text = text.rstrip("\n") + "\n\n## Probe log\n\nAppended by `scripts/_probe_common.py`; newest last.\n"
-    block = [f"\n### {started.strftime('%Y-%m-%d %H:%M UTC')} `{name}`\n",
-             "| call | model | status | latency | usage | est. USD |", "|---|---|---|---|---|---|"]
+        text = (
+            text.rstrip("\n")
+            + "\n\n## Probe log\n\nAppended by `scripts/_probe_common.py`; newest last.\n"
+        )
+    block = [
+        f"\n### {started.strftime('%Y-%m-%d %H:%M UTC')} `{name}`\n",
+        "| call | model | status | latency | usage | est. USD |",
+        "|---|---|---|---|---|---|",
+    ]
     for r in rows:
         lat = "-" if r["latency_s"] is None else f"{r['latency_s']:.2f}s"
         if r.get("first_event_s") is not None:
             lat += f" (1st {r['first_event_s']:.2f}s)"
         extra = f" {r['extra']}" if r["extra"] else ""
         status = (r["status"] + extra).replace("|", "/").replace("\n", " ")[:220]
-        block.append(f"| {r['label']} | `{r['model']}` | {status} | {lat} | `{compact_usage(r['usage'])}` | {r['usd']:.5f} |")
+        block.append(
+            f"| {r['label']} | `{r['model']}` | {status} | {lat} | `{compact_usage(r['usage'])}` | {r['usd']:.5f} |"
+        )
     for n in notes:
         block.append(f"- {n}")
     NOTES.write_text(text.rstrip("\n") + "\n" + "\n".join(block) + "\n")
