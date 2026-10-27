@@ -76,9 +76,10 @@ for (const line of phone) {
 if (wanted('music', music.id)) {
   const s = await make(music.id, () =>
     client.music.compose({
+      // section text is performed (sung or spoken), so cues.json keeps it to "[Instrumental]"
       compositionPlan: { chunks: music.chunks },
       modelId: music.model,
-      respectSectionsDurations: true,
+      respectSectionsDurations: true, // force_instrumental is only accepted with a plain prompt
     }),
   );
   console.log(`${music.id} ${s.toFixed(1)} s`);

@@ -484,7 +484,8 @@ mix(ASSETS + 'mix.wav', TOTAL, {
     { file: audio('whoosh.mp3'), at: S.title - 0.2, gain: 0.35 },
     { file: audio('whoosh.mp3'), at: S.end - 0.2, gain: 0.35 },
   ],
-  music: { file: audio('score.mp3'), at: 0, gain: 0.42 },
+  // the alarm should be heard over near silence
+  music: { file: audio('score.mp3'), at: 0, gain: 0.42, dips: [[S.alarm, S.stack, 0.25]] },
 });
 
 const page = readFileSync(here('page.tpl'), 'utf8')

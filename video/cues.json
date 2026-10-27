@@ -110,7 +110,7 @@
     "model": "music_v2_5",
     "chunks": [
       {
-        "text": "[Intro] A single quiet piano line, lots of space between notes",
+        "text": "[Instrumental]",
         "durationMs": 15200,
         "positiveStyles": [
           "cinematic",
@@ -119,122 +119,174 @@
           "intimate",
           "documentary",
           "slow",
-          "instrumental"
+          "instrumental",
+          "single quiet piano line",
+          "lots of space between notes"
         ],
         "negativeStyles": [
           "drums",
-          "vocals",
           "upbeat",
-          "epic"
+          "epic",
+          "vocals",
+          "singing",
+          "spoken word",
+          "choir",
+          "humming"
         ]
       },
       {
-        "text": "[Setup] A soft electronic pulse joins the piano, curious",
+        "text": "[Instrumental]",
         "durationMs": 14400,
         "positiveStyles": [
           "soft pulse",
           "warm pads",
-          "piano"
+          "piano",
+          "soft electronic pulse joins the piano",
+          "curious"
         ],
         "negativeStyles": [
           "heavy drums",
-          "vocals"
+          "vocals",
+          "singing",
+          "spoken word",
+          "choir",
+          "humming"
         ]
       },
       {
-        "text": "[Conversation] The pulse grows gently, light percussion, forward motion",
+        "text": "[Instrumental]",
         "durationMs": 39400,
         "positiveStyles": [
           "gentle build",
           "light percussion",
           "warm synths",
-          "hopeful"
+          "hopeful",
+          "pulse grows gently",
+          "forward motion"
         ],
         "negativeStyles": [
+          "aggressive",
           "vocals",
-          "aggressive"
+          "singing",
+          "spoken word",
+          "choir",
+          "humming"
         ]
       },
       {
-        "text": "[Alone at night] The rhythm drops away, sustained low strings, lonely and quiet",
+        "text": "[Instrumental]",
         "durationMs": 27600,
         "positiveStyles": [
           "sustained strings",
           "sparse",
           "minor key",
-          "quiet"
+          "quiet",
+          "rhythm drops away",
+          "lonely"
         ],
         "negativeStyles": [
           "percussion",
-          "vocals"
+          "vocals",
+          "singing",
+          "spoken word",
+          "choir",
+          "humming"
         ]
       },
       {
-        "text": "[Reply] Warmth returns, strings swell into a major key",
+        "text": "[Instrumental]",
         "durationMs": 22900,
         "positiveStyles": [
           "warm strings",
           "swell",
           "major key",
-          "tender"
+          "tender",
+          "warmth returns",
+          "strings swell"
         ],
         "negativeStyles": [
+          "bombastic",
           "vocals",
-          "bombastic"
+          "singing",
+          "spoken word",
+          "choir",
+          "humming"
         ]
       },
       {
-        "text": "[Spelling] Light and playful, plucked strings",
+        "text": "[Instrumental]",
         "durationMs": 12100,
         "positiveStyles": [
           "pizzicato",
           "light",
-          "playful"
+          "playful",
+          "plucked strings"
         ],
         "negativeStyles": [
+          "heavy",
           "vocals",
-          "heavy"
+          "singing",
+          "spoken word",
+          "choir",
+          "humming"
         ]
       },
       {
-        "text": "[Hold] A single low sustained tone, tense and very quiet",
+        "text": "[Instrumental]",
         "durationMs": 9400,
         "positiveStyles": [
           "drone",
           "tense",
-          "very quiet"
+          "very quiet",
+          "single low sustained tone"
         ],
         "negativeStyles": [
           "melody",
           "drums",
-          "vocals"
+          "vocals",
+          "singing",
+          "spoken word",
+          "choir",
+          "humming"
         ]
       },
       {
-        "text": "[Under the hood] A steady clean pulse, modern and confident",
+        "text": "[Instrumental]",
         "durationMs": 22600,
         "positiveStyles": [
           "steady pulse",
           "clean synths",
-          "confident"
+          "confident",
+          "modern",
+          "steady"
         ],
         "negativeStyles": [
+          "aggressive",
           "vocals",
-          "aggressive"
+          "singing",
+          "spoken word",
+          "choir",
+          "humming"
         ]
       },
       {
-        "text": "[Outro] The opening piano line returns and resolves, then fades out",
+        "text": "[Instrumental]",
         "durationMs": 16400,
         "positiveStyles": [
           "piano",
           "warm",
           "resolution",
-          "fade out"
+          "fade out",
+          "opening piano line returns",
+          "resolves and fades out"
         ],
         "negativeStyles": [
           "drums",
-          "vocals"
+          "vocals",
+          "singing",
+          "spoken word",
+          "choir",
+          "humming"
         ]
       }
     ]

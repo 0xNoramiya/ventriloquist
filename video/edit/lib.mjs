@@ -98,11 +98,15 @@ export function mix(out, total, { speech, effects, music }) {
   const sp = speech.map((c) => add(c, 's'));
   const fx = effects.map((c) => add(c, 'f'));
   const mu = add(music, 'm');
+  // music dips: [from, to, gain], ramped over 0.8 s at each end so the level change doesn't click
+  const dips = (music.dips ?? [])
+    .map(([a, b, g]) => `volume='1-${1 - g}*clip((t-${a})/0.8,0,1)*clip((${b}-t)/0.8,0,1)':eval=frame`)
+    .join(',');
   const graph = [
     ...parts,
     `${sp.join('')}amix=inputs=${sp.length}:normalize=0,apad=whole_dur=${total}[speech]`,
     `[speech]asplit=2[sp1][key]`,
-    `${mu}apad=whole_dur=${total}[mus]`,
+    `${mu}${dips ? dips + ',' : ''}apad=whole_dur=${total}[mus]`,
     `[mus][key]sidechaincompress=threshold=0.03:ratio=8:attack=60:release=450[ducked]`,
     `${fx.join('')}amix=inputs=${fx.length}:normalize=0,apad=whole_dur=${total}[fx]`,
     `[sp1][ducked][fx]amix=inputs=3:normalize=0,atrim=0:${total},loudnorm=I=-16:TP=-1.5:LRA=11[out]`,
