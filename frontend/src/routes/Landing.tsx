@@ -12,9 +12,10 @@ import { isBrowserDemo } from '../demo/bridge';
 import { DemoNotice } from '../demo/DemoNotice';
 
 const SCENARIOS: { id: string; title: Key; body: Key }[] = [
+  // English patients first; the Indonesian ones show the second language.
   { id: 'daughter', title: 'scenario.daughter.title', body: 'scenario.daughter.body' },
-  { id: 'suction', title: 'scenario.suction.title', body: 'scenario.suction.body' },
   { id: 'cold', title: 'scenario.cold.title', body: 'scenario.cold.body' },
+  { id: 'suction', title: 'scenario.suction.title', body: 'scenario.suction.body' },
   { id: 'spelling', title: 'scenario.spelling.title', body: 'scenario.spelling.body' },
 ];
 

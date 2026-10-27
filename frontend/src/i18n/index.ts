@@ -21,16 +21,17 @@ export function translate(lang: Lang, key: Key, vars?: Vars): string {
 
 const STORAGE_KEY = 'ventriloquist.lang';
 
+/** English unless this browser chose Indonesian with the toggle. Not the browser language: judges
+ * and reviewers on an Indonesian-locale machine should still land on English. Patient screens
+ * follow the patient's own language either way. */
 function storedLang(): Lang {
   try {
     const v = window.localStorage.getItem(STORAGE_KEY);
     if (v === 'en' || v === 'id') return v;
   } catch {
-    // storage blocked; fall through to the browser language
+    // storage blocked: English
   }
-  return typeof navigator !== 'undefined' && navigator.language.toLowerCase().startsWith('id')
-    ? 'id'
-    : 'en';
+  return 'en';
 }
 
 interface LangStore {
