@@ -7,6 +7,7 @@ perception pipeline and reports a confusion matrix per source (tracker, local, s
 plus latency statistics. Results go to docs/DETECTOR_EVAL.md and data/labeled/results.json.
 
     PYTHONPATH=backend:. backend/.venv/bin/python scripts/eval_detector.py [--mode mock|live] [--synthetic]
+        [--data DIR --name NAME --note TEXT]
 
 --synthetic builds a tiny labelled set from the synthetic probe media so the script can be exercised
 without recordings (those numbers say nothing about real patients).
@@ -43,7 +44,10 @@ def build_synthetic(base: Path) -> None:
     }
     if not all(p.exists() for p in src.values()):
         subprocess.run([sys.executable, str(ROOT / "scripts" / "make_probe_media.py")], check=True)
-    for split, shifts in (("calibration", (0.0, 0.25, 0.5)), ("eval", (0.1, 0.35, 0.6))):
+    for split, shifts in (
+        ("calibration", (0.0, 0.25, 0.5)),
+        ("eval", (0.1, 0.35, 0.6)),
+    ):
         for label, path in src.items():
             for i, s in enumerate(shifts):
                 d = base / split if split == "calibration" else base / label
@@ -92,6 +96,18 @@ async def main() -> None:
     ap.add_argument("--mode", default="mock", choices=["mock", "live"])
     ap.add_argument("--synthetic", action="store_true")
     ap.add_argument("--fps", type=int, help="override perception.fps (calibration and answers)")
+    ap.add_argument("--data", type=Path, help="another labelled folder with the same layout")
+    ap.add_argument(
+        "--name",
+        default="",
+        help="report suffix, e.g. GENERATED -> DETECTOR_EVAL_GENERATED.md",
+    )
+    ap.add_argument(
+        "--note",
+        default="",
+        help="one line describing the clips, printed in the report",
+    )
+    ap.add_argument("--verbose", action="store_true", help="print each source's reading per clip")
     args = ap.parse_args()
     os.environ["APP_MODE"] = args.mode
 
@@ -102,7 +118,7 @@ async def main() -> None:
     from app.roles import Roles
     from app.storage import Store
 
-    base = LABELED if not args.synthetic else ROOT / "data" / "labeled_synthetic"
+    base = args.data or (LABELED if not args.synthetic else ROOT / "data" / "labeled_synthetic")
     if args.synthetic:
         build_synthetic(base)
     cal_dir = base / "calibration"
@@ -124,6 +140,8 @@ async def main() -> None:
     cal = await calib.finalize(
         "eval", clips, work / "cal", hub=hub, roles=roles, settings=settings, mode=mode
     )
+    if args.verbose:
+        print("signal:", cal.get("signal_text"), "| SAM prompts:", cal.get("prompts"))
     rows: list[dict[str, Any]] = []
     for label in LABELS:
         for clip in sorted((base / label).glob("*")) if (base / label).exists() else []:
@@ -132,7 +150,12 @@ async def main() -> None:
             perc = await perceive(
                 tmp, cal, work, hub=hub, roles=roles, settings=settings, mode=mode
             )
-            src = {s.name: (s.top[0] if s.ok else None) for s in perc.sources}
+            sources = list(perc.sources)
+            if perc.late is not None:  # early decision on the tracker: still score the judge
+                late = await perc.late
+                if late is not None:
+                    sources.append(late)
+            src = {s.name: (s.top[0] if s.ok else None) for s in sources}
             rows.append(
                 {
                     "clip": clip.name,
@@ -146,6 +169,11 @@ async def main() -> None:
                 }
             )
             print(f"{clip.name:28s} true={rows[-1]['true']:9s} fused={rows[-1]['fused']:9s} {src}")
+            if args.verbose:
+                for x in sources:
+                    d = x.to_dict()
+                    keep = ("top", "p", "distances", "missing", "repetitions", "observed", "error")
+                    print("   ", x.name, {k: d[k] for k in keep if k in d})
     if not rows:
         print("No labelled clips found.")
         return
@@ -171,8 +199,11 @@ async def main() -> None:
     lines = [
         "# Detector evaluation",
         "",
-        f"Mode `{args.mode}`, {len(rows)} clips at {settings.perception.fps} fps"
-        f"{' (SYNTHETIC cartoon clips: not evidence about real patients)' if args.synthetic else ''}.",
+        (
+            f"Mode `{args.mode}`, {len(rows)} clips at {settings.perception.fps} fps"
+            f"{' (SYNTHETIC cartoon clips: not evidence about real patients)' if args.synthetic else ''}."
+        ),
+        *([args.note] if args.note else []),
         f"Calibration leave-one-out accuracy: {cal['accuracy']}; error rates {cal['error_rates']}.",
         f"Latency per answer window: median {result['latency_ms']['median']} ms, p90 {result['latency_ms']['p90']} ms.",
         "",
@@ -189,7 +220,8 @@ async def main() -> None:
         ]
         lines += [f"| {t} | " + " | ".join(str(m[t][c]) for c in CLASSES) + " |" for t in m]
         lines.append("")
-    out = ROOT / "docs" / ("DETECTOR_EVAL_SYNTHETIC.md" if args.synthetic else "DETECTOR_EVAL.md")
+    suffix = f"_{args.name}" if args.name else ("_SYNTHETIC" if args.synthetic else "")
+    out = ROOT / "docs" / f"DETECTOR_EVAL{suffix}.md"
     out.write_text("\n".join(lines))
     print(f"wrote {out}")
 
