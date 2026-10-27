@@ -565,8 +565,11 @@ class Session:
         return {"accepted": True, **perc.to_dict()}
 
     async def _attach_late_judge(self, prompt_id: str, task: Any, obs: Observation) -> None:
-        """The blind judge finished after an early decision: record its verdict next to the answer
-        and alert the caregiver if it confidently disagrees."""
+        """The blind judge finished after an early decision: record its verdict next to the answer,
+        raise the alarm if it saw the emergency signal (as it would have before the early
+        decision), and alert the caregiver if it confidently disagrees."""
+        from app.perception.fusion import EMERGENCY_P
+
         res = await task
         if res is None:
             return
@@ -575,6 +578,10 @@ class Session:
         if entry is not None:
             entry.setdefault("sources", {})["spark"] = verdict
         self.log.write("late_judge", prompt_id=prompt_id, verdict=verdict)
+        if res.ok and res.probs.get("emergency", 0.0) >= EMERGENCY_P and not self.ended:
+            if self.state != State.EMERGENCY:
+                await self.emergency("spark:late_judge")
+            return
         top, p = res.top
         if (
             res.ok

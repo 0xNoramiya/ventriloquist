@@ -14,6 +14,8 @@ from typing import Any
 from app.engine.types import Answer, Observation
 
 CLASSES = ("yes", "no", "none", "emergency")
+# Any source at least this sure of the emergency signal raises the alarm.
+EMERGENCY_P = 0.5
 
 
 @dataclass
@@ -72,7 +74,7 @@ def fuse(
     sources: list[SourceResult],
     weights: dict[str, float],
     unclear_threshold: float = 0.65,
-    emergency_threshold: float = 0.5,
+    emergency_threshold: float = EMERGENCY_P,
 ) -> Observation:
     usable = [s for s in sources if s.ok and s.probs]
     detail = {s.name: s.to_dict() for s in sources}

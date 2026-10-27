@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 
 import pytest
 
-from app.engine.types import Answer
+from app.engine.types import Answer, Observation
+from app.perception.fusion import SourceResult, judge_probs
 from app.providers.registry import Mode
 from app.sessions.simulated import SimulatedPatient
 from app.sessions.state_machine import State
@@ -120,6 +122,23 @@ async def test_triple_yes_observation_triggers_alarm(ctx):
     await s.answer(s.prompt.id, Answer.EMERGENCY)
     assert s.state == State.EMERGENCY
     assert events and events[-1]["type"] == "alarm"
+
+
+@pytest.mark.parametrize(("judge_top", "alarm"), [("emergency", True), ("yes", False)])
+async def test_late_judge_emergency_raises_alarm(ctx, judge_top, alarm):
+    """After an early decision on the tracker, the blind judge's late emergency verdict still
+    raises the alarm, as it would have if the engine had waited for it."""
+    s = make_session(ctx, "cold", None)
+    await s.start()
+    pid = s.prompt.id
+    await s.spoken(pid)
+    await s.answer(pid, Answer.YES)
+
+    async def judge() -> SourceResult:
+        return SourceResult("spark", judge_probs(judge_top, 0.8))
+
+    await s._attach_late_judge(pid, asyncio.ensure_future(judge()), Observation(Answer.YES, 0.9))
+    assert (s.state == State.EMERGENCY) is alarm
 
 
 async def test_sensitive_spelled_message_held_for_caregiver(ctx):
