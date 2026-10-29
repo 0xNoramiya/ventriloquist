@@ -1,7 +1,7 @@
 # Ventriloquist demo video: design
 
-The video wears the app's own identity, taken from `frontend/src/index.css`, so the story scenes,
-cards and screen recordings read as one thing.
+The video uses the app's colors and type from `frontend/src/index.css`, so the story scenes, cards
+and screen recordings read as one film.
 
 ## Colors
 
@@ -21,9 +21,9 @@ cards and screen recordings read as one thing.
 
 ## Type
 
-Atkinson Hyperlegible Next (variable, 200 to 800), the app's face: built for low vision, which
-suits a film about access. Local files in `fonts/`. Headlines 700, body 500, labels 600 with
-tabular numbers.
+Atkinson Hyperlegible Next (variable, 200 to 800), the app's typeface. It was designed for readers
+with low vision, which suits a film about access. Local files in `fonts/`. Headlines 700, body 500,
+labels 600 with tabular numbers.
 
 ## Corners and depth
 

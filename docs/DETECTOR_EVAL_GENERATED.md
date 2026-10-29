@@ -1,7 +1,7 @@
 # Detector evaluation
 
 Mode `live`, 13 clips at 15 fps.
-AI-generated photoreal clips of one fictional ICU patient (Higgsfield: GPT Image 2.5 start frame, Seedance 2.0 image-to-video), labels checked frame by frame; not evidence about real patients.
+AI-generated photoreal clips of one fictional ICU patient (one generated start frame, animated image-to-video), labels checked frame by frame; not evidence about real patients.
 Calibration leave-one-out accuracy: {'local': 0.3333333333333333, 'tracker': 0.625, 'spark': 1.0}; error rates {'a': 0.07692307692307693, 'b': 0.07692307692307693}.
 Latency per answer window: median 3808 ms, p90 5682 ms.
 

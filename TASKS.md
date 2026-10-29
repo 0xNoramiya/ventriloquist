@@ -6,7 +6,7 @@ Status: `[x]` done, `[~]` in progress, `[ ]` to do. Updated as work proceeds.
 - [x] Preflight: kickoff time check, toolchain (git, Python 3.12, Node 22, ffmpeg), Meta key verified with `GET /v1/models`
 - [x] Repo layout, `.gitignore`, `.env.example`, `config.yaml`, MIT `LICENSE`, `Makefile`
 - [x] Read Meta, Baseten and Modal docs; `docs/API_NOTES.md`
-- [x] Probes `scripts/probe_*.py` (skip gracefully without keys)
+- [x] Probes `scripts/probe_*.py` (skip when keys are missing)
 - [x] Verify problem-statement sources (`docs/SOURCES.md`)
 - [x] README skeleton, `HACKATHON_LOG.md`, docs skeletons
 - [x] DoD: `make setup && make test` passes; `make dev` serves backend and frontend

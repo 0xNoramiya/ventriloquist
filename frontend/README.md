@@ -1,8 +1,8 @@
 # Ventriloquist frontend
 
-React 18 + TypeScript + Vite. Four screens share one session through the backend's WebSocket:
-the patient phone (`/patient/:sid`), the caregiver console (`/caregiver/:sid`), and the setup,
-calibration, memory, simulation and settings pages around them. Not a medical device.
+React 18 + TypeScript + Vite. Two screens share one session through the backend's WebSocket: the
+patient phone (`/patient/:sid`) and the caregiver console (`/caregiver/:sid`). The setup,
+calibration, memory, simulation and settings pages sit around them. Not a medical device.
 
 ## Run it
 

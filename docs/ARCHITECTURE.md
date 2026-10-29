@@ -122,4 +122,4 @@ unpacks the backend sources (`scripts/build_pyodide_bundle.py`) and swaps the We
 - **Same code in every mode.** Mock, live and privacy share the session, engine and roles; only the
   provider behind each role changes. The budget guard can switch a live session to mock mid-way.
 - **One snapshot, two screens.** The backend pushes the whole session view; the patient screen
-  simply never renders the probabilities.
+  never renders the probabilities.

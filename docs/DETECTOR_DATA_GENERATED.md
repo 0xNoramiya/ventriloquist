@@ -8,22 +8,28 @@ ICU patient and animated the answer signals. Nobody in these clips exists.
 
 ## How the clips were made
 
-- **Start frame:** GPT Image 2.5 through Higgsfield. Prompt, in short: a fictional Indonesian man in
-  his early 60s, awake in an ICU bed, endotracheal tube taped at the mouth, seen by a phone on the
-  bed rail.
-- **Clips:** Seedance 2.0 (fast, 480p, 4 s, no audio) animating that same frame, one prompt per
-  clip; output 752x560 at 24 fps. Every prompt starts "locked-off static camera" and describes one
-  movement.
-- **Signals:** YES is both eyebrows raised, once or twice. NO is both eyes squeezed shut for about
-  one to two seconds. "No answer" clips are still, with distractors: natural blinks, a gaze shift to
-  the side, a swallow. The emergency signal is the eyebrows raised three or more times.
-- **Set:** calibration 8 clips (a 12-second rest, 3 YES, 3 NO, 1 emergency); evaluation 13 clips
-  (3 YES, 4 NO, 4 no answer, 2 emergency). The YES clips include a late raise and a small, tired one.
-- **Labels checked, not assumed:** for every clip we measured motion over time in a brow region
-  and an eye region and looked at frame strips. One clip was excluded: its prompt asked for two
-  raises and the model produced three, which is the emergency signal, so its label was ambiguous.
-- **Cost:** about 85 Higgsfield credits. The clips stay in `data/labeled_generated/` (gitignored),
-  with a manifest of each clip's label and variation.
+The start frame is an AI-generated still. The prompt, in short: a fictional Indonesian man in his
+early 60s, awake in an ICU bed, endotracheal tube taped at the mouth, seen by a phone on the bed
+rail.
+
+An image-to-video model animated that same frame, one prompt per clip (fast variant, 480p, 4 s, no
+audio). The output is 752x560 at 24 fps. Every prompt starts "locked-off static camera" and
+describes one movement.
+
+In the clips, YES is both eyebrows raised, once or twice. NO is both eyes squeezed shut for about
+one to two seconds. "No answer" clips are still, with distractors: natural blinks, a gaze shift to
+the side, a swallow. The emergency signal is the eyebrows raised three or more times.
+
+Calibration uses 8 clips (a 12-second rest, 3 YES, 3 NO, 1 emergency) and evaluation 13 (3 YES,
+4 NO, 4 no answer, 2 emergency). The YES clips include a late raise and a small, tired one.
+
+We checked every label instead of assuming the model followed its prompt. For each clip we measured
+motion over time in a brow region and an eye region and looked at frame strips. One clip was
+excluded: its prompt asked for two raises and the model produced three, which is the emergency
+signal, so its label was ambiguous.
+
+The clips stay in `data/labeled_generated/` (gitignored), with a manifest of each clip's label and
+variation.
 
 Run it: `PYTHONPATH=backend:. backend/.venv/bin/python scripts/eval_detector.py --mode live
 --data data/labeled_generated --name GENERATED --verbose`.
@@ -86,7 +92,8 @@ unclear reading or no movement seen on a signal clip; "wrong" is a confident dif
 3. **Two frames per second.** Numbered test frames showed Baseten samples video at 2 fps of video
    time whatever the clip's rate, with no request field for it (Meta's API takes `fps`). The judge
    saw about 8 frames of a 4-second window. Slowing the clip gives it more frames, but slowed too
-   far it times holds by the playback. Judge alone, each window judged twice:
+   far the judge measures how long the eyes stay shut in playback time, and a blink looks like a
+   held squeeze. Judge alone, each window judged twice:
 
    | Clip as sent | Right of 26 | Asked again | Wrong | Emergency | Median latency |
    |---|---:|---:|---:|---:|---:|

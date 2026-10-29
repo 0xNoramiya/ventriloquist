@@ -68,9 +68,9 @@ larger trial is not currently feasible [3]. An earlier single-centre evaluation 
 tracheostomy patients reported 75% top-1 accuracy on phrases from the app's supported phrase list [4].
 Orally intubated patients have a tube in the mouth, which makes lip reading harder still.
 
-So Ventriloquist does not read lips. It makes the yes/no conversation that already happens at the
-bedside smarter, faster, and available whenever the patient wants to talk. Full citations and quotes:
-[`docs/SOURCES.md`](docs/SOURCES.md).
+So Ventriloquist does not read lips. It takes the yes/no conversation that already happens at the
+bedside, asks fewer questions to reach the message, and lets the patient start it at any time. Full
+citations and quotes: [`docs/SOURCES.md`](docs/SOURCES.md).
 
 ## What it is, and what it is not
 
@@ -135,13 +135,12 @@ Details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Client protocol: [`docs
 | **Muse Image** | Generated the 34 AAC pictograms shown next to messages on the patient screen (`scripts/generate_pictograms.py`) |
 | SAM 3.1 open weights (optional, self-hosted on Modal) | Privacy-mode tracker when an endpoint is configured; otherwise an on-device optical-flow tracker |
 
-The photos on the landing and calibration pages are not from Meta models and play no part at
-runtime. They show one fictional patient, generated through Higgsfield: GPT Image 2.5 for the
-bedside, night and phone-mount photos, and stills from the Seedance 2.0 gesture clips described in
-[`docs/DETECTOR_DATA_GENERATED.md`](docs/DETECTOR_DATA_GENERATED.md) for the YES/NO signal cards.
+The photos on the landing and calibration pages are generated images of one fictional patient.
+They play no part at runtime.
 
-Every call is schema-validated (strict JSON schema on the Meta API), repaired once, then falls back
-safely; every call is logged with model, latency, tokens and cost. Verified request and response
+Every model reply is checked against a schema (strict JSON schema on the Meta API) and repaired
+once; if it still fails, the role falls back to a safe default. Every call is logged with model,
+latency, tokens and cost. Verified request and response
 shapes: [`docs/API_NOTES.md`](docs/API_NOTES.md). A live run of every role: [`docs/LIVE_CHECK.md`](docs/LIVE_CHECK.md).
 
 ![Caregiver console in live mode](docs/img/caregiver-live.png)
@@ -172,8 +171,8 @@ The relay runs end to end with a simulated relative until a WhatsApp Business ac
 
 ## Safety
 
-Thirteen rules from the build brief plus two added since, each enforced in code and covered by
-tests: no advice, no AI-proposed sensitive messages, confirm gating, post-speak check, emergency
+Fifteen rules. Apart from the "not a medical device" notice on every page, each is enforced in code
+and covered by tests: no advice, no AI-proposed sensitive messages, confirm gating, post-speak check, emergency
 from any state, blind judging, bounded priors, fatigue caps, human override everywhere,
 transparency, privacy, memory hygiene, every spoken message reaching a person, and family relay
 only with consent. The table with file and test names is in [`docs/SAFETY.md`](docs/SAFETY.md).
@@ -201,32 +200,37 @@ context), simulated patients needed 7.05 questions per message on day 1 and 6.63
 ### Detector
 
 Real-patient detector numbers need labelled clips from consenting participants
-(`scripts/eval_detector.py`, data in `data/labeled/`, never committed); they are not recorded yet.
-On synthetic cartoon clips (`docs/DETECTOR_EVAL_SYNTHETIC.md`) the pipeline runs end to end. In the
-live check (`docs/LIVE_CHECK.md`), Muse Spark named the eyebrow raise and chose "eyebrows" as the SAM
-prompt, and SAM-based calibration reached 0.86 leave-one-out accuracy. Across runs the answer windows
-(YES, NO, rest) were classified correctly or, once, returned UNCLEAR because the blind judge
-disagreed with SAM; UNCLEAR means the question is asked again, which is the intended behaviour. The
-detector's softmin temperature is fitted on the calibration clips (temperature scaling on the
-leave-one-out likelihood); before that fix every window came back UNCLEAR.
+(`scripts/eval_detector.py`, data in `data/labeled/`, never committed). None are recorded yet.
 
-On the live models, 12 synthetic windows (YES, NO, no answer, and the emergency signal of three quick
-eyebrow raises) were all classified correctly, by SAM alone and fused
-([`docs/DETECTOR_EVAL_SYNTHETIC.md`](docs/DETECTOR_EVAL_SYNTHETIC.md)). The wait after the 4-second
-window was 3.4 s median, 3.6 s p90, against 4.0 s and 4.4 s when everything ran at 15 fps. SAM 3.1
-gets an 8 fps copy of each clip, which is faster at equal accuracy. Muse Spark keeps 15 fps: on
-8 fps clips the judge counted two eyebrow raises as four and called an emergency on 7 of 9
-two-raise clips; at 15 fps it was right 21 times out of 21. SAM decides alone only on a clear YES
-or NO: at least 90% sure and its best template at least 1.25 times closer than the next. The
-judge's verdict is then attached to the trail when it arrives, with an alert if it disagrees and the
-alarm if it saw the emergency signal. "No answer" always waits for the judge, because a live run
-showed SAM confidently missing a movement the judge saw. These numbers say nothing about real
-patients.
+**Synthetic cartoon clips.** The pipeline runs end to end on them
+([`docs/DETECTOR_EVAL_SYNTHETIC.md`](docs/DETECTOR_EVAL_SYNTHETIC.md)). In the live check
+([`docs/LIVE_CHECK.md`](docs/LIVE_CHECK.md)), Muse Spark named the eyebrow raise and chose
+"eyebrows" as the SAM prompt, and SAM-based calibration reached 0.86 leave-one-out accuracy. Across
+runs the answer windows (YES, NO, rest) were classified correctly, except once, when the blind judge
+disagreed with SAM and the window came back UNCLEAR, so the question was asked again. That is the
+intended behaviour. The detector's softmin temperature is fitted on the calibration clips
+(temperature scaling on the leave-one-out likelihood); before that fix every window came back
+UNCLEAR.
 
-**A photoreal face.** The cartoon was too easy, so we generated a fictional ICU patient with
-Higgsfield (GPT Image 2.5, then Seedance 2.0 for each gesture) and checked every label frame by
-frame. On it the first run got only 5 of 13 windows right: on a whole 320x240 frame, Muse Spark
-missed eyebrow raises a few pixels tall and took blinks for the NO squeeze. Four fixes followed:
+On the live models, 12 synthetic windows (YES, NO, no answer, and the emergency signal of three
+quick eyebrow raises) were all classified correctly, by SAM alone and fused. The wait after the
+4-second window was 3.4 s median and 3.6 s p90, against 4.0 s and 4.4 s when everything ran at
+15 fps:
+- SAM 3.1 gets an 8 fps copy of each clip, which is faster at equal accuracy.
+- Muse Spark keeps 15 fps. On 8 fps clips the judge counted two eyebrow raises as four and called
+  an emergency on 7 of 9 two-raise clips; at 15 fps it was right 21 times out of 21.
+- SAM decides alone only on a clear YES or NO: at least 90% sure, with its best template at least
+  1.25 times closer than the next. The judge's verdict is attached to the trail when it arrives,
+  with an alert if it disagrees and the alarm if it saw the emergency signal.
+- "No answer" always waits for the judge, because a live run showed SAM confidently missing a
+  movement the judge saw.
+
+These numbers say nothing about real patients.
+
+**A photoreal face.** The cartoon was too easy, so we generated a photoreal fictional ICU patient,
+one clip per gesture, and checked every label frame by frame. The first run got only 5 of 13 windows
+right: on a whole 320x240 frame, Muse Spark missed eyebrow raises a few pixels tall and took blinks
+for the NO squeeze. Four fixes followed:
 - the judge now watches a crop around the signal body parts that SAM found during calibration;
 - prompt v4 tells a blink from a held squeeze;
 - SAM reports whether the body part was seen at all;
@@ -272,8 +276,8 @@ The demo page runs the real engine, written in Python, inside the browser throug
 console and a phone-sized patient view side by side. No server, no camera, no keys. Answer with Y
 and N, or tick "Simulated patient" and watch.
 
-Open it at **https://0xnoramiya.github.io/ventriloquist/**. It deploys to GitHub Pages from `.github/workflows/pages.yml` on every
-push to `main`. Locally: `cd frontend && npm run dev:demo`.
+Open it at **https://0xnoramiya.github.io/ventriloquist/**. It deploys to GitHub Pages from
+`.github/workflows/pages.yml` on every push to `main`. Locally: `cd frontend && npm run dev:demo`.
 
 ## Deployed app
 
@@ -351,8 +355,8 @@ The dated build log is [`HACKATHON_LOG.md`](HACKATHON_LOG.md) and the task list 
 
 MIT ([`LICENSE`](LICENSE)). Letter statistics come from public-domain texts (Project Gutenberg) and
 Indonesian statutes, which carry no copyright (UU 28/2014 Art. 42); see `docs/SOURCES.md`. Models by
-Meta (Muse Spark, SAM 3.1, Muse Voice Transcribe, Muse Wonder, Muse Image, Muse Spark Open, Muse Glimmer). SAM 3.1 weights are
-under the SAM License and are never committed here.
+Meta (Muse Spark, SAM 3.1, Muse Voice Transcribe, Muse Wonder, Muse Image, Muse Spark Open, Muse
+Glimmer). SAM 3.1 weights are under the SAM License and are never committed here.
 
 ### References
 

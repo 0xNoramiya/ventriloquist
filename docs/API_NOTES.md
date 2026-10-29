@@ -34,7 +34,7 @@ Sources: https://dev.meta.ai/docs/authentication, /docs/protocols/responses, /do
 - **Sampling**: leave `temperature`/`top_p` at defaults (docs). `logprobs` → 400 on Spark. `truncation: "auto"` → 400. `n>1`, `stop` and `verbosity` are not implemented on Responses.
 - `safety_identifier` (≤64 chars, hashed user id) is recommended when there is an end user (docs: /docs/protocols/responses#safety-identifiers).
 
-## 2. Muse Spark — text, structured output, reasoning
+## 2. Muse Spark: text, structured output, reasoning
 
 Sources: https://dev.meta.ai/docs/models, /docs/reasoning, /docs/structured-output, /docs/protocols/responses, /docs/protocols/chat-completions. Fixtures: `spark_responses_text_minimal.json`, `spark_responses_json_schema.json`, `spark_chat_json_schema.json`, `spark_responses_incomplete.json`, `spark_error_reasoning_none.json`, `spark_chat_error_reasoning_none.json`, `spark_input_tokens_count.json`.
 
@@ -48,7 +48,7 @@ Sources: https://dev.meta.ai/docs/models, /docs/reasoning, /docs/structured-outp
 - `max_output_tokens` minimum is 16. With 16, observed `status: "incomplete"`, `incomplete_details.reason: "max_output_tokens"` (14 of the 16 tokens went to reasoning). Budget **≥ 400–600** for small JSON at `minimal`.
 - Multi-turn: `previous_response_id` (needs `store: true`) **or** stateless replay with `include: ["reasoning.encrypted_content"]` + `store: false`, never both (400). `instructions` is not carried over by `previous_response_id`, so resend it each turn.
 
-## 3. Muse Spark — image understanding
+## 3. Muse Spark: image understanding
 
 Sources: https://dev.meta.ai/docs/image-understanding, /docs/file-handling. Fixtures: `spark_responses_image_grounding.json`, `spark_responses_image_face.json`.
 
@@ -58,7 +58,7 @@ Sources: https://dev.meta.ai/docs/image-understanding, /docs/file-handling. Fixt
 - Grounding uses a **0–1000 normalised grid** (x right, y down), relative to the image as sent. Values may slightly exceed 1000, so clamp. Observed with a json_schema of `x_min..y_max`, scaled to px against ground truth: photo frame `[110,180,176,252]` (truth `[110,180,175,250]`), bed `[259,170,602,431]`, table `[84,252,207,432]`, `people_present: false`.
 - Observed face judge (`face_still.png`, eyebrows at peak): `{"eyebrows_raised": true, "eyes_open": true, "confidence": 0.95}` in 2.33 s, 420 in / 145 out tokens.
 
-## 4. Muse Spark — video (and audio)
+## 4. Muse Spark: video (and audio)
 
 Sources: https://dev.meta.ai/docs/video-understanding, /docs/file-handling, /docs/api-reference/responses/schemas (Input Video Content). Fixtures: `spark_responses_video_inline.json`, `spark_responses_video_inline_fps4.json`, `spark_responses_video_file_id.json`, `files_upload_video.json`.
 
@@ -66,7 +66,7 @@ Sources: https://dev.meta.ai/docs/video-understanding, /docs/file-handling, /doc
   1. Inline: `{"type": "input_video", "video_url": "data:video/mp4;base64,..."}` (≤ 50 MB). No upload needed.
   2. Upload, then reference by `input_video`: `client.files.create(file=("clip.mp4", bytes, "video/mp4"), purpose="user_data", expires_after={"anchor": "created_at", "seconds": 3600})`. The response is `{id: "file-<digits>", object: "file", bytes, created_at, filename, purpose: "user_data", status: "uploaded", expires_at}`. Upload is synchronous (1.8–3.0 s observed). Then `{"type": "input_video", "file_id": id}`.
   3. Upload, then reference by `input_file`: `{"type": "input_file", "file_id": id}`.
-  `expires_after.seconds` ranges 3600–2592000. Without it, files never expire and count toward the 100 GiB team storage. Delete with `client.files.delete(id)` → `deleted: true` (3.6–4.6 s observed). Note: ZDR orgs cannot use file uploads.
+  `expires_after.seconds` ranges 3600–2592000. Without it, files never expire and count toward the 100 GiB team storage. Delete with `client.files.delete(id)` → `deleted: true` (3.6–4.6 s observed). ZDR orgs cannot use file uploads.
 - Formats (Spark): **MP4 only** (`video/mp4`); embedded audio is read too, and clips without audio are fine. (SAM also accepts MOV.)
 - **Frame sampling / `fps`**: `input_video.fps` (number) exists in the schema and **works** (observed). Billed input tokens for the same 4 s 640×480 clip: default 1,086, `fps: 4` 2,126, `fps: 8` 4,206. That is ≈ 130 tokens per frame plus ~46, which implies a **default of ≈ 2 fps** (inferred). Accuracy on the synthetic YES clip (truth: 2 eyebrow raises + 1 blink): default counted 1 raise, 0 blinks; `fps: 4` counted 1 raise, 1 blink; **`fps: 8` counted 2 raises, 1 blink (correct)**. On the NOD clip (truth 2 nods) the default fps counted 1 nod, signal `HEAD_NOD`. On the REST clip (truth 3 blinks) it counted 1 blink, signal `NONE`. Short movements need `fps ≥ 8`.
 - **Gotcha**: `POST /responses/input_tokens` does **not** count video frames (it returned 203 for every fps while billing was 1,086–4,206). Estimate video cost from billed usage instead.
@@ -75,7 +75,7 @@ Sources: https://dev.meta.ai/docs/video-understanding, /docs/file-handling, /doc
 - Background mode (`background: true`) caps the JSON body at 1 MiB, so use `file_id` for video there.
 - Audio input: `{"type": "input_audio", "input_audio": {"data": "<base64>", "format": "wav"|"mp3"}}`. The docs say audio on 1.3 "is not fully supported, quality may be degraded" and recommend `muse-spark-1.2` or Voice Transcribe. Set `max_output_tokens ≥ 4000` for transcription (docs). Not probed.
 
-## 5. SAM 3.1 — image segmentation
+## 5. SAM 3.1: image segmentation
 
 Sources: https://dev.meta.ai/docs/media-segmentation, /docs/sam/overview, /docs/sam/segmenting, /docs/sam/reading-segmentation, /docs/sam/client-libraries. Fixtures: `sam_image_stream_lossless.json`, `sam_image_nonstream_one_bit.json`, `sam_image_stream_one_bit_eyebrows.json`.
 
@@ -89,7 +89,7 @@ Sources: https://dev.meta.ai/docs/media-segmentation, /docs/sam/overview, /docs/
 - Observed: `photo frame` → 1 match, box exactly the truth `[110,180,175,250]`, c 0.88, 2.56 s stream (first delta 2.05 s). `bed` → `[280,226,601,400]` (misses the headboard), 1.40 s non-stream. `eyebrows` on the face still → **one object covering both brows** `[222,128,417,155]`, c 0.89, 1.88 s. Decoded mask foreground: 4,657 of 4,686 box pixels (frame), 2,140 of 5,488 (eyebrows).
 - Stream event order (image): `response.created`, `response.in_progress`, `response.output_item.added`, `response.content_part.added`, `response.output_text.delta` ×1, `response.output_text.done`, `response.content_part.done`, `response.output_item.done`, `response.completed`.
 
-## 6. SAM 3.1 — video segmentation and tracking
+## 6. SAM 3.1: video segmentation and tracking
 
 Sources: same as §5. Fixtures: `sam_video_stream_one_bit_eyebrows.json`, `sam_video_stream_file_id_face.json`, `sam_video_nonstream_lossless_eyebrows.json`.
 
@@ -173,7 +173,7 @@ Sources: https://docs.baseten.co/inference/model-apis/overview, /inference/model
 
 - Sources: https://campustechnology.com/articles/2026/08/26/meta-releases-muse-glimmer-an-open-weight-ai-model-designed-to-run-on-consumer-hardware.aspx , https://www.vktr.com/ai-platforms/meta-releases-muse-glimmer/ (news coverage, checked 2026-10-26; read the model card before deploying).
 - Reported: 30B dense parameters, distilled from Muse Spark 1.2, Apache 2.0, weights on Hugging Face, quantized to under 20 GB to run on consumer hardware.
-- Ventriloquist talks to it through any OpenAI-compatible Chat Completions server (`LOCAL_LLM_URL`, `LOCAL_LLM_MODEL`). Like Baseten, structured output is put in the system prompt and validated with one repair. Text-only roles only; requests with media are routed to Baseten or stay on-device (`providers/onprem.py`).
+- Ventriloquist talks to it through any OpenAI-compatible Chat Completions server (`LOCAL_LLM_URL`, `LOCAL_LLM_MODEL`). Like Baseten, structured output is put in the system prompt and validated with one repair. Text roles only; requests with media are routed to Baseten or stay on-device (`providers/onprem.py`).
 - UNTESTED against a real Glimmer server; contract test against a mock endpoint.
 
 ## 11c. WhatsApp Cloud API (family relay)
@@ -252,7 +252,7 @@ Raw JSON bodies, sanitized (secrets redacted, `encrypted_content` truncated). St
 
 Synthetic media and its ground truth: `data/probe_media/` (gitignored), regenerated by `scripts/make_probe_media.py`. `media_manifest.json` holds event frames and reference transcripts.
 
-## Differences from the build brief
+## Differences from the original plan
 
 1. **Spark accepts audio.** Docs list text, image, video, audio and PDF input for Spark and Wonder. Audio on `muse-spark-1.3` is "not fully supported", so use `muse-spark-1.2` or Voice Transcribe.
 2. **Reasoning `none` → 400** (confirmed, both endpoints). `minimal` is the fastest level (~1.3–1.7 s for small JSON).
@@ -268,13 +268,13 @@ Synthetic media and its ground truth: `data/probe_media/` (gitignored), regenera
 11. **Strict structured output rejects free-form maps**: a `dict[str, str]` field fails with `"'additionalProperties' is required to be supplied and to be false."` Template slots are therefore explicit nullable fields (`name`, `relation`, `item`, `item_id`).
 12. **Reasoning budgets**: at effort `low`, the prior builder used more than 1,500 output tokens and came back `incomplete` (still billed). Reasoning roles now get 3,000-4,000 `max_output_tokens`; an incomplete reply is accounted and falls back without a repair retry.
 13. **Adapter choice**: the probes use the OpenAI SDK with `base_url`; the production adapters call the same OpenAI-compatible endpoints with `httpx` directly so retries (429/5xx with `Retry-After`), timeouts and Meta-specific fields (`input_video.fps`, SAM `metadata`) stay explicit. Request bodies are covered by contract tests (`backend/tests/test_providers.py`).
-14. **Blind judge timeout**: observed Spark video latency (3.8-5.1 s, one 13.3 s outlier) is close to the brief's 6 s. The judge keeps `judge_timeout_s: 6` (+2 s grace); on timeout the tracker path decides alone with reduced confidence.
+14. **Blind judge timeout**: observed Spark video latency (3.8-5.1 s, one 13.3 s outlier) is close to the planned 6 s. The judge keeps `judge_timeout_s: 6` (+2 s grace); on timeout the tracker path decides alone with reduced confidence.
 
 15. **Resolution and latency** (observed 2026-10-26, synthetic YES clip, 4 s): SAM 3.1 at 640x480 took 5.0 s, at 320x240 3.2 s (same 60 frames billed, eyebrow box still moves 17 px of 240). The Spark judge took 4.1-4.8 s at either size, with half the input tokens at 320x240 (2,390 vs 4,694 at `fps: 8`). Answer windows are now normalised to 320x240; when SAM is at least 90% sure the engine decides without waiting for the judge and attaches the judge's verdict later.
 
 ## Open questions
 
-1. Is `meta-models/muse-spark-open-1026` live on Baseten? Run `scripts/probe_baseten.py --media` once `BASETEN_API_KEY` is set. It also checks video/audio acceptance.
+1. Answered 2026-10-29: `meta-models/muse-spark-open-1026` is live on Baseten and accepts text, image, video and audio (section 10).
 2. ZDR for the hackathon team: it needs a sales request. Until then, assume Standard-mode retention (period not stated in docs).
 3. `input_video.fps`: what are the documented maximum and the maximum frames or duration per Spark request? Why does `/responses/input_tokens` ignore video?
 4. Indonesian without `languageBias` came back empty on synthetic espeak audio. Does it also happen with natural speech? Re-test with consented, team-recorded audio.

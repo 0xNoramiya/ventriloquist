@@ -163,4 +163,6 @@ vs **6.41** for the fixed-order board (PASS); success 67.2% vs 54.8%.
 ## 2. Detector evaluation
 
 See `scripts/eval_detector.py`. Requires labeled clips recorded by consenting participants in
-`data/labeled/{yes,no,rest,emergency}/` (gitignored). Results will be added here when recorded.
+`data/labeled/{yes,no,rest,emergency}/` (gitignored). None are recorded yet. Results on generated
+clips of a fictional patient, in live and privacy mode, are in
+[`DETECTOR_DATA_GENERATED.md`](DETECTOR_DATA_GENERATED.md).

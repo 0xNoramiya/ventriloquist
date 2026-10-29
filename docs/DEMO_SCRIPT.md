@@ -6,34 +6,35 @@ can't speak), Meta tooling (each model shows up doing its job on screen), techni
 evidence, the blind judge, the eval numbers) and the demo itself. It also carries the agentic
 bonus (the family relay).
 
-Rules from the brief, kept:
+Rules:
 
 - Show only features built during the hackathon.
 - English captions throughout. Show the Indonesian toggle once (in the spelling beat).
 - If an answer in the app footage came from a caregiver override, the override badge stays on
   screen. Better: retake until the camera reads every answer.
 
-Rule changed: the brief planned a consenting actor. The patient, nurse and daughter are now
-AI-generated fictional people (Higgsfield), so the label changes to match. On screen for the first
-five seconds and again on the end card:
+One change from the first plan, which called for a consenting actor: the patient, nurse and daughter are
+AI-generated fictional people, so the label changes to match. It is on screen for the first five
+seconds and again on the end card:
 
 > AI-generated fictional patient. App footage recorded from the running app. Not a medical device.
 
 ## As built
 
-The film is built and rendered by [`video/`](../video/README.md): narration and sound from
-ElevenLabs, story scenes from Higgsfield, app footage from live takes of the deployed build,
-assembled with HyperFrames. Timings below are the plan; `video/edit/build.mjs` holds the exact cut.
-The 2026-10-29 takes ran on a local server with the same build and the same Meta and Baseten keys
-(`VENT_BASE` in `video/record-app.mjs`), since the fly.io passcode stays with Rifqi.
+The scripts in [`video/`](../video/README.md) build and render the film. The narration, music and
+sound effects are generated audio. The story scenes are generated stills of fictional people,
+animated with image-to-video. The app footage is live takes of the deployed build. Timings below
+are the plan; `video/edit/build.mjs` holds the exact cut. The 2026-10-29 takes ran on a local
+server with the same build and the same Meta and Baseten keys (`VENT_BASE` in
+`video/record-app.mjs`), because the fly.io passcode stays with Rifqi.
 
 ## Three kinds of footage
 
 | Tag | What it is | Made with |
 |---|---|---|
-| **GEN** | Story scenes: the bed, the empty room at night, the nurses' station, Aisyah on her phone | Higgsfield: GPT Image 2.5 start frames from the same Mr Hasan reference as the website photos, then Seedance 2.0 image-to-video |
+| **GEN** | Story scenes: the bed, the empty room at night, the nurses' station, Aisyah on her phone | Generated start frames from the same Mr Hasan reference as the website photos, then image-to-video |
 | **APP** | Real screen recordings of the running app: caregiver console at 1440x900, patient phone at 390x844 | Playwright on https://ventriloquist.fly.dev in live mode. The camera feed is the generated Mr Hasan gesture clips (the same ones as the detector eval), so SAM 3.1 and the judge really read every answer |
-| **CARD** | Title, captions, the model list, eval numbers | HyperFrames |
+| **CARD** | Title, captions, the model list, eval numbers | HTML composition in `video/edit/` |
 
 GEN never shows the app doing something it didn't do. Every probability bar, overlay, chime and
 status change on screen comes from APP footage. Live questions take about 10 s end to end, so the
@@ -41,11 +42,11 @@ session beat is sped up and says so on screen.
 
 ## Timeline
 
-Narration lines (N1 to N9, with N8b) are what ElevenLabs reads. They also live in
+A text-to-speech voice reads the narration lines (N1 to N9, with N8b). They also live in
 [`video/cues.json`](../video/cues.json), which the audio script reads; keep the two the same. Words
 in *italics* are the phone speaking. The app speaks with the device's built-in text-to-speech,
-which a screen recording can't capture, so in the video an ElevenLabs voice through a small-speaker
-filter stands in for it (lines P1 to P7 in `video/cues.json`).
+which a screen recording can't capture, so in the video a second generated voice through a
+small-speaker filter stands in for it (lines P0 to P8 in `video/cues.json`).
 
 | Time | Picture | Narration | Sound |
 |---|---|---|---|
@@ -68,7 +69,7 @@ spelling in `video/cues.json` ("Base-ten"); the captions keep the name.
 real phone receiving the template (a consenting person's phone, number masked). If not, the APP
 footage shows the simulated relative, and the console's "Simulated relative" line stays visible.
 
-## Shots to generate (Higgsfield)
+## Shots to generate
 
 Same Mr Hasan reference as the website photos; same room, light and gown in every shot. Aisyah
 and the nurse are new fictional people, made once as reference stills and reused.
@@ -99,20 +100,20 @@ and the nurse are new fictional people, made once as reference stills and reused
 
 ## Sound
 
-- **Narration:** N1 to N9 from `video/cues.json`, ElevenLabs `eleven_v4`, one voice, each line
-  generated with the lines before and after it as context so the joins sound like one take.
-- **Music:** one 3:00 instrumental from ElevenLabs Music, built from a composition plan whose
-  sections follow the timeline above (piano, pulse, thin strings, warm swell, light, steady,
-  piano resolve). No vocals.
-- **Effects:** ICU room tone, night ward hum, clamp click, phone buzz, soft whoosh for the
-  section cuts. Generated with ElevenLabs.
-- **App sounds stay the app's:** the chime and the alarm are synthesized in the browser by
+- **Narration.** N1 to N9 from `video/cues.json`, read by one text-to-speech voice. Each line is
+  generated with the lines before and after it as context, so the joins sound like one take.
+- **Music.** One generated 3:00 instrumental, built from a composition plan whose sections follow
+  the timeline above (piano, pulse, thin strings, warm swell, light, steady, piano resolve). No
+  vocals.
+- **Effects.** ICU room tone, night ward hum, clamp click, phone buzz and a soft whoosh for the
+  section cuts, all generated.
+- **App sounds.** The chime and the alarm are synthesized in the browser by
   `frontend/src/lib/alarm.ts`. Render them from that code; never substitute a generated sound.
-- **The phone's voice:** the app speaks with the device's own text-to-speech. Screen recordings
-  carry no audio, so a second ElevenLabs voice (Sarah, `bright_phone` filter) reads the phone's
-  lines. The words are the app's words, copied from the recording.
+- **The phone's voice.** The app speaks with the device's own text-to-speech. Screen recordings
+  carry no audio, so a second generated voice with a small-speaker filter (`bright_phone`) reads
+  the phone's lines. The words are the app's, copied from the recording.
 
-## Assembly (HyperFrames)
+## Assembly
 
 The composition lives in `video/`. Layers, bottom to top: GEN and APP clips, captions (narration
 and phone lines), CARD overlays, the label. Audio: narration on top, phone voice and app sounds
