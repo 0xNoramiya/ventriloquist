@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Chip, Evidence, Hypothesis, Lang } from '../../api/types';
 import { useT, type Key } from '../../i18n';
-import { cx, factorText, pct } from '../../lib/format';
+import { ago, cx, factorText, pct } from '../../lib/format';
 import { Pictogram } from '../Pictogram';
 import { Badge } from '../Section';
 
@@ -203,11 +203,8 @@ export function PosteriorBars({
                   >
                     <p className="font-semibold">
                       {c.evidence_id} · {t(`evidence.kind.${ev?.kind ?? 'unknown'}` as Key)}
-                      {ev ? (
-                        <span className="font-normal text-muted">
-                          {' '}
-                          · {t('time.ago', { m: Math.round(ev.minutes_ago) })}
-                        </span>
+                      {ev && ev.minutes_ago !== null ? (
+                        <span className="font-normal text-muted"> · {ago(t, ev.minutes_ago)}</span>
                       ) : null}
                     </p>
                     <p className="mt-0.5">{ev?.text ?? t('bars.chip_missing')}</p>

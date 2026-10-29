@@ -8,8 +8,19 @@ import { speak } from '../../lib/speech';
 import { sendMessage, useSession } from '../../store/session';
 import { Button } from '../Button';
 
-function override(sid: string, action: OverrideAction) {
-  if (!sendMessage({ type: 'override', action })) void api.override(sid, action);
+/** Sends an override over the socket, or REST when it's down. A failed request is shown: the
+ * alarm or held message then stays up, and the caregiver needs to know why. */
+function useOverride(sid: string) {
+  const [error, setError] = useState<string | null>(null);
+  const send = (action: OverrideAction) => {
+    setError(null);
+    if (!sendMessage({ type: 'override', action })) {
+      api
+        .override(sid, action)
+        .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)));
+    }
+  };
+  return { send, error };
 }
 
 /** Loud, unmissable, and only goes away when a person acknowledges it. */
@@ -19,6 +30,7 @@ export function AlarmBanner({ snap }: { snap: Snapshot }) {
   const alarm = useSession((s) => s.alarm);
   const seq = useSession((s) => s.alarmSeq);
   const ackRef = useRef<HTMLButtonElement | null>(null);
+  const { send, error } = useOverride(snap.session_id);
 
   useEffect(() => {
     if (!alarm.active) return;
@@ -48,13 +60,9 @@ export function AlarmBanner({ snap }: { snap: Snapshot }) {
         <div className="flex-1">
           <p className="text-[28px] font-bold leading-tight sm:text-[34px]">{t('alarm.title')}</p>
           <p className="text-lg">{t('alarm.body', { name: snap.patient.display_name })}</p>
+          {error ? <p className="mt-1 text-lg font-bold">{error}</p> : null}
         </div>
-        <Button
-          ref={ackRef}
-          size="xl"
-          variant="onAlarm"
-          onClick={() => override(snap.session_id, 'ack_emergency')}
-        >
+        <Button ref={ackRef} size="xl" variant="onAlarm" onClick={() => send('ack_emergency')}>
           {t('alarm.ack')}
         </Button>
       </div>
@@ -79,6 +87,7 @@ const KNOWN_ALERTS = new Set(['emergency', 'urgent', 'sensitive', 'unacknowledge
 export function CaregiverBanners({ snap }: { snap: Snapshot }) {
   const t = useT();
   const [hidden, setHidden] = useState<Set<string>>(() => new Set());
+  const { send, error } = useOverride(snap.session_id);
   // Alerts of other kinds (for example a late judge disagreeing with an early decision).
   const otherAlerts = snap.alerts.filter(
     (a) => !KNOWN_ALERTS.has(a.kind) && a.text && !hidden.has(`${a.at}|${a.text}`),
@@ -119,13 +128,12 @@ export function CaregiverBanners({ snap }: { snap: Snapshot }) {
             <p className="text-xl font-bold">“{lang === 'id' ? msg.text_id : msg.text_en}”</p>
           ) : null}
           <div className="flex flex-wrap gap-2">
-            <Button variant="primary" onClick={() => override(snap.session_id, 'ack_sensitive')}>
+            <Button variant="primary" onClick={() => send('ack_sensitive')}>
               {t('sensitive.speak')}
             </Button>
-            <Button onClick={() => override(snap.session_id, 'ack_sensitive_silent')}>
-              {t('sensitive.silent')}
-            </Button>
+            <Button onClick={() => send('ack_sensitive_silent')}>{t('sensitive.silent')}</Button>
           </div>
+          {error ? <p className="font-semibold text-alarm">{error}</p> : null}
         </div>
       ) : null}
       {reason ? (

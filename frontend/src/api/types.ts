@@ -142,7 +142,7 @@ export interface Evidence {
   text: string;
   at: string;
   ref?: string;
-  minutes_ago: number;
+  minutes_ago: number | null; // null when the evidence has no time
   speaker?: string;
   event_kind?: string;
   source_type?: string;

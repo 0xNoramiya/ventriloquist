@@ -2,16 +2,9 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { api } from '../../api/client';
 import type { Evidence } from '../../api/types';
 import { useT, type Key } from '../../i18n';
-import { cx } from '../../lib/format';
+import { ago, cx } from '../../lib/format';
 import { Button } from '../Button';
 import { Notice, Select, Switch, inputClass } from '../Form';
-
-function ago(t: ReturnType<typeof useT>, minutes: number | null | undefined): string {
-  if (minutes === null || minutes === undefined) return '';
-  if (minutes < 1) return t('time.just_now');
-  if (minutes < 90) return t('time.ago', { m: Math.round(minutes) });
-  return t('time.ago_h', { h: (minutes / 60).toFixed(1) });
-}
 
 function EvidenceRow({ e }: { e: Evidence }) {
   const t = useT();
@@ -24,9 +17,7 @@ function EvidenceRow({ e }: { e: Evidence }) {
         <p className="leading-snug">{e.text}</p>
         <p className="text-sm text-muted">
           {t(`evidence.kind.${e.kind}` as Key)}
-          {e.minutes_ago !== null && e.minutes_ago !== undefined
-            ? ` · ${ago(t, e.minutes_ago)}`
-            : ''}
+          {e.minutes_ago !== null ? ` · ${ago(t, e.minutes_ago)}` : ''}
         </p>
       </div>
     </li>
