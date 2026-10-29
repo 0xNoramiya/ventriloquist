@@ -232,12 +232,22 @@ async def perceive(
                 "error": "timeout",
             }
             return SourceResult(
-                "spark", {}, ok=False, detail={"error": "timeout"}, calls=[timed_out]
+                "spark",
+                {},
+                ok=False,
+                detail={"error": "timeout", "provider": vl.provider},
+                calls=[timed_out],
             )
         usd += r.meta.usd
         calls = [r.meta.to_dict()]
         if not r.ok:
-            return SourceResult("spark", {}, ok=False, detail={"error": r.meta.error}, calls=calls)
+            return SourceResult(
+                "spark",
+                {},
+                ok=False,
+                detail={"error": r.meta.error, "provider": vl.provider},
+                calls=calls,
+            )
         return SourceResult(
             "spark",
             judge_probs(r.data.classification, r.data.confidence),
@@ -246,6 +256,7 @@ async def perceive(
                 "observed": r.data.observed_movement,
                 "frame_times": r.data.frame_times,
                 "latency_ms": round(r.meta.latency_ms),
+                "provider": vl.provider,  # baseten or modal: Muse Spark Open (privacy mode)
             },
             calls,
         )

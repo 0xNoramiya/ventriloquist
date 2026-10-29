@@ -354,6 +354,7 @@
   "source.tracker": "SAM 3.1",
   "source.local": "Gerak lokal",
   "source.spark": "Muse Spark",
+  "source.spark_open": "Muse Spark Open",
   "source.keyboard": "Papan ketik",
   "source.caregiver": "Perawat",
   "source.simulated": "Simulasi",

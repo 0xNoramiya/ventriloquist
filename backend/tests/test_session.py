@@ -269,7 +269,7 @@ async def test_session_log_redacts_profile_names(ctx):
     await s.start()
     await run_until(s)
     raw = s.log.path.read_text()
-    assert "Aisyah" not in raw and "Pak Hasan" not in raw
+    assert "Aisyah" not in raw and "Mr Hasan" not in raw
     assert "[daughter]" in raw
 
 

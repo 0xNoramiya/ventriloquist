@@ -360,7 +360,7 @@ await sk.goto(`${BASE}/setup`);
 await sk.getByLabel('Display name').fill('Ibu Rina (fictional)');
 await sk.getByLabel('Language spoken to the patient').selectOption('id');
 await sk.getByLabel('Honorific').selectOption('Ibu');
-await sk.getByRole('checkbox').check();
+await sk.getByRole('checkbox', { name: /This is a simulation/ }).check();
 await sk.getByRole('button', { name: 'Save patient' }).click();
 await sk.getByRole('button', { name: 'Skip and start a session' }).click();
 await sk.waitForURL(/\/caregiver\/ses_/);

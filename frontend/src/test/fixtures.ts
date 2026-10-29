@@ -5,7 +5,7 @@ export function snapshot(overrides: Partial<Snapshot> = {}): Snapshot {
     session_id: 'ses_test',
     patient: {
       id: 'pt_test',
-      display_name: 'Pak Hasan (fictional)',
+      display_name: 'Mr Hasan (fictional)',
       language: 'en',
       honorific: 'Bapak',
     },

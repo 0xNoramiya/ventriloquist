@@ -613,7 +613,11 @@ function Results({
                 {sources.map(([k, v]) => (
                   <tr key={k} className="border-t border-line">
                     <th scope="row" className="py-1.5 text-left font-semibold">
-                      {t(`source.${k}` as Key)}
+                      {t(
+                        k === 'spark' && result.mode === 'privacy'
+                          ? 'source.spark_open'
+                          : (`source.${k}` as Key),
+                      )}
                     </th>
                     <td className="tabular py-1.5 text-right">{pct(v)}</td>
                   </tr>

@@ -1,10 +1,10 @@
 id: daughter
-title: "Pak Hasan wants to see his daughter"
+title: "Mr Hasan wants to see his daughter"
 description: >
   Fictional patient. The nurse mentioned that his daughter Aisyah went home to rest, a family photo
   sits on the bedside table and he keeps looking at it, and a visitor left ten minutes ago.
 profile:
-  display_name: "Pak Hasan (fictional)"
+  display_name: "Mr Hasan (fictional)"
   language: en
   honorific: Bapak
   family:  # +999 is a reserved, unassigned country code: these can never reach a real person

@@ -37,8 +37,15 @@ export function AnswerPill({ answer, t }: { answer: string; t: TFn }) {
   );
 }
 
+// In privacy mode the judge is Muse Spark Open, served by one of these hosts.
+const OPEN_WEIGHT_HOSTS = new Set(['baseten', 'modal']);
+
 function sourceLine(name: string, s: SourceOutput, t: TFn): string {
-  const label = SOURCE_NAMES[name] ? t(SOURCE_NAMES[name]) : name;
+  const key =
+    name === 'spark' && OPEN_WEIGHT_HOSTS.has(String(s.provider))
+      ? 'source.spark_open'
+      : SOURCE_NAMES[name];
+  const label = key ? t(key) : name;
   if (s.pending) return `${label}: ${t('trail.source_pending')}`;
   if (s.error) return `${label}: ${t('trail.source_error')} (${String(s.error)})`;
   if (s.ok === false) return `${label}: ${t('trail.source_failed')}`;

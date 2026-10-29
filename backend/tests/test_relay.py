@@ -140,13 +140,13 @@ async def test_sensitive_messages_are_never_offered(ctx):
 def test_whatsapp_body_template_outside_the_window_text_inside(ctx):
     ch = WhatsAppChannel(ctx.settings, "token", "106540352242922")
     assert ch.url == "https://graph.facebook.com/v26.0/106540352242922/messages"
-    first = ch.body("+6281234567890", "id", "Pak Hasan", "Saya ingin bertemu putri saya, Aisyah.")
+    first = ch.body("+6281234567890", "id", "Mr Hasan", "Saya ingin bertemu putri saya, Aisyah.")
     assert first["type"] == "template" and first["template"]["name"] == "patient_message"
     assert first["template"]["language"] == {"code": "id"}
     params = first["template"]["components"][0]["parameters"]
-    assert [p["text"] for p in params] == ["Pak Hasan", "Saya ingin bertemu putri saya, Aisyah."]
+    assert [p["text"] for p in params] == ["Mr Hasan", "Saya ingin bertemu putri saya, Aisyah."]
     ch.note_inbound("+6281234567890")
-    later = ch.body("+6281234567890", "en", "Pak Hasan", "Please call me.")
+    later = ch.body("+6281234567890", "en", "Mr Hasan", "Please call me.")
     assert later["type"] == "text" and '"Please call me."' in later["text"]["body"]
 
 
