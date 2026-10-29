@@ -1,4 +1,4 @@
-"""Answer perception for one response window (brief 9.3-9.6).
+"""Answer perception for one response window.
 
 Runs the tracker path (SAM 3.1 + DTW, or the local optical-flow baseline) and the blind Spark judge
 in parallel, then fuses them. The judge only ever sees the clip and the calibrated signal text.
@@ -44,9 +44,8 @@ class Perception:
     usd: float = 0.0
     notes: list[str] = field(default_factory=list)
     calls: list[dict[str, Any]] = field(default_factory=list)
-    late: asyncio.Task[SourceResult | None] | None = (
-        None  # judge still running after an early decision
-    )
+    # The judge, still running after an early decision on the tracker.
+    late: asyncio.Task[SourceResult | None] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -256,7 +255,7 @@ async def perceive(
                 "observed": r.data.observed_movement,
                 "frame_times": r.data.frame_times,
                 "latency_ms": round(r.meta.latency_ms),
-                "provider": vl.provider,  # baseten or modal: Muse Spark Open (privacy mode)
+                "provider": vl.provider,
             },
             calls,
         )

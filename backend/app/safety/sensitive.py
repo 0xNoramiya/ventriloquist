@@ -28,7 +28,7 @@ CATEGORIES = (
     "legal_financial",
 )
 
-# Minimal built-in list so the detector works even before the full list is generated.
+# Core phrases, always merged with the JSON list, and used alone if that file is missing or broken.
 _FALLBACK: dict[str, dict[str, list[str]]] = {
     "refuse_treatment": {
         "en": [

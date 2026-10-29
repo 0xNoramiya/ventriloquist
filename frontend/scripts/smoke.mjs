@@ -81,14 +81,12 @@ async function waitListening(sid, pid, ms = 15000) {
   throw new Error(`prompt ${pid} never reached LISTENING (spoken not sent?)`);
 }
 
-// ------------------------------------------------------------------ landing
 const page = await laptop.newPage();
 await page.goto(BASE);
 await page.getByRole('heading', { level: 1 }).waitFor();
 await sleep(5200); // let the trail play
 await shot(page, 'landing-laptop');
 
-// ------------------------------------------------------------------ daughter demo
 await page.getByRole('button', { name: 'Start a demo session' }).click();
 await page.waitForURL(/\/caregiver\/ses_/);
 const sid = page.url().split('/caregiver/')[1];
@@ -175,7 +173,6 @@ if (await chip.count()) {
 }
 await shot(page, 'caregiver-laptop-done');
 
-// ------------------------------------------------------------------ emergency
 await page.getByRole('button', { name: 'New message' }).click();
 await sleep(800);
 await patient.keyboard.press('e');
@@ -200,7 +197,6 @@ await cgPhone.getByRole('heading', { name: 'Likely messages' }).waitFor();
 await shot(cgPhone, 'caregiver-phone');
 await cgPhone.close();
 
-// ------------------------------------------------------------------ spelling
 const sp = await (
   await api.post(`${BASE}/api/scenarios/spelling`, { data: { simulated: false } })
 ).json();
@@ -248,7 +244,6 @@ await shot(spLaptop, 'patient-laptop-spelling', false);
 
 const pid = done.patient.id;
 
-// ------------------------------------------------------------------ other routes
 await api.post(`${BASE}/api/memory/${pid}`, {
   data: { text: 'Likes the blinds half open', category: 'preference' },
 });
@@ -300,7 +295,6 @@ for (const [ctxName, ctx] of [
   await p.close();
 }
 
-// ------------------------------------------------------------------ sensitive message
 // A simulated patient spells a sensitive word: it must be held for in-person verification.
 const sens = await (
   await api.post(`${BASE}/api/sessions`, {

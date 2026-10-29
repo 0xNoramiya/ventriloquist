@@ -1,4 +1,4 @@
-"""Probe: Muse Voice Transcribe — file endpoint (POST /v1/asr/transcribe) and realtime WebSocket.
+"""Probe: Muse Voice Transcribe over the file endpoint (POST /v1/asr/transcribe) and the WebSocket.
 
 File endpoint (multipart: `request` JSON part + `audio` WAV part; mono s16 PCM at 16/24 kHz):
   1. English, PUSH_TO_TALK, no hints                      -> WER vs reference
@@ -102,7 +102,6 @@ def main() -> None:
             return None, secs
         return r, secs
 
-    # 1-4: WER runs
     cases = [
         ("EN plain", en, {"mode": "PUSH_TO_TALK"}, "en", "asr_transcribe_en_push_to_talk"),
         ("EN keywords", en, {"mode": "PUSH_TO_TALK", "keywords": ["Aisyah"]}, "en", ""),
@@ -163,7 +162,6 @@ def main() -> None:
         run.finish()
         return
 
-    # 5. diarization
     r, secs = transcribe("two voices DIARIZATION", two, {"mode": "DIARIZATION"})
     if r is not None:
         body = r.json()
@@ -189,7 +187,6 @@ def main() -> None:
         print(key_tree(body))
         run.save_fixture("asr_transcribe_diarization", body)
 
-    # 6. SSE
     r, secs = transcribe(
         "two voices ENDPOINTING SSE",
         two,
@@ -224,7 +221,6 @@ def main() -> None:
             {"content_type": r.headers.get("content-type"), "events": events},
         )
 
-    # 7. text/plain
     r, secs = transcribe(
         "EN DIARIZATION text/plain", en, {"mode": "DIARIZATION"}, accept="text/plain"
     )
@@ -239,7 +235,6 @@ def main() -> None:
             extra=f"body={r.text.strip()[:160]!r}",
         )
 
-    # 8. 48 kHz wav -> expected 400
     wav48 = MEDIA / "speech_en_48k.wav"
     subprocess.run(
         [
@@ -275,7 +270,6 @@ def main() -> None:
         )
     http.close()
 
-    # 9. realtime websocket
     try:
         asyncio.run(realtime(run, key, idn, audio[idn.name]["reference"]))
     except Exception as e:  # keep the other results even if the socket fails

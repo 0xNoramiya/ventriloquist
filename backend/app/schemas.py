@@ -13,7 +13,6 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 Lang = Literal["en", "id"]
 
 
-# ============================================================== API payloads
 class FamilyMember(BaseModel):
     name: str = Field(min_length=1, max_length=60)
     relation: str = Field(min_length=1, max_length=40)
@@ -102,7 +101,6 @@ class SettingsUpdate(BaseModel):
     passcode: str | None = None
 
 
-# ========================================================== LLM role outputs
 class _Out(BaseModel):
     model_config = ConfigDict(extra="ignore")
 

@@ -70,6 +70,7 @@ async def run_demo(
         seed=seed,
     )
     printed: set[str] = set()
+    printed_answers: list[str] = []
 
     def out(*a: Any) -> None:
         if not quiet:
@@ -93,7 +94,6 @@ async def run_demo(
                     f"  Q{s.questions_this_message:>2} ({p.kind}{'/' + p.sub if p.sub else ''}): {p.text}{extra}"
                 )
 
-    printed_answers: list[str] = []
     session = Session(
         sid,
         patient,

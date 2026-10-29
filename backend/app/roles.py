@@ -9,7 +9,9 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeVar
+
+from pydantic import BaseModel
 
 from app.config import Settings
 from app.providers.base import LLMRequest, Part
@@ -30,6 +32,8 @@ from app.schemas import (
     Sentences,
     SignalSpec,
 )
+
+T = TypeVar("T", bound=BaseModel)
 
 
 def _instructions(role: str, extra: str = "") -> tuple[str, str]:
@@ -56,8 +60,8 @@ class Roles:
         mode: Mode,
         role: str,
         parts: list[Part],
-        schema: Any,
-        fallback: Any,
+        schema: type[T],
+        fallback: T,
         context: dict[str, Any],
         *,
         extra: str = "",
@@ -65,7 +69,7 @@ class Roles:
         model_key: str = "spark",
         timeout_s: float = 30.0,
         max_tokens: int = 1500,
-    ) -> RoleResult:
+    ) -> RoleResult[T]:
         instructions, version = _instructions(role, extra)
         req = LLMRequest(
             role=role,
@@ -80,7 +84,6 @@ class Roles:
         )
         return await self.hub.caller(mode).call(req, fallback, version)
 
-    # ------------------------------------------------------------- perception
     async def framing_check(self, mode: Mode, image: Path) -> RoleResult[FramingCheck]:
         return await self._call(
             mode,
@@ -158,7 +161,6 @@ class Roles:
             max_tokens=1500,
         )
 
-    # ---------------------------------------------------------------- context
     async def read_scene(
         self, mode: Mode, image: Path | None, hint: list[str] | None = None
     ) -> RoleResult[SceneFacts]:
@@ -274,7 +276,6 @@ class Roles:
             max_tokens=1200,
         )
 
-    # ----------------------------------------------------------------- relay
     async def read_relay_reply(
         self, mode: Mode, payload: dict[str, Any]
     ) -> RoleResult[RelayReplyOut]:
@@ -292,7 +293,6 @@ class Roles:
             max_tokens=1200,
         )
 
-    # ----------------------------------------------------------------- memory
     async def curate_memory(self, mode: Mode, payload: dict[str, Any]) -> RoleResult[MemoryOps]:
         return await self._call(
             mode,

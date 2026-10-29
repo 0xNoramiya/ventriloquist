@@ -326,7 +326,7 @@
   *::before,
   *::after {
     /* none rather than a tiny duration: with transition-property at its default of all, a
-       duration made every element transition, e.g. max-width in ch when the web font loads */
+       duration makes every element transition, e.g. max-width in ch when the web font loads */
     transition: none !important;
     scroll-behavior: auto !important;
   }

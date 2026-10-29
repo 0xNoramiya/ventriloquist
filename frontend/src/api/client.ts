@@ -133,7 +133,6 @@ export const api = {
 
   createSession: (body: { patient_id: string; privacy?: boolean; passcode?: string }) =>
     json<Snapshot>('/sessions', 'POST', body),
-  session: (sid: string) => request<Snapshot>(`/sessions/${encodeURIComponent(sid)}`),
   start: (sid: string) => json<Snapshot>(`/sessions/${encodeURIComponent(sid)}/start`, 'POST'),
 
   framing: (pid: string, image: Blob) =>
@@ -154,10 +153,6 @@ export const api = {
     }),
   finalizeCalibration: (pid: string, body: { hint?: string; skip?: boolean }) =>
     json<CalibrationSummary>(`/calibration/${encodeURIComponent(pid)}/finalize`, 'POST', body),
-  calibration: (pid: string) =>
-    request<{ calibration: CalibrationSummary | null; counts: Record<string, number> }>(
-      `/calibration/${encodeURIComponent(pid)}`,
-    ),
   editDescription: (pid: string, body: Record<string, unknown>) =>
     json<CalibrationSummary>(`/calibration/${encodeURIComponent(pid)}/description`, 'PUT', body),
 
@@ -254,7 +249,6 @@ if (isBrowserDemo) {
     createPatient: unavailable,
     patient: unavailable,
     createSession: unavailable,
-    session: () => current(),
     start: async () => {
       await demoBridge.send({ type: 'start' });
       return current();
@@ -263,7 +257,6 @@ if (isBrowserDemo) {
     calibrationClip: unavailable,
     resetCalibrationClips: unavailable,
     finalizeCalibration: unavailable,
-    calibration: unavailable,
     editDescription: unavailable,
     sessionSnapshotImage: async () => ({ facts: [] }),
     sessionClip: unavailable,

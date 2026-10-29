@@ -1,4 +1,4 @@
-"""Spelling mode (brief 8.8): the escape hatch for anything not on the list.
+"""Spelling mode: the escape hatch for anything not on the list.
 
 The patient sees the alphabet with one group highlighted and is asked "Is your letter in this
 group?". Each group is a contiguous run of the alphabet chosen to split the current letter
@@ -186,7 +186,7 @@ def symbol_prior(
     p_undo = 0.03 if text else 0.0
     letters_mass = 1.0 - p_space - p_end - p_undo
     p[: len(LETTERS)] = base / base.sum() * letters_mass
-    p[LETTERS.__len__()] = p_space
+    p[len(LETTERS)] = p_space
     p[len(LETTERS) + 1] = p_end
     p[len(LETTERS) + 2] = p_undo
 
@@ -279,7 +279,6 @@ class SpellingDecider:
         self.pending: SpellPrompt | None = None
         self.done = False
 
-    # ----------------------------------------------------------- state helpers
     @property
     def current_word(self) -> str:
         return self.text.split(" ")[-1] if self.text else ""
@@ -300,7 +299,6 @@ class SpellingDecider:
         order = np.argsort(-self.p, kind="stable")[:k]
         return [(SYMBOLS[i], float(self.p[i])) for i in order]
 
-    # ----------------------------------------------------------------- prompts
     def next_prompt(self) -> SpellPrompt:
         cfg = self.cfg
         if self.since_checkpoint >= cfg.spelling_checkpoint_every:
@@ -363,7 +361,6 @@ class SpellingDecider:
         self.n_questions += 1
         return self.pending
 
-    # ---------------------------------------------------------------- answers
     def observe(self, obs: Observation) -> SpellOutcome:
         prompt = self.pending
         if prompt is None:
@@ -439,7 +436,6 @@ class SpellingDecider:
         return SpellOutcome(event, symbol=word, text=self.text)
 
 
-# --------------------------------------------------------------------------- sentence stage
 SPELLED_ID = "spelled_text"
 KEEP_ID = "keep_spelling"
 

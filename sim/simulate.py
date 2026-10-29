@@ -1,4 +1,4 @@
-"""Engine simulation (brief 13.1). Simulated patients, not clinical evidence.
+"""Engine simulation. Simulated patients, not clinical evidence.
 
 For every cell (noise eps x context informativeness) we run N seeded trials per strategy:
 

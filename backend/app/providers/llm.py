@@ -1,10 +1,11 @@
-"""Structured LLM calls: validate, repair once, then fall back safely (brief Section 7 and 15)."""
+"""Structured LLM calls: validate, repair once, then fall back safely."""
 
 from __future__ import annotations
 
 import json
 import logging
 import re
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Generic, TypeVar
@@ -82,9 +83,11 @@ class RoleResult(Generic[T]):
 class LLMCaller:
     """Wraps a VisionLanguage provider with validation, one repair retry, fallback and cost logging."""
 
-    def __init__(self, provider: VisionLanguage, cost_hook: Any = None) -> None:
+    def __init__(
+        self, provider: VisionLanguage, cost_hook: Callable[[RawResponse, str], float] | None = None
+    ) -> None:
         self.provider = provider
-        self.cost_hook = cost_hook  # callable(raw: RawResponse, role: str) -> float
+        self.cost_hook = cost_hook
 
     async def call(self, req: LLMRequest, fallback: T, prompt_version: str = "") -> RoleResult[T]:
         meta = CallMeta(role=req.role, prompt_version=prompt_version)

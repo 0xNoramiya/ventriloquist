@@ -1,4 +1,4 @@
-"""Session logs: data/logs/sessions/{sid}.jsonl, one JSON object per line (brief Section 12).
+"""Session logs: data/logs/sessions/{sid}.jsonl, one JSON object per line.
 
 Records every question, observation (with per-source outputs), posterior snapshot and LLM call
 metadata (model, latency, tokens, cost). Sensitive spelled messages are redacted, and the names in

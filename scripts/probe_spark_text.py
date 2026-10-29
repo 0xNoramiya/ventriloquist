@@ -53,7 +53,6 @@ def main() -> None:
     run = ProbeRun("probe_spark_text")
     rr = client.responses.with_raw_response
 
-    # 1. basic, minimal effort
     run.guard(0.01, "basic_minimal")
     res = run.attempt(
         "basic effort=minimal",
@@ -80,7 +79,6 @@ def main() -> None:
         run.save_fixture("spark_responses_text_minimal", body)
         run.note(f"rate-limit headers on Responses: {json.dumps(headers)}")
 
-    # 2. effort none -> expected 400
     res = run.attempt(
         "effort=none (Responses)",
         SPARK,
@@ -105,7 +103,6 @@ def main() -> None:
             extra=f"text={output_text(body)!r}",
         )
 
-    # 3. effort low
     run.guard(0.01, "basic_low")
     res = run.attempt(
         "basic effort=low",
@@ -125,7 +122,6 @@ def main() -> None:
             "basic effort=low", SPARK, secs, body.get("usage"), extra=f"text={output_text(body)!r}"
         )
 
-    # 4. structured output, Responses API (text.format)
     run.guard(0.02, "json_schema_responses")
     res = run.attempt(
         "json_schema Responses",
@@ -160,7 +156,6 @@ def main() -> None:
         print(key_tree(body))
         run.save_fixture("spark_responses_json_schema", body)
 
-    # 5. structured output, Chat Completions (response_format)
     run.guard(0.02, "json_schema_chat")
     res = run.attempt(
         "json_schema Chat",
@@ -190,7 +185,6 @@ def main() -> None:
         run.save_fixture("spark_chat_json_schema", body)
         run.note(f"rate-limit headers on Chat Completions: {json.dumps(headers)}")
 
-    # 6. reasoning_effort none on Chat Completions -> expected 400
     res = run.attempt(
         "effort=none (Chat)",
         SPARK,
@@ -207,7 +201,6 @@ def main() -> None:
         body, _h, secs = res
         run.record("effort=none (Chat)", SPARK, secs, body.get("usage"), status="ok (unexpected)")
 
-    # 7. tiny output budget -> incomplete
     run.guard(0.01, "max_output_16")
     res = run.attempt(
         "max_output_tokens=16",
@@ -232,7 +225,6 @@ def main() -> None:
         )
         run.save_fixture("spark_responses_incomplete", body)
 
-    # 8. token count (no generation)
     res = run.attempt(
         "input_tokens count",
         SPARK,

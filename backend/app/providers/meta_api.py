@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 import json
 import random
 import re
@@ -83,7 +84,7 @@ def strict_schema(model: type[BaseModel]) -> dict[str, Any]:
                     False if props else out.get("additionalProperties", False)
                 )
                 if not props and isinstance(node.get("additionalProperties"), dict):
-                    # free-form string maps (template slots): keep as an object of strings
+                    # free-form string maps: keep as an object of strings
                     out["additionalProperties"] = walk(node["additionalProperties"])
             return out
         if isinstance(node, list):
@@ -94,8 +95,6 @@ def strict_schema(model: type[BaseModel]) -> dict[str, Any]:
 
 
 def _data_url(path: Path | None, data: bytes | None, mime: str) -> str:
-    import base64
-
     blob = data if data is not None else (path.read_bytes() if path else b"")
     return f"data:{mime};base64,{base64.b64encode(blob).decode()}"
 

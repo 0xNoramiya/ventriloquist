@@ -1,4 +1,4 @@
-"""Explicit session state machine (brief 8.7).
+"""Explicit session state machine.
 
 Main path:  IDLE → CONTEXT_REFRESH → ASKING/CONFIRMING/SPELLING → LISTENING → PROCESSING → …
             → SPEAKING → POST_CHECK → LISTENING → PROCESSING → DONE

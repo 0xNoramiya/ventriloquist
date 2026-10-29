@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
@@ -73,7 +74,6 @@ class ProviderHub:
 
         return self._get("local_tracker", LocalFlowTracker)
 
-    # --------------------------------------------------------------- settings
     def app_mode(self) -> str:
         return self.store.kv_get("app_mode", self.settings.app_mode)
 
@@ -131,18 +131,13 @@ class ProviderHub:
         return ModeInfo(requested, requested, "ok")
 
     def partner_open(self) -> bool:
-        import os
-
         return bool(self.settings.baseten_api_key or os.environ.get("MODAL_SPARK_URL", "").strip())
 
     def onprem_url(self) -> str:
-        import os
-
         return os.environ.get("LOCAL_LLM_URL", "").strip() or str(
             self.settings.providers.get("local_llm", {}).get("base_url", "") or ""
         )
 
-    # -------------------------------------------------------------- providers
     def _get(self, key: str, factory: Any) -> Any:
         if key not in self._cache:
             self._cache[key] = factory()
@@ -217,7 +212,6 @@ class ProviderHub:
     def caller(self, mode: Mode) -> LLMCaller:
         return LLMCaller(self.vision_language(mode), cost_hook=self._llm_cost)
 
-    # ------------------------------------------------------------------ cost
     def _llm_cost(self, raw: RawResponse, role: str) -> float:
         if raw.provider == "mock":
             return 0.0

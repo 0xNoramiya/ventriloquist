@@ -8,15 +8,6 @@ export function isHighlighted(symbol: string, group: readonly string[]): boolean
   return group.includes(symbol);
 }
 
-/** Split the 26 letters into rows of `cols`; the special keys always form their own row. */
-export function gridRows(cols: number): string[][] {
-  if (cols < 1) throw new Error('cols must be >= 1');
-  const rows: string[][] = [];
-  for (let i = 0; i < LETTERS.length; i += cols) rows.push(LETTERS.slice(i, i + cols));
-  rows.push([...SPECIALS]);
-  return rows;
-}
-
 /** Short spoken-style label for a group: "L to X" for a run, otherwise a list. */
 export function groupRanges(group: readonly string[]): string[] {
   const letters = LETTERS.filter((l) => group.includes(l));

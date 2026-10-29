@@ -116,12 +116,7 @@ export default function Settings() {
         {config?.passcode_required ? (
           <UnlockPanel
             unlocked={Boolean(config.unlocked)}
-            onChange={() =>
-              void loadConfig(true).then((c) => {
-                setCachedConfig(c);
-                setConfig(c);
-              })
-            }
+            onChange={() => void loadConfig(true).then(setConfig)}
           />
         ) : null}
 

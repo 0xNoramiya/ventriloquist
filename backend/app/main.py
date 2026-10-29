@@ -1,4 +1,4 @@
-"""HTTP API and WebSocket (brief Section 12). The backend owns all state and all model calls;
+"""HTTP API and WebSocket. The backend owns all state and all model calls;
 the browser never sees an API key."""
 
 from __future__ import annotations
@@ -10,6 +10,7 @@ import mimetypes
 import os
 import secrets
 import shutil
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
@@ -34,6 +35,8 @@ from app.perception import calibration as calib
 from app.providers.registry import Mode, ProviderHub
 from app.relay.channels import WhatsAppChannel, parse_webhook, verify_signature
 from app.roles import Roles
+from app.safety.advice import contains_advice
+from app.safety.sensitive import detect
 from app.scenarios import load as load_scenario
 from app.scenarios import names as scenario_names
 from app.schemas import (
@@ -67,7 +70,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     manager = SessionManager(ctx)
 
     @asynccontextmanager
-    async def lifespan(_: FastAPI):  # type: ignore[no-untyped-def]
+    async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         yield
         await manager.shutdown()
 
@@ -81,7 +84,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.ctx = ctx
     app.state.manager = manager
 
-    # ------------------------------------------------------------------ helpers
     def patient_or_404(pid: str) -> dict[str, Any]:
         p = store.get_patient(pid)
         if not p:
@@ -146,7 +148,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 f.write(chunk)
         return path
 
-    # ------------------------------------------------------------------- meta
     @app.get("/api/health")
     async def health() -> dict[str, Any]:
         return {
@@ -261,7 +262,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def budget() -> dict[str, Any]:
         return {**hub.cost.status().to_dict(), "by_model": store.spend_by_model()}
 
-    # --------------------------------------------------------------- patients
     @app.post("/api/patients")
     async def create_patient(profile: PatientProfile) -> dict[str, Any]:
         if not profile.simulation_consent:
@@ -302,7 +302,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             manager.sessions.pop(active.id, None)
         return {"deleted": True, "counts": store.delete_patient(pid)}
 
-    # ------------------------------------------------------------- calibration
     @app.post("/api/calibration/{pid}/clip")
     async def calibration_clip(
         pid: str, label: str = Form(...), file: UploadFile = File(...)
@@ -385,7 +384,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         store.save_calibration(pid, cal)
         return _cal_summary(cal) or {}
 
-    # ---------------------------------------------------------------- sessions
     @app.post("/api/sessions")
     async def create_session(request: Request, body: SessionCreate) -> dict[str, Any]:
         patient = patient_or_404(body.patient_id)
@@ -593,7 +591,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
         asyncio.ensure_future(run())
 
-    # ------------------------------------------------------------------ memory
     @app.get("/api/memory/{pid}")
     async def memory_get(pid: str) -> dict[str, Any]:
         patient_or_404(pid)
@@ -609,9 +606,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         """A caregiver enters a fact directly (provenance: caregiver)."""
         patient_or_404(pid)
         text = str(body.get("text", "")).strip()
-        from app.safety.advice import contains_advice
-        from app.safety.sensitive import detect
-
         if not text or len(text) > 200:
             raise HTTPException(400, "text must be 1-200 characters")
         if detect(text).sensitive or contains_advice(text):
@@ -651,7 +645,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             raise HTTPException(404, "entry not found")
         return {"deleted": True}
 
-    # -------------------------------------------------------------- simulation
     @app.get("/api/sim/results")
     async def sim_results() -> dict[str, Any]:
         path = ROOT / "docs" / "sim_results.json"
@@ -675,7 +668,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "results": [asdict(r) for r in results],
         }
 
-    # --------------------------------------------------------------- websocket
     @app.websocket("/ws/sessions/{sid}")
     async def ws_session(ws: WebSocket, sid: str) -> None:
         s = manager.get(sid)

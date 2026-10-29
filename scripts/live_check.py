@@ -1,4 +1,4 @@
-"""Live end-to-end check (brief 13.3): exercise every model role through the real adapters.
+"""Live end-to-end check: exercise every model role through the real adapters.
 
 Parts (default: all):
   roles       Spark: framing, scene, prior builder, question proposer, completer, sentences,
@@ -10,7 +10,7 @@ Parts (default: all):
   memory      Wonder curator over the resulting stay history
 
 Needs MODEL_API_KEY. Synthetic media comes from scripts/make_probe_media.py (data/probe_media/).
-Writes docs/LIVE_CHECK.md and data/live_check.json. Typical cost: well under $0.50.
+Writes docs/LIVE_CHECK.md and data/live_check/live_check.json. Typical cost: well under $0.50.
 
     PYTHONPATH=backend:. backend/.venv/bin/python scripts/live_check.py [--part roles]
 """
@@ -231,7 +231,7 @@ async def part_session(report: dict[str, Any], data_dir: Path) -> None:
         )
 
 
-async def part_memory(hub: ProviderHub, roles: Roles, store: Store, report: dict[str, Any]) -> None:
+async def part_memory(roles: Roles, store: Store, report: dict[str, Any]) -> None:
     patients = store.list_patients()
     if not patients:
         print("  no patients (run the session part first)")
@@ -365,7 +365,7 @@ async def main() -> None:
         await part_session(report, data_dir)
     if "memory" in parts:
         print("memory:")
-        await part_memory(hub, roles, Store(data_dir), report)
+        await part_memory(roles, Store(data_dir), report)
     report["spend_usd"] = Store(data_dir).total_spend() - spent0
     report["spend_total_usd"] = Store(data_dir).total_spend()
     (OUT / "live_check.json").write_text(

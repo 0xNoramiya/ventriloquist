@@ -1,4 +1,4 @@
-"""Fusion of per-source class probabilities into one observation (brief 9.5, 9.6).
+"""Fusion of per-source class probabilities into one observation.
 
 Sources: the tracker path (SAM 3.1 boxes + DTW, or the local optical-flow baseline) and the blind
 Muse Spark judge. Logarithmic opinion pool with calibration weights: independent sources that agree

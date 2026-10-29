@@ -1,4 +1,4 @@
-"""Detector evaluation on labelled clips (brief 13.2).
+"""Detector evaluation on labelled clips.
 
 Put clips recorded with consenting participants in data/labeled/{yes,no,rest,emergency}/ (gitignored)
 and a calibration for the same participant in data/labeled/calibration/{rest,yes,no,emergency}_*.{webm,mp4}.
@@ -112,9 +112,8 @@ async def main() -> None:
     )
     ap.add_argument("--verbose", action="store_true", help="print each source's reading per clip")
     args = ap.parse_args()
-    app_mode = (
-        "live" if args.mode == "privacy" else args.mode
-    )  # privacy is a session toggle on live
+    # privacy is a session toggle on live
+    app_mode = "live" if args.mode == "privacy" else args.mode
     os.environ["APP_MODE"] = app_mode
 
     from app.config import load_settings

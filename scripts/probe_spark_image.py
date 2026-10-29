@@ -91,7 +91,6 @@ def main() -> None:
             }
         ]
 
-    # 1. token count for the image alone
     res = run.attempt(
         "input_tokens 640x480 png",
         SPARK,
@@ -105,7 +104,6 @@ def main() -> None:
         body, _h, secs = res
         run.record("input_tokens 640x480 png", SPARK, secs, usd=0.0, extra=json.dumps(body))
 
-    # 2. grounding on the room drawing
     prompt = (
         'You are an object grounding expert. Provide bounding boxes for: "bed", "bedside table", '
         '"photo frame". Coordinates are integers on a 0-1000 grid (x right, y down). '
@@ -149,7 +147,6 @@ def main() -> None:
         run.save_fixture("spark_responses_image_grounding", body)
         run.note(f"room ground truth px boxes (approx): {json.dumps(truth)}")
 
-    # 3. eyebrow judgement on a still face frame
     run.guard(0.02, "face judge")
     res = run.attempt(
         "face eyebrows json_schema",

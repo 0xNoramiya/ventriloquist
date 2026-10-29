@@ -15,6 +15,7 @@ from __future__ import annotations
 import asyncio
 import dataclasses
 import json
+import os
 import tempfile
 import time
 from pathlib import Path
@@ -87,8 +88,6 @@ class BasetenVisionLanguage(VisionLanguage):
     max_videos = 2
 
     def __init__(self, settings: Settings, client: httpx.AsyncClient | None = None) -> None:
-        import os
-
         cfg = settings.providers.get("baseten", {})
         self.settings = settings
         self.max_retries = int(cfg.get("max_retries", 2))
@@ -226,7 +225,6 @@ class BasetenTranscriber(Transcriber):
         class Out(BaseModel):
             segments: list[Seg] = Field(default_factory=list)
 
-        from .base import Part
         from .llm import extract_json
 
         lang = {"id": "Indonesian", "en": "English"}.get(language or "", "the spoken language")

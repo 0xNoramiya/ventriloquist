@@ -181,8 +181,6 @@ SOURCES: tuple[Source, ...] = (
     ),
 )
 
-# --------------------------------------------------------------------------- download
-
 
 def fetch(source: Source, refresh: bool) -> Path:
     """Download a source into data/corpora/ unless it is already cached."""
@@ -207,8 +205,6 @@ def fetch(source: Source, refresh: bool) -> Path:
         )
     return path
 
-
-# --------------------------------------------------------------------------- cleaning
 
 _PG_START = re.compile(r"^\*\*\* ?START OF (?:THE|THIS) PROJECT GUTENBERG EBOOK.*$", re.M)
 _PG_END = re.compile(r"^\*\*\* ?END OF (?:THE|THIS) PROJECT GUTENBERG EBOOK.*$", re.M)
@@ -275,8 +271,6 @@ def load_text(source: Source, refresh: bool) -> str:
         return clean_statute(pdf_to_text(path))
     raise ValueError(f"unknown source kind {source.kind!r}")
 
-
-# --------------------------------------------------------------------------- counting
 
 _INNER_APOSTROPHE = re.compile(r"(?<=[A-Z])['’ʼ](?=[A-Z])")
 _NON_LETTERS = re.compile(r"[^A-Z]+")

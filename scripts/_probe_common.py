@@ -1,15 +1,9 @@
 """Shared helpers for scripts/probe_*.py.
 
-- loads .env and config.yaml (model ids, base URLs, prices)
-- skip(): exit 0 with a message when a key or dependency is missing
-- meta_client(): OpenAI SDK client for the Meta Model API (the SDK does not read MODEL_API_KEY itself)
-- Timer, key_tree(), estimate_cost()
-- ProbeRun: records each call, enforces a spend cap via a ledger, saves sanitized fixtures to
-  backend/tests/fixtures/meta_api/<name>.json and appends a dated block to the
-  "## Probe log" section of docs/API_NOTES.md
-
-Secrets are never printed: sanitize() replaces any API key value found in data before it is
-printed or written.
+ProbeRun records every call in a spend ledger and refuses one that would push the total over
+BUDGET_CAP_USD. It saves sanitized fixtures to backend/tests/fixtures/meta_api/<name>.json and
+appends a dated block to the "## Probe log" section of docs/API_NOTES.md. sanitize() replaces
+every API key value before anything is printed or written.
 """
 
 from __future__ import annotations
@@ -24,7 +18,7 @@ import sys
 import time
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any
+from typing import Any, NoReturn
 
 import yaml
 from dotenv import load_dotenv
@@ -57,7 +51,7 @@ def env(name: str) -> str | None:
     return value or None
 
 
-def skip(message: str) -> None:
+def skip(message: str) -> NoReturn:
     print(f"[skip] {message}")
     sys.exit(0)
 
@@ -66,7 +60,7 @@ def require_env(name: str) -> str:
     value = env(name)
     if value is None:
         skip(f"{name} is empty in .env; nothing to probe.")
-    return value  # type: ignore[return-value]
+    return value
 
 
 def meta_client(timeout: float = 120.0):
@@ -310,18 +304,6 @@ def decode_sam_masks(text: str) -> dict | None:
         except Exception:
             stats["errors"] += 1
     return stats
-
-
-def usage_of(resp: Any) -> dict:
-    data = to_jsonable(resp)
-    if isinstance(data, dict):
-        if isinstance(data.get("usage"), dict):
-            return data["usage"]
-        if isinstance(data.get("response"), dict) and isinstance(
-            data["response"].get("usage"), dict
-        ):
-            return data["response"]["usage"]
-    return {}
 
 
 def estimate_cost(model: str, usage: dict | None = None, audio_ms: int | None = None) -> float:

@@ -54,7 +54,6 @@ def main() -> None:
     run = ProbeRun("probe_wonder")
     rr = client.responses.with_raw_response
 
-    # 1. structured extraction
     run.guard(0.03, "wonder extract")
     res = run.attempt(
         "extract facts json_schema",
@@ -90,7 +89,6 @@ def main() -> None:
         run.save_fixture("wonder_responses_json_schema", body)
         run.note(f"Wonder rate-limit headers: {json.dumps(headers)}")
 
-    # 2. server-side state via previous_response_id
     run.guard(0.02, "wonder store")
     res = run.attempt(
         "store=true turn 1",
@@ -141,7 +139,6 @@ def main() -> None:
             )
             run.save_fixture("wonder_responses_previous_response_id", body2)
 
-    # 3. no chaining -> no recall
     run.guard(0.02, "wonder no memory")
     res = run.attempt(
         "fresh call, no chaining",
@@ -165,7 +162,6 @@ def main() -> None:
             extra=f"out={output_text(body)!r}",
         )
 
-    # 4. clean up the stored response
     if stored_id:
         t0 = time.perf_counter()
         d = run.attempt(

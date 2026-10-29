@@ -101,7 +101,6 @@ class SessionManager:
     def get(self, sid: str) -> Session | None:
         return self.sessions.get(sid)
 
-    # ----------------------------------------------------------------- sockets
     async def subscribe(self, sid: str, ws: WebSocket) -> None:
         self.subscribers.setdefault(sid, set()).add(ws)
 

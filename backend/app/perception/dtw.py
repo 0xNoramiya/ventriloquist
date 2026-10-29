@@ -1,4 +1,4 @@
-"""Dynamic time warping nearest-neighbour classification (brief 9.3)."""
+"""Dynamic time warping nearest-neighbour classification."""
 
 from __future__ import annotations
 

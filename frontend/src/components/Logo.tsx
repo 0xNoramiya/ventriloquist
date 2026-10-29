@@ -1,6 +1,6 @@
 import { cx } from '../lib/format';
 
-/** Mark: a phone holding a closing quotation mark — the patient's words, not the machine's. */
+/** A phone holding a closing quotation mark: the patient's words, not the machine's. */
 export function LogoMark({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 32 32" className={cx('size-8 shrink-0', className)} aria-hidden="true">

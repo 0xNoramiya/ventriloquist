@@ -43,7 +43,7 @@ def sam_input(prompt: str, image) -> list[dict]:
     ]
 
 
-def summarize(run: ProbeRun, label: str, text: str) -> str:
+def summarize(run: ProbeRun, text: str) -> str:
     recs = parse_sam_text(text)
     dec = decode_sam_masks(text)
     brief = [
@@ -65,7 +65,6 @@ def main() -> None:
         f"room ground truth (approx px): {json.dumps(manifest()['image']['hospital_room.png']['objects'])}"
     )
 
-    # 1. streaming, lossless masks, confidence
     run.guard(0.003, "sam photo frame")
     res = run.attempt(
         "photo frame stream lossless+c",
@@ -86,14 +85,13 @@ def main() -> None:
             res["total_s"],
             usage,
             first_event_s=res["first_delta_s"],
-            extra=summarize(run, "photo frame", res["text"]),
+            extra=summarize(run, res["text"]),
         )
         run.note(f"SSE event types (image, stream): {json.dumps(res['event_types'])}")
         print("first line:", res["text"][:240])
         print(key_tree(res["final"]))
         run.save_fixture("sam_image_stream_lossless", {"events": res["events"]})
 
-    # 2. non-streaming, one_bit
     run.guard(0.003, "sam bed")
     res = run.attempt(
         "bed non-stream one_bit",
@@ -114,13 +112,12 @@ def main() -> None:
             SAM,
             secs,
             body.get("usage"),
-            extra=summarize(run, "bed", text),
+            extra=summarize(run, text),
         )
         print(key_tree(body))
         run.save_fixture("sam_image_nonstream_one_bit", body)
         run.note(f"SAM response headers: {json.dumps(headers)}")
 
-    # 3. face, eyebrows
     run.guard(0.003, "sam eyebrows")
     res = run.attempt(
         "eyebrows stream one_bit+c",
@@ -141,7 +138,7 @@ def main() -> None:
             res["total_s"],
             usage,
             first_event_s=res["first_delta_s"],
-            extra=summarize(run, "eyebrows", res["text"]),
+            extra=summarize(run, res["text"]),
         )
         run.save_fixture("sam_image_stream_one_bit_eyebrows", {"events": res["events"]})
     run.finish()

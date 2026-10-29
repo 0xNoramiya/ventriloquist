@@ -1,8 +1,8 @@
 """Package the backend Python sources for the in-browser demo (Pyodide).
 
-Writes a zip with config.yaml and backend/app (minus the web server and the modules that need
-OpenCV or the network) to frontend/public/pyodide/backend.zip by default. The browser demo unpacks
-it into Pyodide's virtual file system and imports app.browser.
+Writes a zip with config.yaml and backend/app, minus main.py (the web server) and cli.py (the
+command-line demo), to frontend/public/pyodide/backend.zip by default. The browser demo unpacks it
+into Pyodide's virtual file system and imports app.browser.
 
     backend/.venv/bin/python scripts/build_pyodide_bundle.py [--out path.zip]
 """

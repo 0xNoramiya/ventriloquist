@@ -27,7 +27,13 @@ from app.engine.types import Question, QuestionKind
 from app.providers.registry import Mode
 from app.storage import new_id, now_iso
 
-from .channels import SendResult, SimulatedChannel, mask_phone, normalise_phone
+from .channels import (
+    SendResult,
+    SimulatedChannel,
+    WhatsAppChannel,
+    mask_phone,
+    normalise_phone,
+)
 
 if TYPE_CHECKING:
     from app.sessions.session import Message, Session
@@ -109,10 +115,11 @@ class RelayAgent:
     def __init__(self, session: Session) -> None:
         self.s = session
         self.cfg: dict[str, Any] = session.ctx.settings.section("relay")
-        shared = getattr(session.ctx, "relay_channel", None)
+        shared = session.ctx.relay_channel
+        self.channel: SimulatedChannel | WhatsAppChannel
         # Real WhatsApp only in live mode and never for demo scenarios (fictional relatives).
         if shared is not None and session.mode == Mode.LIVE and not session.scenario:
-            self.channel: Any = shared  # replies arrive through the webhook (SessionManager)
+            self.channel = shared  # replies arrive through the webhook (SessionManager)
         else:
             self.channel = SimulatedChannel(
                 self.on_event, float(self.cfg.get("mock_reply_after_s", 8)), self._silent()
@@ -129,7 +136,6 @@ class RelayAgent:
     def enabled(self) -> bool:
         return bool(self.cfg.get("enabled", True)) and bool(contacts_of(self.s.patient))
 
-    # ------------------------------------------------------------------ offer
     def offer_for(self, msg: Message) -> Contact | None:
         """The relative a confirmed message is about, if they can receive it."""
         if not self.enabled or msg.sensitive or not msg.hypothesis_id:
@@ -147,7 +153,6 @@ class RelayAgent:
         tried = {r.contact.phone for r in self.relays if r.message_id == relay.message_id}
         return next((c for c in contacts_of(self.s.patient) if c.phone not in tried), None)
 
-    # ------------------------------------------------------------------ act
     async def start(self, msg: Message, contact: Contact) -> Relay:
         """The patient said YES to sending."""
         text = msg.text_id if self.s.lang == "id" else msg.text_en
@@ -202,7 +207,6 @@ class RelayAgent:
         self.s.log.write("relay_sent", relay_id=relay.id, kind=res.kind)
         self._start_timer(relay)
 
-    # ------------------------------------------------------------------ observe
     def owns(self, channel_id: str | None, phone: str) -> bool:
         return any(
             (channel_id and r.channel_id == channel_id) or (r.contact.phone == phone)
@@ -306,7 +310,6 @@ class RelayAgent:
             relay, contact = self.followups.pop(0)
             await self.s.offer_relay(relay.message_id, contact, previous=relay.contact)
 
-    # ------------------------------------------------------------------ follow up
     def _start_timer(self, relay: Relay) -> None:
         self._timers[relay.id] = asyncio.ensure_future(self._no_reply_after(relay))
 

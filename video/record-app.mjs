@@ -292,7 +292,7 @@ async function session(browser, dir) {
   for (let i = 0; i < 600; i++) {
     s = await step();
     if (s.relays?.some((r) => r.status === 'awaiting_approval')) break;
-    if (['CAREGIVER_NEEDED'].includes(s.state)) throw new Error('caregiver needed: ' + s.caregiver_reason);
+    if (s.state === 'CAREGIVER_NEEDED') throw new Error('caregiver needed: ' + s.caregiver_reason);
     await sleep(300);
   }
   note('relay offered');

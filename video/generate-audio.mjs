@@ -93,7 +93,6 @@ for (const fx of sfx) {
   console.log(`${fx.id} ${s.toFixed(1)} s`);
 }
 
-// the HyperFrames composition reads the lengths from here
 const manifest = here('media/audio/durations.json');
 const previous = existsSync(manifest) ? JSON.parse(readFileSync(manifest, 'utf8')) : {};
 writeFileSync(manifest, JSON.stringify({ ...previous, ...durations }, null, 2) + '\n');

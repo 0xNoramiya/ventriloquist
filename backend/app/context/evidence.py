@@ -1,4 +1,4 @@
-"""Evidence store (brief 10.1). Every prior multiplier must cite one of these ids; the caregiver view
+"""Evidence store. Every prior multiplier must cite one of these ids; the caregiver view
 shows them as chips. S# scene facts, T# transcript segments, E# caregiver events, M# memory facts,
 H# earlier confirmed messages."""
 

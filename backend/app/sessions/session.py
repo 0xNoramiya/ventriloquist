@@ -1,4 +1,4 @@
-"""Session orchestrator: one patient, one conversation, many messages (brief 8.7, Section 12).
+"""Session orchestrator: one patient, one conversation, many messages.
 
 Owns the state machine, the evidence store, the engine deciders (main, spelling, sentence choice,
 pain refinement) and all side effects: prompts to speak, perception, caregiver overrides,
@@ -43,7 +43,9 @@ from app.engine.types import (
 )
 from app.providers.registry import Mode, ProviderHub
 from app.relay.agent import Contact, RelayAgent, relay_offer_question
+from app.relay.channels import WhatsAppChannel
 from app.roles import Roles
+from app.safety.advice import message_problems
 from app.safety.sensitive import detect
 from app.storage import Store, new_id, now_iso
 
@@ -74,10 +76,10 @@ CAREGIVER_REASONS = {
 @dataclass
 class Prompt:
     id: str
-    kind: (
-        str  # ask | confirm | offer_spell | spelling | post_check | refine_offer | worse | message
-    )
-    stage: str  # main | sentence | refine | spelling | post_check | refine_offer | worse | speak
+    # ask | confirm | offer_spell | spelling | post_check | refine_offer | worse | relay_offer | message
+    kind: str
+    # main | sentence | refine | spelling | post_check | refine_offer | worse | relay_offer | speak
+    stage: str
     text: str
     text_en: str
     question: Question | None = None
@@ -130,7 +132,7 @@ class AppContext:
     store: Store
     hub: ProviderHub
     roles: Roles
-    relay_channel: Any = None  # WhatsApp Cloud API channel when configured (live mode only)
+    relay_channel: WhatsAppChannel | None = None  # when configured; used in live mode only
 
 
 Notifier = Callable[["Session", dict[str, Any] | None], Awaitable[None]]
@@ -205,15 +207,13 @@ class Session:
         self.retractions = 0
         self.sentence_rounds = 0
         self.rejected: list[dict[str, Any]] = []
-        self.spoken_texts: list[
-            tuple[float, str]
-        ] = []  # what the phone said, to drop its echo from room audio
+        # What the phone said, to drop its echo from room audio.
+        self.spoken_texts: list[tuple[float, str]] = []
         self._tasks: set[asyncio.Task[Any]] = set()
         self._ack_tasks: dict[str, asyncio.Task[Any]] = {}
         self.relay = RelayAgent(self)
         self.pending_relay: tuple[str, Contact] | None = None
 
-    # ================================================================ helpers
     @property
     def state(self) -> State:
         return self.sm.state
@@ -272,7 +272,6 @@ class Session:
         self.llm_calls.append(meta)
         self.log.write("llm_call", **meta)
 
-    # ================================================================ lifecycle
     async def start(self) -> None:
         async with self.lock:
             self.log.write(
@@ -455,7 +454,6 @@ class Session:
             rejected=self.rejected,
         )
 
-    # ================================================================ prompts
     async def _prompt(
         self,
         kind: str,
@@ -527,7 +525,6 @@ class Session:
                 await asyncio.sleep(self.sim_delay_s)
             await self.answer(pid, sim_answer, source="simulated")
 
-    # ================================================================ answers
     async def answer(self, prompt_id: str, answer: Answer | str, source: str = "keyboard") -> bool:
         ans = Answer(answer)
         conf = {"keyboard": 0.95, "simulated": 1.0 - (self.sim.noise if self.sim else 0.05)}.get(
@@ -758,7 +755,6 @@ class Session:
                 self.log.write("relay_declined", message_id=pending[0])
             await self._done()
 
-    # ================================================================ main stage
     async def _apply_main(self, act: Action) -> None:
         self.stage = "main"
         await self._apply_decider_action(act, "main")
@@ -806,7 +802,6 @@ class Session:
             return
         await self._apply_decider_action(act, "refine")
 
-    # ================================================================ spelling
     async def _enter_spelling(self) -> None:
         self.stage = "spelling"
         self.spelling = SpellingDecider(self.lang, self.cfg, self.a, self.b)
@@ -898,8 +893,6 @@ class Session:
         for s in res.data.sentences[:3]:
             if detect(s.text_en).sensitive or detect(s.text_id).sensitive:
                 continue
-            from app.safety.advice import message_problems
-
             if message_problems(s.text_en) or message_problems(s.text_id):
                 continue
             sentences.append((s.text_en, s.text_id, s.p))
@@ -928,7 +921,6 @@ class Session:
             return True
         return False
 
-    # ================================================================ messages
     async def _finalize(self, h: Hypothesis, stage: str) -> None:
         source = (
             "spelling"
@@ -1008,7 +1000,6 @@ class Session:
         if self.auto_speak:
             self._spawn(self._auto_spoken(self.prompt.id))
 
-    # ================================================================ acknowledgement
     def _announce(self, msg: Message) -> None:
         msg.announced += 1
         if msg.acknowledged_at is None and msg.id not in self._ack_tasks:
@@ -1188,7 +1179,6 @@ class Session:
         )
         await self.relay.flush()
 
-    # ================================================================ family relay
     @property
     def idle(self) -> bool:
         """Between messages: the phone may speak or ask without interrupting the patient."""
@@ -1206,7 +1196,6 @@ class Session:
         self._remember_spoken(text)
         await self._notify({"type": kind, "text": text})
 
-    # ================================================================ side states
     async def _caregiver(self, reason: str, keep_prompt: bool = False) -> None:
         self.caregiver_reason = reason
         if not keep_prompt and reason != "sensitive_verify":
@@ -1238,7 +1227,6 @@ class Session:
         self.ctx.store.add_event(self.pid, self.id, "emergency", source)
         self.log.write("emergency", source=source)
 
-    # ================================================================ caregiver
     async def override(self, action: str) -> dict[str, Any]:
         """Human override everywhere (Safety rule 10). Logged and shown with a badge."""
         self.log.write("override", action=action, state=str(self.state))
@@ -1353,7 +1341,6 @@ class Session:
         self.ctx.store.update_session(self.id, str(self.state), summary, ended=True)
         self.log.write("session_end", summary=summary)
 
-    # ================================================================ context inputs
     async def add_event(self, kind: str, label: str | None) -> dict[str, Any]:
         e = self.ctx.store.add_event(self.pid, self.id, kind, label)
         self.log.write("caregiver_event", kind=kind, label=label)
@@ -1429,7 +1416,6 @@ class Session:
         await self._notify()
         return facts
 
-    # ================================================================ views
     def _top_posterior(self, k: int = 8) -> list[dict[str, Any]]:
         d = {"main": self.decider, "sentence": self.sentence, "refine": self.refine}.get(
             self.stage

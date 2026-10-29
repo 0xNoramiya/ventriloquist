@@ -1,4 +1,4 @@
-"""Cost estimation and the budget guard (brief Section 15).
+"""Cost estimation and the budget guard.
 
 Spend is estimated from usage fields and the prices in config.yaml. At 70% of budget.max_usd the UI
 shows a warning; at 90% every provider switches to mock and the UI says so.

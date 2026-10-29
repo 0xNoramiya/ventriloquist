@@ -1,4 +1,4 @@
-"""Provider interfaces (brief Section 7): VisionLanguage, Tracker, Transcriber, MemoryModel.
+"""Provider interfaces: VisionLanguage, Tracker, Transcriber, MemoryModel.
 
 Implementations: meta_api (Meta Model API), baseten (Muse Spark Open, privacy mode),
 modal_sam (optional SAM 3.1 open weights), local (on-device optical flow, no model) and mock.
@@ -37,9 +37,8 @@ class LLMRequest:
     instructions: str
     parts: list[Part]
     schema: type[BaseModel]
-    context: dict[str, Any] = field(
-        default_factory=dict
-    )  # structured input for the mock; never sent
+    # Structured input for the mock; never sent.
+    context: dict[str, Any] = field(default_factory=dict)
     reasoning_effort: str | None = None
     max_output_tokens: int = 900
     timeout_s: float = 30.0

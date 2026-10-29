@@ -1,4 +1,4 @@
-"""Calibration wizard backend (brief 9.2): bring your own signal.
+"""Calibration wizard backend: bring your own signal.
 
 1. framing check (Muse Spark, image)            2. 15 s rest clip (natural blink baseline)
 3. YES x3, NO x3, emergency (triple YES) x1      4. Muse Spark names the movement + a SAM prompt

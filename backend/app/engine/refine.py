@@ -1,4 +1,4 @@
-"""Optional pain refinement after "I'm in pain." is confirmed (brief 8.2).
+"""Optional pain refinement after "I'm in pain." is confirmed.
 
 Relay only: location and "worse than before" are passed on in the patient's words.
 Nothing here assesses, scores or interprets the pain.

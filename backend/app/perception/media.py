@@ -1,4 +1,4 @@
-"""Media normalisation with ffmpeg (brief 9.1).
+"""Media normalisation with ffmpeg.
 
 Browsers record WebM (Chrome/Android) or MP4 (Safari/iOS). SAM 3.1 and Muse Spark want H.264 MP4,
 Voice Transcribe wants mono 16-bit WAV at 16/24 kHz. Front-camera previews are mirrored in the UI
@@ -11,7 +11,6 @@ import asyncio
 import base64
 import hashlib
 import json
-import shutil
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
@@ -22,10 +21,6 @@ import numpy as np
 
 class MediaError(RuntimeError):
     pass
-
-
-def ffmpeg_available() -> bool:
-    return shutil.which("ffmpeg") is not None
 
 
 def _run(cmd: list[str], timeout: float = 60) -> None:
@@ -176,16 +171,6 @@ def read_frames(path: Path, max_frames: int | None = None, gray: bool = False) -
         images = [images[k] for k in idx]
         times = [times[k] for k in idx]
     return Frames(images, times, fps)
-
-
-def sample_jpegs(path: Path, n: int = 8, quality: int = 80) -> list[tuple[float, bytes]]:
-    frames = read_frames(path, max_frames=n)
-    out = []
-    for img, t in zip(frames.images, frames.times, strict=True):
-        ok, buf = cv2.imencode(".jpg", img, [cv2.IMWRITE_JPEG_QUALITY, quality])
-        if ok:
-            out.append((t, buf.tobytes()))
-    return out
 
 
 def data_url(data: bytes, mime: str) -> str:

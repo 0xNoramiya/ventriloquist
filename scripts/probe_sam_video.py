@@ -96,7 +96,6 @@ def main() -> None:
             }
         ]
 
-    # 1. inline data URL, streaming
     run.guard(0.02, "sam video yes")
     res = run.attempt(
         "YES eyebrows inline stream",
@@ -125,7 +124,6 @@ def main() -> None:
         print(key_tree(res["final"]))
         run.save_fixture("sam_video_stream_one_bit_eyebrows", {"events": res["events"]})
 
-    # 2. upload + file_id, streaming
     t0 = time.perf_counter()
     f = run.attempt(
         "upload nod clip",
@@ -165,7 +163,6 @@ def main() -> None:
             run.save_fixture("sam_video_stream_file_id_face", {"events": res["events"]})
         client.files.delete(f.id)
 
-    # 3. non-streaming, lossless
     run.guard(0.02, "sam video rest")
     res = run.attempt(
         "REST eyebrows inline non-stream",

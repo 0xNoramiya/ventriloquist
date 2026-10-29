@@ -1,4 +1,4 @@
-"""Core engine types (brief Section 8.1)."""
+"""Core engine types."""
 
 from __future__ import annotations
 

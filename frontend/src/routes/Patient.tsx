@@ -68,7 +68,6 @@ export default function Patient() {
       });
   }, []);
 
-  // Release camera and speech when leaving the page.
   useEffect(
     () => () => {
       stopStream(streamRef.current);
@@ -192,7 +191,7 @@ export default function Patient() {
     recordAnswer(promptId);
   }, [started, camera, state, promptId, recordAnswer]);
 
-  // Idle watch (brief 9.6): between messages, look for the patient's signal every few seconds.
+  // Idle watch: between messages, look for the patient's signal every few seconds.
   // Triple YES raises the alarm; a single YES starts a new message. Off unless the flag is on.
   useEffect(() => {
     if (!started || !camera || !sid || snap?.ended || !(state === 'DONE' || state === 'IDLE'))

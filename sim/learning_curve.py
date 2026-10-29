@@ -1,4 +1,4 @@
-"""Learning curve (brief 10.5): questions per confirmed message as personal memory accumulates.
+"""Learning curve: questions per confirmed message as personal memory accumulates.
 
 Each simulated patient has their own habits (base rates skewed by a log-normal factor) and talks over
 10 sessions of 5 messages, one session a day. Confirmed messages feed the personal base rates

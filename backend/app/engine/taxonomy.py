@@ -1,4 +1,4 @@
-"""Taxonomy v1, attribute partitions and template instantiation (brief 8.2, 8.4)."""
+"""Taxonomy v1, attribute partitions and template instantiation."""
 
 from __future__ import annotations
 

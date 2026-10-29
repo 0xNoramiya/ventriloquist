@@ -1,4 +1,4 @@
-"""Context-aware priors with bounded influence (brief 8.3, Safety rule 8).
+"""Context-aware priors with bounded influence (Safety rule 8).
 
 p0(h) ∝ base(h) × personal(h) × context(h)
 

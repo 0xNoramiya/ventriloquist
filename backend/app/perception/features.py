@@ -1,4 +1,4 @@
-"""Per-frame movement features (brief 9.3).
+"""Per-frame movement features.
 
 SAM path: track the calibrated body part with its text prompt; per frame take box area, centroid x/y,
 box height and top edge, normalised against the rest baseline, plus whether the part was seen at

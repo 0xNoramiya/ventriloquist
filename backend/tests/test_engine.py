@@ -1,4 +1,4 @@
-"""Engine tests (brief 8.10)."""
+"""Engine tests."""
 
 from __future__ import annotations
 
@@ -34,7 +34,6 @@ def no(conf: float = 1.0) -> Observation:
     return Observation(Answer.NO, conf)
 
 
-# --------------------------------------------------------------------------- EIG
 def test_eig_nonnegative_and_peaks_at_half():
     s = np.linspace(0, 1, 1001)
     for a in (0.0, 0.05, 0.1, 0.2, 0.4):
@@ -54,7 +53,6 @@ def test_eig_zero_noise_equals_entropy():
     assert eig(0.25, 0.0, 0.0) == pytest.approx(h2(0.25))
 
 
-# --------------------------------------------------------------------- posterior
 @settings(max_examples=200, deadline=None)
 @given(
     st.lists(st.floats(0.001, 1.0), min_size=2, max_size=40),
@@ -89,7 +87,6 @@ def test_override_uses_observation_error_only():
     assert (a, b) == (pytest.approx(0.3), pytest.approx(0.2))
 
 
-# --------------------------------------------------------------------- priors
 @settings(max_examples=300, deadline=None)
 @given(
     st.lists(st.floats(1e-6, 1.0), min_size=4, max_size=45),
@@ -148,7 +145,6 @@ def test_context_multiplier_snaps_to_allowed_values():
     assert terms["cold"].chips[0].evidence_id == "E1"
 
 
-# ------------------------------------------------------------- the 3+1 test
 def binary_world(n_bits: int = 3):
     hyps = [
         Hypothesis(
@@ -187,7 +183,6 @@ def test_zero_noise_eight_equiprobable_takes_three_questions_plus_confirm(truth)
     assert asked == [ActionKind.ASK] * 3 + [ActionKind.CONFIRM]
 
 
-# ----------------------------------------------------------------- policy rules
 def run_patient(
     d: MessageDecider, truth: str, flip_rng=None, eps: float = 0.0, max_steps: int = 40
 ):
@@ -331,7 +326,6 @@ def test_emergency_bypasses_engine():
     assert np.array_equal(before, d.p)
 
 
-# ------------------------------------------------------------ LLM validation
 def test_llm_questions_validated():
     hyps, questions = taxonomy_setup()
     ids = {h.id for h in hyps}
@@ -356,7 +350,6 @@ def test_llm_questions_validated():
     assert len(rejected) == 6
 
 
-# --------------------------------------------- sensitive hypotheses never appear
 def test_sensitive_or_uncited_instantiations_rejected():
     evidence = {
         "T1": "Your daughter Aisyah went home to rest, she'll be back at four.",

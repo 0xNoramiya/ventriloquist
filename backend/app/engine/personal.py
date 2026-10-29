@@ -1,4 +1,4 @@
-"""Personal base rates learned from confirmed messages (brief 8.9).
+"""Personal base rates learned from confirmed messages.
 
 Dirichlet posterior with the population base rates as the prior mean. Each confirmed message
 adds a pseudo-count that decays with a 3-day half-life, so last night's habits count more than

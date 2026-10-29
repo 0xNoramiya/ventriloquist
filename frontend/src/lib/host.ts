@@ -21,7 +21,7 @@ export function defaultPhoneHost(): string {
     const saved = window.localStorage.getItem(STORAGE_KEY);
     if (saved) return saved;
   } catch {
-    // ignore
+    // storage blocked: work the host out from the page
   }
   const { hostname, host, port, protocol } = window.location;
   if (!isLoopback(hostname)) return host;

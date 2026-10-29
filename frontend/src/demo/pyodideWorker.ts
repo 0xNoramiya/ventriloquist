@@ -47,6 +47,7 @@ interface Pyodide {
   globals: { set(name: string, value: unknown): void };
 }
 
+// The project's DOM lib types `self` as Window; this module only ever runs as a dedicated worker.
 const scope = self as unknown as DedicatedWorkerGlobalScope;
 let demo: BrowserDemo | null = null;
 

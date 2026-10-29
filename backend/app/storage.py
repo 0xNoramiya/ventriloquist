@@ -1,4 +1,4 @@
-"""Local SQLite storage (brief Section 12). Everything lives in ./data, which is gitignored.
+"""Local SQLite storage. Everything lives in ./data, which is gitignored.
 
 Patients are identified by a pseudonymous id; no PII leaves this file except the display name the
 caregiver typed (shown only on local screens).
@@ -82,7 +82,6 @@ class Store:
         self._conn.execute("PRAGMA journal_mode=WAL")
         self._conn.executescript(SCHEMA)
 
-    # ------------------------------------------------------------------ helpers
     def execute(self, sql: str, params: tuple[Any, ...] = ()) -> sqlite3.Cursor:
         with self._lock:
             return self._conn.execute(sql, params)
@@ -103,7 +102,6 @@ class Store:
     def session_log_path(self, session_id: str) -> Path:
         return self.data_dir / "logs" / "sessions" / f"{session_id}.jsonl"
 
-    # ----------------------------------------------------------------- patients
     def create_patient(self, profile: dict[str, Any]) -> str:
         pid = new_id("pt")
         self.execute("INSERT INTO patients VALUES (?,?,?)", (pid, json.dumps(profile), now_iso()))
@@ -149,7 +147,6 @@ class Store:
         counts["session_logs"] = len(session_ids)
         return counts
 
-    # -------------------------------------------------------------- calibration
     def save_calibration(self, pid: str, data: dict[str, Any]) -> None:
         self.execute(
             "INSERT INTO calibrations VALUES (?,?,?) ON CONFLICT(patient_id) DO UPDATE SET "
@@ -161,7 +158,6 @@ class Store:
         r = self.row("SELECT data_json FROM calibrations WHERE patient_id=?", (pid,))
         return json.loads(r["data_json"]) if r else None
 
-    # ----------------------------------------------------------------- sessions
     def create_session(self, sid: str, pid: str, mode: str) -> None:
         self.execute(
             "INSERT INTO sessions VALUES (?,?,?,?,?,?,?)",
@@ -188,7 +184,6 @@ class Store:
             out.append(r)
         return out
 
-    # ----------------------------------------------------------------- messages
     def add_message(self, **m: Any) -> str:
         mid = m.get("id") or new_id("msg")
         self.execute(
@@ -209,9 +204,6 @@ class Store:
         )
         return mid
 
-    def set_message_status(self, mid: str, status: str) -> None:
-        self.execute("UPDATE messages SET status=? WHERE id=?", (status, mid))
-
     def messages(self, pid: str, status: str | None = None) -> list[dict[str, Any]]:
         if status:
             return self.rows(
@@ -220,7 +212,6 @@ class Store:
             )
         return self.rows("SELECT * FROM messages WHERE patient_id=? ORDER BY created_at", (pid,))
 
-    # ------------------------------------------------------- events/transcript
     def add_event(
         self, pid: str, sid: str | None, kind: str, label: str | None = None
     ) -> dict[str, Any]:
@@ -281,7 +272,6 @@ class Store:
             )
         return self.rows("SELECT * FROM scene_facts WHERE patient_id=? ORDER BY created_at", (pid,))
 
-    # ------------------------------------------------------------------ memory
     def add_memory(
         self,
         pid: str,
@@ -365,7 +355,6 @@ class Store:
             "UPDATE memory_ops SET status=?, decided_at=? WHERE id=?", (status, now_iso(), oid)
         )
 
-    # ------------------------------------------------------------------- spend
     def add_spend(
         self,
         provider: str,
@@ -403,7 +392,6 @@ class Store:
             "FROM spend GROUP BY provider, model ORDER BY usd DESC"
         )
 
-    # --------------------------------------------------------------------- kv
     def kv_get(self, key: str, default: Any = None) -> Any:
         r = self.row("SELECT value FROM kv WHERE key=?", (key,))
         return json.loads(r["value"]) if r else default

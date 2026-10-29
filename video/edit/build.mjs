@@ -1,5 +1,5 @@
-// Builds the demo film (docs/DEMO_SCRIPT.md): cuts the footage into assets/, writes index.html
-// for HyperFrames, and mixes the soundtrack into assets/mix.wav.
+// Builds the demo film (docs/DEMO_SCRIPT.md): cuts the footage into assets/, writes the
+// composition to index.html, and mixes the soundtrack into assets/mix.wav.
 //   node build.mjs            then   npm run check && npm run render
 //   node build.mjs --force    to cut every piece again
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -20,7 +20,7 @@ const ses = take('session');
 const spl = take(process.env.SPELLING ?? 'spelling');
 const prv = take('privacy');
 
-// ---------------------------------------------------------------- where everything lands
+// start times in the film, in seconds
 const NARRATION = { N1: 0.7, N2: 15.5, N3: 32.9, N4: 74.4, N5: 98.4, N6: 120.6, N7: 131.9, N8: 141.4, N8b: 152.9, N9: 164.2 };
 const S = {
   hook: 0,
@@ -46,6 +46,7 @@ const S = {
 const t = (test, nth) => ses.at('phone', test, nth);
 const prompt = (text) => t((e) => e.what === 'prompt' && e.text?.startsWith(text));
 const replyAt = t('reply read');
+// the phone's spoken lines (stand-ins for its built-in voice): start times in the film
 const PHONE_LINES = {
   P0: S.session + 0.7,
   P3: 59.6,
@@ -55,7 +56,6 @@ const PHONE_LINES = {
   P8: 114.0,
 };
 
-// ---------------------------------------------------------------- footage pieces
 const pieces = [];
 /** One app shot: the same window of console and phone footage, cut alike. */
 function appShot(id, rec, from, at, length, opts = {}) {
@@ -95,10 +95,10 @@ const reply = appShot('r2', ses, replyFrom, S.reply, S.spell - S.reply, {
   vf: [`tpad=stop_mode=clone:stop_duration=6`],
   until: t('new message') - 0.3,
 });
-const listenEmergency = t('emergency queued') + 2.9;
-const alarm1 = appShot('e1', ses, listenEmergency - 0.4, S.alarm, 4.0);
 // measured on the recordings: the phone starts listening 2.9 s after the harness queued the
 // signal, and the red banner shows 0.1 s before the harness saw the alarm (12.7 s after listening)
+const listenEmergency = t('emergency queued') + 2.9;
+const alarm1 = appShot('e1', ses, listenEmergency - 0.4, S.alarm, 4.0);
 const alarmAt = t('alarm');
 const alarm2 = appShot('e2', ses, alarmAt - 0.4, 135.6, S.stack - 135.6, {
   vf: [`tpad=stop_mode=clone:stop_duration=3`],
@@ -149,7 +149,6 @@ for (const still of ['still_hero.png', 'still_night.png']) {
   writeFileSync(ASSETS + still, readFileSync(gen(still)));
 }
 
-// ---------------------------------------------------------------- html
 const html = [];
 const gsap = [];
 let n = 0;

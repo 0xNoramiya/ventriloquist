@@ -36,8 +36,8 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 }
 
-/** The one orchestrated moment: a real question trail plays itself and ends in the patient's words.
- * It starts when it scrolls into view, so nobody misses it. */
+/** The page's only animated sequence: a question trail plays itself and ends in the patient's
+ * words. It starts when it scrolls into view, so nobody misses it. */
 function TrailDemo() {
   const t = useT();
   const ref = useRef<HTMLElement | null>(null);

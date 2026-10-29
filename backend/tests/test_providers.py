@@ -59,7 +59,6 @@ class Schema(BaseModel):
     answer: str
 
 
-# ------------------------------------------------------------------ parsing
 def test_responses_output_and_usage_from_fixture():
     body = fixture("spark_responses_json_schema")
     text = parse_responses_output(body)
@@ -115,7 +114,6 @@ def test_strict_schema_for_every_role():
         check(schema)
 
 
-# ------------------------------------------------------------ HTTP adapters
 async def test_meta_vision_language_request_and_response(ctx, tmp_path):
     seen = {}
 
@@ -341,7 +339,6 @@ async def test_baseten_slows_video_to_the_requested_rate(ctx, tmp_path):
     assert texts == ["(Played 2x slower than real time: divide every duration you see by 2.)"]
 
 
-# ------------------------------------------------------------ repair/fallback
 class Scripted(VisionLanguage):
     provider = "scripted"
 

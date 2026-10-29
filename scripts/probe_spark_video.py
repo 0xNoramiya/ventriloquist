@@ -1,4 +1,4 @@
-"""Probe: Muse Spark video understanding — how video is accepted and what it costs.
+"""Probe: Muse Spark video understanding: how video is accepted and what it costs.
 
 Calls:
   1-3. POST /v1/responses/input_tokens for the 4 s clip as an inline data URL (input_video.video_url),
@@ -101,7 +101,7 @@ def main() -> None:
         f"token counts for the 4 s clip: {json.dumps(counts)}; per-call upper estimate ${est:.4f}"
     )
 
-    def classify(label: str, part: dict, fixture: str, truth_kind: str) -> None:
+    def classify(label: str, part: dict, fixture: str, truth_kind: str) -> dict | None:
         run.guard(est, label)
         res = run.attempt(
             label,
@@ -137,7 +137,6 @@ def main() -> None:
             return body
         return None
 
-    # 4. inline data URL (default sampling), then an fps sweep on the same clip
     sweep_only = "--fps-sweep-only" in sys.argv
     if not sweep_only:
         body = classify(
@@ -159,7 +158,6 @@ def main() -> None:
         run.finish()
         return
 
-    # 5/6. Files API upload, then reference by id
     uploaded = []
     for path, part_type, label, fixture, truth_kind in (
         (

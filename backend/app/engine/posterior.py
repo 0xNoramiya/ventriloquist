@@ -1,4 +1,4 @@
-"""Bayesian updates under a noisy yes/no channel (brief 8.6)."""
+"""Bayesian updates under a noisy yes/no channel."""
 
 from __future__ import annotations
 

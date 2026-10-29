@@ -154,7 +154,6 @@ def test_sensitive_detector_basics():
     assert not detect("Tolong matikan lampu").sensitive
 
 
-# ------------------------------------------------------------------ personal
 def test_personal_multipliers_learn_and_decay():
     now = datetime(2026, 10, 30, tzinfo=UTC)
     base = {"pain": 0.1, "cold": 0.1, "thirst": 0.8}
@@ -167,7 +166,6 @@ def test_personal_multipliers_learn_and_decay():
     assert all(0.5 <= v <= 3.0 for v in m.values())
 
 
-# ------------------------------------------------------------------ state machine
 def test_all_listed_transitions_valid():
     for src, dsts in TRANSITIONS.items():
         for dst in dsts:

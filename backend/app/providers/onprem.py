@@ -18,6 +18,8 @@ import os
 import time
 from typing import Any
 
+import httpx
+
 from app.config import Settings
 
 from .base import LLMRequest, ProviderError, RawResponse, Usage, VisionLanguage
@@ -27,7 +29,7 @@ from .meta_api import _post_with_retries, strict_schema
 class OnPremVisionLanguage(VisionLanguage):
     provider = "onprem"
 
-    def __init__(self, settings: Settings, client: Any = None) -> None:
+    def __init__(self, settings: Settings, client: httpx.AsyncClient | None = None) -> None:
         url = os.environ.get("LOCAL_LLM_URL", "").strip() or settings.providers.get(
             "local_llm", {}
         ).get("base_url", "")
@@ -39,11 +41,7 @@ class OnPremVisionLanguage(VisionLanguage):
         )
         key = os.environ.get("LOCAL_LLM_KEY", "").strip()
         self.headers = {"Authorization": f"Bearer {key}"} if key else {}
-        if client is None:
-            import httpx
-
-            client = httpx.AsyncClient()
-        self.client = client
+        self.client = client or httpx.AsyncClient()
 
     def model_for(self, req: LLMRequest) -> str:
         return self.model

@@ -1,4 +1,4 @@
-"""Closed-form expected information gain for a yes/no question over a noisy channel (brief 8.5).
+"""Closed-form expected information gain for a yes/no question over a noisy channel.
 
 For yes-set S with s = sum_{h in S} p(h), a = P(obs NO | true YES), b = P(obs YES | true NO):
     P(obs YES) = s(1 - a) + (1 - s) b
@@ -25,8 +25,3 @@ def eig(s: np.ndarray | float, a: float, b: float) -> np.ndarray | float:
     out = h2(p_yes) - (s * h2(a) + (1 - s) * h2(b))
     out = np.maximum(out, 0.0)  # tiny negative values from float error only
     return out if np.ndim(out) else float(out)
-
-
-def yes_mass(posterior: np.ndarray, yes_matrix: np.ndarray) -> np.ndarray:
-    """s for every question at once. yes_matrix: (n_questions, n_hypotheses) boolean."""
-    return yes_matrix.astype(float) @ posterior

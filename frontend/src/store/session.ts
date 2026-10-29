@@ -92,7 +92,6 @@ export function dismissBanner(state: SessionData, id: number): SessionData {
 interface SessionStore extends SessionData {
   receive: (msg: ServerMessage) => void;
   setConnection: (c: Connection) => void;
-  setSnapshot: (s: Snapshot) => void;
   dismiss: (id: number) => void;
   reset: (sid: string | null) => void;
   send: (msg: ClientMessage) => boolean;
@@ -103,7 +102,6 @@ export const useSession = create<SessionStore>((set) => ({
   ...initialSession,
   receive: (msg) => set((s) => reduceServerMessage(s, msg)),
   setConnection: (connection) => set({ connection }),
-  setSnapshot: (snapshot) => set({ snapshot }),
   dismiss: (id) => set((s) => dismissBanner(s, id)),
   reset: (sid) => set({ ...initialSession, sid }),
   send: () => false,

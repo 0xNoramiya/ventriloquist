@@ -1,4 +1,4 @@
-"""Validation of LLM-proposed hypotheses (brief 8.3).
+"""Validation of LLM-proposed hypotheses.
 
 The prior builder may add at most 3 hypotheses, only from allowed templates, only with slot values
 that appear in the profile, memory or transcript (and cited), and never in sensitive categories.

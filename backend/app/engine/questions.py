@@ -1,4 +1,4 @@
-"""Question candidates and selection (brief 8.4, 8.5)."""
+"""Question candidates and selection."""
 
 from __future__ import annotations
 

@@ -67,7 +67,7 @@ export function useSessionSocket(sid: string | undefined): void {
         ws.send(JSON.stringify(msg));
         return true;
       }
-      // Hold a few messages until the socket is back; drop pings.
+      // Hold messages until the socket is back; drop pings.
       if (msg.type !== 'ping') queue.push(msg);
       return false;
     };

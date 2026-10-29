@@ -1,4 +1,4 @@
-"""Per-message decision policy (brief 8.5-8.7, Safety rules 4, 8, 9).
+"""Per-message decision policy (Safety rules 4, 8, 9).
 
 `MessageDecider` owns the posterior for one message and decides the next action:
 ask the most informative question, confirm the leading message, offer spelling, finalize,
@@ -113,7 +113,6 @@ class MessageDecider:
         self.selector = selector
         self._mat: np.ndarray | None = None
 
-    # ------------------------------------------------------------------ helpers
     def hypothesis(self, hid: str) -> Hypothesis:
         return self.hyps[self.index[hid]]
 
@@ -123,14 +122,6 @@ class MessageDecider:
     def top(self, k: int = 8) -> list[tuple[Hypothesis, float]]:
         order = np.argsort(-self.p, kind="stable")[:k]
         return [(self.hyps[i], float(self.p[i])) for i in order]
-
-    def add_questions(self, questions: list[Question]) -> None:
-        known = {q.partition_key for q in self.pool}
-        for q in questions:
-            if q.partition_key not in known:
-                self.pool.append(q)
-                known.add(q.partition_key)
-        self._mat = None
 
     def _mask(self, yes_ids: frozenset[str]) -> np.ndarray:
         mask = np.zeros(len(self.ids), dtype=bool)
@@ -166,7 +157,6 @@ class MessageDecider:
         self.spell_offers += 1
         return self._ask(ActionKind.OFFER_SPELL, spell_offer_question(), reason=reason)
 
-    # ------------------------------------------------------------------ policy
     def next_action(self) -> Action:
         cfg = self.cfg
         if self.n_questions >= cfg.max_questions:

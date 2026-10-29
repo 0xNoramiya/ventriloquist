@@ -1,5 +1,5 @@
-// Word timings for the narration captions. ElevenLabs speech-to-text gives each spoken word's
-// start and end; the caption text stays the script's (so "Aisyah", not the transcriber's "Aisha").
+// Word timings for the narration captions. Speech-to-text gives each spoken word's start and end;
+// the caption text stays the script's (so "Aisyah", not the transcriber's "Aisha").
 // Writes media/audio/captions.json: { N1: [{ text, start, end }], ... } in seconds from line start.
 import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
 import { createReadStream, readFileSync, writeFileSync } from 'node:fs';

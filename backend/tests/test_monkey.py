@@ -57,11 +57,7 @@ async def test_random_interaction_sequences(ctx, seed):
                     await s.spoken(s.prompt.id)
                 if s.prompt is not None:
                     weights = {"yes": 0.45, "no": 0.45, "unclear": 0.07, "none": 0.03}
-                    choice = (
-                        rng.choices(list(weights), list(weights.values()))[0]
-                        if act != "spoken"
-                        else act
-                    )
+                    choice = rng.choices(list(weights), list(weights.values()))[0]
                     if rng.random() < 0.01:
                         choice = "emergency"
                     await s.answer(s.prompt.id, Answer(choice))

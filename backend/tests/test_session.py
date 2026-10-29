@@ -92,7 +92,7 @@ async def test_emergency_from_every_state(ctx, target_state):
     events = []
     s = make_session(ctx, "cold", None, events=events)
     await s.start()
-    if target_state in (State.LISTENING,):
+    if target_state == State.LISTENING:
         await s.spoken(s.prompt.id)
     elif target_state == State.SPEAKING:
         while s.state != State.SPEAKING:
@@ -185,7 +185,8 @@ async def test_unclear_three_times_hands_to_caregiver(ctx):
     s = make_session(ctx, "cold", None)
     await s.start()
     for _ in range(3):
-        await s.spoken(s.prompt.id) if s.state != State.CAREGIVER_NEEDED else None
+        if s.state != State.CAREGIVER_NEEDED:
+            await s.spoken(s.prompt.id)
         await s.answer(s.prompt.id, Answer.UNCLEAR)
     assert s.state == State.CAREGIVER_NEEDED
     assert s.caregiver_reason in ("unclear", "tap_answer")
@@ -382,7 +383,6 @@ async def test_room_audio_drops_the_phones_own_speech(ctx, tmp_path):
         ],
         check=True,
     )
-    (audio.with_suffix(".wav")).parent.mkdir(exist_ok=True)
     # mock transcriber reads a sidecar next to the converted wav
     (tmp_path / "room.wav.txt").write_text(f"A: {q}\nB: Bapak suka teh manis setiap pagi.\n")
     added = await s.add_audio(audio)

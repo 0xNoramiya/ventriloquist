@@ -1,4 +1,4 @@
-"""Memory that compounds (brief 10.3-10.5, Safety rule 13).
+"""Memory that compounds (Safety rule 13).
 
 After each session Muse Wonder reads the whole stay history (approved memory, confirmed messages,
 room transcript, caregiver notes) and proposes add/update/retire operations. Validators enforce
@@ -149,13 +149,13 @@ def approve(store: Store, pid: str, op_id: str) -> dict[str, Any]:
 
 
 def learning_curve(store: Store, pid: str) -> list[dict[str, Any]]:
-    """Questions per confirmed message, per session, in order (brief 10.5)."""
+    """Questions per confirmed message, per session, in order."""
     by_session: dict[str, list[int]] = {}
     started: dict[str, str] = {}
     for s in store.list_sessions(pid):
         started[s["id"]] = s["started_at"]
     for m in store.messages(pid, "confirmed"):
-        if m["questions"] is None or m["source"] not in ("engine",):
+        if m["questions"] is None or m["source"] != "engine":
             continue
         by_session.setdefault(m["session_id"], []).append(int(m["questions"]))
     out = []
