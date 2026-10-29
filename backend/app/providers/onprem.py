@@ -98,6 +98,7 @@ class RoutingVisionLanguage(VisionLanguage):
         self.text = text
         self.media = media
         self.provider = f"{text.provider}+{media.provider}"
+        self.max_videos = media.max_videos
 
     def _pick(self, req: LLMRequest) -> VisionLanguage:
         return self.media if any(p.kind != "text" for p in req.parts) else self.text

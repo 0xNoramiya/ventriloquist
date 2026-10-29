@@ -99,11 +99,15 @@ class Roles:
     async def describe_calibration(
         self, mode: Mode, clips: dict[str, list[Path]], hint: str | None = None
     ) -> RoleResult[CalibrationDescription]:
+        # Videos per request are capped (Muse Spark 5, Muse Spark Open on Baseten 2), so clips are
+        # picked in order of use: one YES and one NO, then a rest clip, then a second YES and NO.
+        cap = self.hub.vision_language(mode).max_videos
+        picked = [("yes", 0), ("no", 0), ("rest", 0), ("yes", 1), ("no", 1)][:cap]
         parts: list[Part] = []
-        # Muse Spark accepts at most 5 videos per request (observed 400), so: 1 rest, 2 YES, 2 NO.
-        for label, n in (("rest", 1), ("yes", 2), ("no", 2)):
-            for i, clip in enumerate(clips.get(label, [])[:n]):
-                parts.append(Part("video", path=clip, label=f"{label.upper()} clip {i + 1}"))
+        for label in ("rest", "yes", "no"):
+            for i, clip in enumerate(clips.get(label, [])):
+                if (label, i) in picked:
+                    parts.append(Part("video", path=clip, label=f"{label.upper()} clip {i + 1}"))
         fallback = CalibrationDescription(
             yes=SignalSpec(
                 body_part="unknown",

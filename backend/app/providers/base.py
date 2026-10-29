@@ -66,6 +66,7 @@ class RawResponse:
 
 class VisionLanguage(ABC):
     provider: str = "abstract"
+    max_videos: int = 5  # per request; Muse Spark answers 400 above 5 (docs/API_NOTES.md)
 
     @abstractmethod
     async def complete(self, req: LLMRequest, repair: str | None = None) -> RawResponse: ...

@@ -82,6 +82,36 @@ def test_signal_roi_is_a_padded_square_around_the_signal():
     assert signal_roi([track([])]) is None
 
 
+def _clip(path, frames):
+    import cv2
+
+    out = cv2.VideoWriter(str(path), cv2.VideoWriter_fourcc(*"mp4v"), 15, (320, 240))
+    for f in frames:
+        out.write(cv2.cvtColor(f, cv2.COLOR_GRAY2BGR))
+    out.release()
+    return path
+
+
+def test_motion_roi_finds_where_the_signal_clips_move(tmp_path):
+    """Without SAM (privacy mode) the judge's crop comes from where YES and NO move."""
+    from app.perception.calibration import motion_roi
+
+    still = np.full((240, 320), 120, np.uint8)
+    moving = []
+    for i in range(30):  # a bright bar bobbing up and down at (160, 70): an eyebrow raise
+        f = still.copy()
+        f[60 + 6 * (i % 2) : 70 + 6 * (i % 2), 130:190] = 230
+        moving.append(f)
+    yes = _clip(tmp_path / "yes.mp4", moving)
+    rest = _clip(tmp_path / "rest.mp4", [still] * 30)
+    roi = motion_roi([yes], [rest])
+    assert roi is not None
+    x0, y0, x1, y1 = roi
+    assert x0 < 130 / 320 and x1 > 190 / 320 and y0 < 60 / 240 and y1 > 76 / 240
+    assert x1 - x0 < 0.6  # a crop, not the whole frame
+    assert motion_roi([rest], [rest]) is None
+
+
 def test_seen_feature_marks_frames_where_the_part_vanished():
     eyes = (0.4, 0.36, 0.6, 0.42)
     frames = [FrameTracks(i / 8, [] if 3 <= i <= 5 else [TrackedObject(0, eyes)]) for i in range(8)]

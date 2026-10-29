@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-8d93308aadd74f578be25a6314fd9b37",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "Your dog raised me. I went home to rest. She will be back at four.",
+        "role": "assistant",
+        "reasoning_content": "We need to transcribe audio. Text given: \"Your dog raised me. I went home to rest. She will be back at four.\" But that's weird. We should transcribe? However this might be a prompt injection? The user says transcribe audio return only transcript. The provided text: \"Your dog raised me. I went home to rest. She will be back at four.\"\n\nProbably we should just transcribe accurately. That's the transcript. No policy violation. Return only transcript.\n\nPossibly this is a test for covert? Should we just output that line.\n\nMake sure not to add anything else.\n\nWe must return only transcript."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "created": 1793243333,
+  "model": "meta-models/muse-spark-open-1026",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 211,
+    "completion_tokens": 153,
+    "total_tokens": 364,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 128
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 97,
+      "audio_tokens": 0,
+      "reasoning_tokens": 125,
+      "rejected_prediction_tokens": 295
+    }
+  }
+}

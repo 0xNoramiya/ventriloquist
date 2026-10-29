@@ -271,6 +271,76 @@ async def test_baseten_falls_back_to_documented_slug(ctx):
     assert json.loads(raw.text) == {"answer": "ok"} and raw.provider == "baseten"
 
 
+def tiny_clip(path: Path, seconds: float = 2.0, fps: int = 15) -> Path:
+    import cv2
+    import numpy as np
+
+    out = cv2.VideoWriter(str(path), cv2.VideoWriter_fourcc(*"mp4v"), fps, (64, 48))
+    for i in range(int(seconds * fps)):
+        out.write(np.full((48, 64, 3), i * 8 % 256, np.uint8))
+    out.release()
+    return path
+
+
+async def test_describer_sends_spark_open_two_labelled_videos(ctx, tmp_path):
+    """Muse Spark Open takes at most 2 videos per request (400 "Too many videos: 5 (max 2)")."""
+    from app.providers.registry import Mode, ProviderHub
+    from app.roles import Roles
+
+    sent = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        content = json.loads(request.content)["messages"][1]["content"]
+        sent.append([p.get("text") or p["type"] for p in content])
+        return httpx.Response(200, json={"choices": [{"message": {"content": "{}"}}]})
+
+    hub = ProviderHub(live_settings(ctx), ctx.store)
+    hub._cache["baseten_vl"] = BasetenVisionLanguage(
+        hub.settings, httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    )
+    clips = {
+        label: [tiny_clip(tmp_path / f"{label}_{i}.mp4") for i in range(3)]
+        for label in ("rest", "yes", "no")
+    }
+    await Roles(hub, hub.settings).describe_calibration(Mode.PRIVACY, clips)
+    slowed = "(Played 2x slower than real time: divide every duration you see by 2.)"
+    assert sent[0] == [f"YES clip 1 {slowed}", "video_url", f"NO clip 1 {slowed}", "video_url"]
+
+
+async def test_baseten_slows_video_to_the_requested_rate(ctx, tmp_path):
+    """Muse Spark Open samples 2 fps; a role asking for 8 fps gets 4 (config), each 0.5 s long."""
+    import base64
+
+    import cv2
+
+    clip = tiny_clip(tmp_path / "clip.mp4", seconds=2.0)
+    texts = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        content = json.loads(request.content)["messages"][1]["content"]
+        texts.extend(p["text"] for p in content if p["type"] == "text")
+        url = next(p["video_url"]["url"] for p in content if p["type"] == "video_url")
+        (tmp_path / "sent.mp4").write_bytes(base64.b64decode(url.split(",", 1)[1]))
+        return httpx.Response(200, json={"choices": [{"message": {"content": '{"answer": "ok"}'}}]})
+
+    vl = BasetenVisionLanguage(
+        live_settings(ctx), httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    )
+    await vl.complete(
+        LLMRequest(
+            role="x",
+            instructions="s",
+            parts=[Part("video", path=clip)],
+            schema=Schema,
+            context={"_video_fps": 8},
+        )
+    )
+    sent = cv2.VideoCapture(str(tmp_path / "sent.mp4"))
+    assert sent.get(cv2.CAP_PROP_FPS) == pytest.approx(2.0)
+    assert sent.get(cv2.CAP_PROP_FRAME_COUNT) == pytest.approx(8, abs=1)  # 2 s at 4 fps
+    assert texts == ["(Played 2x slower than real time: divide every duration you see by 2.)"]
+
+
 # ------------------------------------------------------------ repair/fallback
 class Scripted(VisionLanguage):
     provider = "scripted"

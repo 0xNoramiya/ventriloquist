@@ -50,7 +50,7 @@ Status: `[x]` done, `[~]` in progress, `[ ]` to do. Updated as work proceeds.
 
 ## Phase 6: Memory and privacy
 - [x] Live memory curator + learning curve (Wonder curator verified live; caregiver approval UI in frontend)
-- [~] Privacy mode end to end on Baseten (adapter + contract tests done; live run needs `BASETEN_API_KEY`)
+- [x] Privacy mode end to end on Baseten (2026-10-29): 11 of 13 generated windows right, 2 resting clips read as NO; three fixes found live (`docs/DETECTOR_DATA_GENERATED.md`)
 - [x] Muse Image pictograms for all 34 messages
 - [x] On-premises Muse Glimmer tier (text roles), Modal as alternative Spark Open host
 - [ ] Optional: SAM 3.1 open weights self-hosted on Modal (client ready; deployment needs an account)
@@ -73,7 +73,7 @@ Status: `[x]` done, `[~]` in progress, `[ ]` to do. Updated as work proceeds.
 
 ## Needs Rifqi
 - [x] Public repo https://github.com/0xNoramiya/ventriloquist, Pages enabled, release v0.1.0 (2026-10-27)
-- [ ] `BASETEN_API_KEY` (or `MODAL_SPARK_URL`) to run privacy mode live and get the open-weight bonus verified
+- [x] `BASETEN_API_KEY` (2026-10-29; in `.env` and as a fly.io secret)
 - [~] Review `docs/I18N_REVIEW.md` and the sensitive keyword lists (first pass done 2026-10-27; the toilet message and open questions still need a native reader)
 - [ ] Record labelled clips with consenting volunteers into `data/labeled/`, run `scripts/eval_detector.py --mode live`
 - [ ] Try a full session on a phone over the LAN (`make dev`, open the QR code)

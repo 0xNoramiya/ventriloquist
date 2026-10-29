@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-28664f30ffe54cc8a8bbd6b3b187f546",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "1",
+        "role": "assistant",
+        "reasoning_content": "We need to count eyebrow rises. The clip shows frames. At 0.0 eyebrows normal. At 1.1 eyebrows raised up, so count 1. At 2.2 still raised? At 3.3 back to normal? Actually need interpret. The animation: eyebrows rise once. So answer number: 1.\n\nWe must comply with policy? It's a simple count. There's no disallowed content. Provide number.\n\nPossibly it's a trick? How many times do eyebrows rise? Once. So answer 1.\n\nWe should output just number as requested."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "created": 1793243327,
+  "model": "meta-models/muse-spark-open-1026",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 714,
+    "completion_tokens": 129,
+    "total_tokens": 843,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 128
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 85,
+      "audio_tokens": 0,
+      "reasoning_tokens": 118,
+      "rejected_prediction_tokens": 230
+    }
+  }
+}

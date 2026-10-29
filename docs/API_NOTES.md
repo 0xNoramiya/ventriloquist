@@ -150,17 +150,20 @@ Sources: https://dev.meta.ai/docs/models#muse-wonder, /docs/pricing-rate-limits,
 Sources: https://dev.meta.ai/docs/image-generation, /docs/api-reference/images/create-image, /docs/pricing-rate-limits.
 - `muse-image-1.0` on `POST /v1/images/generations` and `/v1/images/edits` (single-shot), or on Responses for multi-turn edits. $0.01 per generated image, with built-in web search included. 150 RPM. An undeclared field such as `seed` → 400. The probe image `hospital_room.png` was drawn with OpenCV instead.
 
-## 10. Muse Spark Open on Baseten (UNTESTED: `BASETEN_API_KEY` empty)
+## 10. Muse Spark Open on Baseten (tested live 2026-10-29)
 
 Sources: https://docs.baseten.co/inference/model-apis/overview, /inference/model-apis/vision, /inference/model-apis/audio, /inference/model-apis/reasoning, /inference/structured-outputs, /inference/model-apis/pricing-and-limits, https://www.baseten.co/library/muse-spark-open, https://dev.meta.ai/docs/muse-spark-open/deploy#baseten.
 
 - OpenAI-compatible Chat Completions at `https://inference.baseten.co/v1/chat/completions` with `Authorization: Bearer $BASETEN_API_KEY` (a Messages-format endpoint at `/v1/messages` is in beta). No Responses API.
-- **Model slug**: every Baseten and Meta page lists `meta-models/muse-spark-open`. The organizer's `meta-models/muse-spark-open-1026` appears nowhere in the docs. Baseten does publish dated slugs for other models (e.g. `deepseek-ai/DeepSeek-V4.1-Flash-1017`), so it is plausible. `probe_baseten.py` tries the config id first and falls back to the documented slug on 404.
-- Input parts: `{"type": "image_url", "image_url": {"url", "detail"}}`, `{"type": "video_url", "video_url": {"url"}}`, `{"type": "audio_url", "audio_url": {"url"}}`. URLs are fetched by Baseten (https only; localhost and internal IPs are rejected), or use `data:` URLs (these count toward the 100 MiB body). Muse Spark Open limits: ≤ 8 images (≤ 10 MB each by URL), ≤ 2 videos (≤ 200 MB, ≤ 300 s, MP4/MOV/MKV/WebM with H.264/H.265/VP9/AV1, ≤ 4K60). Video is **sampled at ≤ 96 frames and the audio track is ignored**, so send speech as a separate `audio_url`. Audio: WAV/MP3/FLAC/OGG/M4A, 8–48 kHz, ≤ 4 files, ≤ 25 MB and ≤ 5 min each. Total media ≤ 200 MB. **No PDF.**
+- **Model slug**: every Baseten and Meta page lists `meta-models/muse-spark-open`. The organizer's `meta-models/muse-spark-open-1026` appears nowhere in the docs. Baseten does publish dated slugs for other models (e.g. `deepseek-ai/DeepSeek-V4.1-Flash-1017`), so it is plausible. `probe_baseten.py` tries the config id first and falls back to the documented slug on 404. **Observed 2026-10-29:** `GET /v1/models` lists both `meta-models/muse-spark-open` and `meta-models/muse-spark-open-1026`, and the organizer's id answers.
+- Input parts: `{"type": "image_url", "image_url": {"url", "detail"}}`, `{"type": "video_url", "video_url": {"url"}}`, `{"type": "audio_url", "audio_url": {"url"}}`. URLs are fetched by Baseten (https only; localhost and internal IPs are rejected), or use `data:` URLs (these count toward the 100 MiB body). Muse Spark Open limits: ≤ 8 images (≤ 10 MB each by URL), ≤ 2 videos (≤ 200 MB, ≤ 300 s, MP4/MOV/MKV/WebM with H.264/H.265/VP9/AV1, ≤ 4K60). Video is **sampled at ≤ 96 frames and the audio track is ignored**, so send speech as a separate `audio_url`. Audio: WAV/MP3/FLAC/OGG/M4A, 8–48 kHz, ≤ 4 files, ≤ 25 MB and ≤ 5 min each. Total media ≤ 200 MB. **No PDF.** Observed: 5 videos in one request → `400 "Too many videos: 5 (max 2)"`, so the calibration describer sends Muse Spark Open one YES and one NO clip (`VisionLanguage.max_videos`).
+- **Video is sampled at 2 frames per second of video time**, and no request field sets the rate (measured 2026-10-29 with numbered frames: a 6 s clip at 15 fps came back as 7 numbers; 12 s clips cost 1,566 prompt tokens at both 2 and 4 fps; 48 frames played at 2 fps came back complete). Meta's Responses API takes `fps` per video; here a 4 s answer window shows about 8 frames, and three quick eyebrow raises read as one long lift. The adapter honours the role's `_video_fps` by slowing the clip, capped at `providers.baseten.video_fps` (see `docs/DETECTOR_EVAL_GENERATED_PRIVACY.md` for the trade-off).
 - **Reasoning is always on**: `reasoning_effort` takes `low|medium|high|xhigh` (default **xhigh**), and `none`/`minimal` run as `low`. Reasoning text comes back in `choices[0].message.reasoning_content`. Set `reasoning_effort="low"` for latency.
 - **Structured output is not enforced**: `json_schema` is accepted but the schema is not applied, so validate and repair JSON yourself. Tool calling works. `logprobs` is ignored, `n>1` → 400.
 - Usage: `usage.prompt_tokens`, `completion_tokens`, `prompt_tokens_details.cached_tokens`. Price $1.25 in / $0.15 cached / $4.25 out per M. Rate limits depend on account tier (Basic unverified 15 RPM/100k TPM, verified 120 RPM/500k TPM, Pro 120 RPM/1M TPM), with the same `x-ratelimit-*` headers. A `529` means overloaded, so back off. Optional `x-session-affinity: <uuid>` header improves cache hits.
 - Synchronous Model API requests fall under Baseten's zero-data-retention policy (docs).
+- Observed latency at `reasoning_effort=low`: text 1.3-1.4 s, one image 4.1-4.5 s, one 6 s video 4.8 s, one audio clip 5.4 s. This account's headers: 100 requests and 2M tokens per minute. The espeak probe sentence "Your daughter Aisyah went home to rest" came back as "Your dog raised me. I went home to rest" (no name hints in the probe; the room transcriber sends them).
+- **Labels**: the adapter first sent a media part's label ("YES clip 1") only for images, so the describer could not tell which video showed YES. Labels now precede every media part.
 
 ## 11. Modal (brief)
 
@@ -245,6 +248,7 @@ Raw JSON bodies, sanitized (secrets redacted, `encrypted_content` truncated). St
 | `sam_video_stream_one_bit_eyebrows.json`, `sam_video_stream_file_id_face.json`, `sam_video_nonstream_lossless_eyebrows.json` | SAM video, 60 frames |
 | `asr_*.json` | transcribe JSON, SSE, realtime events, 48 kHz error |
 | `wonder_responses_json_schema.json`, `wonder_responses_previous_response_id.json` | Wonder |
+| `baseten_models_list.json`, `baseten_spark_open_{text,image,video,audio}.json` | Muse Spark Open on Baseten, Chat Completions (2026-10-29) |
 
 Synthetic media and its ground truth: `data/probe_media/` (gitignored), regenerated by `scripts/make_probe_media.py`. `media_manifest.json` holds event frames and reference transcripts.
 
@@ -257,7 +261,7 @@ Synthetic media and its ground truth: `data/probe_media/` (gitignored), regenera
 5. **Spark price** is $1.25 / $4.25 (config had $1.00 / $4.00), with cached input $0.15. Muse Image is $0.01 (config had $0.04).
 6. **Voice Transcribe**: the docs claim **25** supported languages; no "70+" claim was found. ZDR is an org-level sales enablement, not a tier picked per request. **Indonesian returns an empty transcript unless `languageBias: ["Indonesian"]` is sent** (observed, reproduced). Streaming is a WebSocket with the key inside the handshake frame (backend proxy required). There is also an SSE mode on the file endpoint. Input must be 16/24 kHz mono s16 WAV; phone 48 kHz audio must be resampled.
 7. **Muse Wonder**: price and 1M context confirmed. No native memory API (only `previous_response_id`).
-8. **Baseten**: the docs slug is `meta-models/muse-spark-open`, and the `-1026` id is unverified. Structured output is **not enforced**. Reasoning is always on (default xhigh). Video is capped at 96 sampled frames and **video audio is ignored**. No PDF.
+8. **Baseten**: the docs slug is `meta-models/muse-spark-open`; the `-1026` id is listed and works (2026-10-29). Structured output is **not enforced**. Reasoning is always on (default xhigh). Video is capped at 96 sampled frames and **video audio is ignored**. No PDF.
 9. **Spark video** works inline as a data URL (no upload required) and honours `input_video.fps`. The default is about 2 fps, which misses fast eyebrow raises. The token-count endpoint ignores video.
 
 10. **Spark accepts at most 5 videos per request** (observed 2026-10-26: `400 "request contains 7 videos, exceeding the maximum of 5 allowed per request"`; not in the docs). The calibration describer sends 1 rest + 2 YES + 2 NO clips.
@@ -411,3 +415,27 @@ Appended by `scripts/_probe_common.py`; newest last.
 | fresh call, no chaining | `muse-wonder-1.0` | ok out='unknown' | 1.32s | `{"input_tokens": 28, "output_tokens": 50, "reasoning_tokens": 40}` | 0.00111 |
 | DELETE /responses/{id} | `muse-wonder-1.0` | ok HTTP 200 body={"id":"resp_6adf88e4450812b966b246d9","object":"response.deleted","deleted":true} | 1.67s | `{}` | 0.00000 |
 - Wonder rate-limit headers: {"x-ratelimit-limit-requests": "3000", "x-ratelimit-remaining-requests": "2999", "x-ratelimit-limit-tokens": "4000000", "x-ratelimit-remaining-tokens": "4000000", "x-request-id": "080a8431-acd8-4c19-bdd2-012e7e718b74"}
+
+### 2026-10-29 03:08 UTC `probe_baseten`
+
+| call | model | status | latency | usage | est. USD |
+|---|---|---|---|---|---|
+| GET /models | `-` | ok muse ids=['meta-models/muse-spark-open', 'meta-models/muse-spark-open-1026'] | - | `{}` | 0.00000 |
+| text effort=low | `meta-models/muse-spark-open-1026` | ok content='ready' reasoning_chars=420 | 1.44s | `{"prompt_tokens": 152, "completion_tokens": 101, "cached_tokens": 128, "reasoning_tokens": 90}` | 0.00048 |
+| image data URL | `meta-models/muse-spark-open-1026` | ok content='The room contains a hospital bed and a three-drawer nightstand dresser.\n\nNo people are present in the room.' reasoning_chars=1019 | 4.48s | `{"prompt_tokens": 553, "completion_tokens": 250, "cached_tokens": 128, "reasoning_tokens": 216}` | 0.00161 |
+- Baseten headers: {"x-ratelimit-limit-requests": "100", "x-ratelimit-limit-tokens": "2000000", "x-ratelimit-remaining-requests": "50", "x-ratelimit-remaining-tokens": "2000000"}
+- Baseten headers: {"x-ratelimit-limit-requests": "100", "x-ratelimit-limit-tokens": "2000000", "x-ratelimit-remaining-requests": "50", "x-ratelimit-remaining-tokens": "2000000"}
+
+### 2026-10-29 03:08 UTC `probe_baseten`
+
+| call | model | status | latency | usage | est. USD |
+|---|---|---|---|---|---|
+| GET /models | `-` | ok muse ids=['meta-models/muse-spark-open', 'meta-models/muse-spark-open-1026'] | - | `{}` | 0.00000 |
+| text effort=low | `meta-models/muse-spark-open-1026` | ok content='ready' reasoning_chars=665 | 1.25s | `{"prompt_tokens": 152, "completion_tokens": 142, "cached_tokens": 128, "reasoning_tokens": 131}` | 0.00065 |
+| image data URL | `meta-models/muse-spark-open-1026` | ok content='The room contains a hospital bed and a three-drawer nightstand; there are no people present.' reasoning_chars=337 | 4.10s | `{"prompt_tokens": 553, "completion_tokens": 100, "cached_tokens": 128, "reasoning_tokens": 70}` | 0.00098 |
+| video data URL | `meta-models/muse-spark-open-1026` | ok content='1' reasoning_chars=459 | 4.78s | `{"prompt_tokens": 714, "completion_tokens": 129, "cached_tokens": 128, "reasoning_tokens": 118}` | 0.00130 |
+| audio data URL | `meta-models/muse-spark-open-1026` | ok content='Your dog raised me. I went home to rest. She will be back at four.' reasoning_chars=590 | 5.35s | `{"prompt_tokens": 211, "completion_tokens": 153, "cached_tokens": 128, "reasoning_tokens": 125}` | 0.00077 |
+- Baseten headers: {"x-ratelimit-limit-requests": "100", "x-ratelimit-limit-tokens": "2000000", "x-ratelimit-remaining-requests": "50", "x-ratelimit-remaining-tokens": "2000000"}
+- Baseten headers: {"x-ratelimit-limit-requests": "100", "x-ratelimit-limit-tokens": "2000000", "x-ratelimit-remaining-requests": "50", "x-ratelimit-remaining-tokens": "2000000"}
+- Baseten headers: {"x-ratelimit-limit-requests": "100", "x-ratelimit-limit-tokens": "2000000", "x-ratelimit-remaining-requests": "50", "x-ratelimit-remaining-tokens": "2000000"}
+- Baseten headers: {"x-ratelimit-limit-requests": "100", "x-ratelimit-limit-tokens": "2000000", "x-ratelimit-remaining-requests": "50", "x-ratelimit-remaining-tokens": "2000000"}

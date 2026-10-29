@@ -29,6 +29,9 @@ providers:
     base_url: https://inference.baseten.co/v1   # verified: https://docs.baseten.co/inference/model-apis/overview
     timeout_s: 45
     max_retries: 2
+    video_fps: 4    # Muse Spark Open samples 2 fps, so clips are slowed to show this many frames per
+                    # real second. Judge sweep: 2 fps 17/26, 3 fps 18/26, 4 fps 25/26 right; at 8 fps
+                    # (4x slower) the judge read blinks as held eye closures
   modal_sam:
     endpoint_url: ""                            # optional
   local_llm:

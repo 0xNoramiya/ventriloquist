@@ -16,6 +16,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+import cv2
 import numpy as np
 
 from app.config import Settings
@@ -78,7 +79,49 @@ def signal_roi(
         return None
     x0, y0 = np.percentile(boxes[:, 0], 5), np.percentile(boxes[:, 1], 5)
     x1, y1 = np.percentile(boxes[:, 2], 95), np.percentile(boxes[:, 3], 95)
-    side = min(1.0, max(max(x1 - x0, y1 - y0) * (1 + 2 * margin), min_side))
+    return _padded_square(x0, y0, x1, y1, margin, min_side)
+
+
+def motion_roi(
+    signal_clips: list[Path], rest_clips: list[Path], margin: float = 0.6, min_side: float = 0.35
+) -> list[float] | None:
+    """On-device stand-in for signal_roi when SAM gave no boxes (privacy mode without a
+    self-hosted SAM): where the YES and NO clips move more than the rest clip, as the same padded
+    square. On the generated clips it finds the eyebrows, as SAM does."""
+
+    def energy(clip: Path) -> np.ndarray | None:
+        frames = read_frames(clip, gray=True).images
+        if len(frames) < 3:
+            return None
+        a = np.stack([cv2.GaussianBlur(f, (5, 5), 0) for f in frames]).astype(np.float32)
+        d = np.abs(np.diff(a, axis=0))
+        k = max(1, len(d) // 10)  # the busiest tenth of the frames: a raise is brief
+        return np.sort(d, axis=0)[-k:].mean(axis=0)
+
+    sig = [e for e in map(energy, signal_clips) if e is not None]
+    if not sig:
+        return None
+    rest = [e for e in map(energy, rest_clips) if e is not None]
+    m = np.mean(sig, axis=0) - (np.mean(rest, axis=0) if rest else 0.0)
+    m = cv2.GaussianBlur(np.clip(m, 0.0, None), (0, 0), 3)
+    if m.max() < 1.0:  # under one grey level: nothing moved, so keep the whole frame
+        return None
+    ys, xs = np.nonzero(m > 0.5 * m.max())
+    h, w = m.shape
+    return _padded_square(
+        np.percentile(xs, 5) / w,
+        np.percentile(ys, 5) / h,
+        (np.percentile(xs, 95) + 1) / w,
+        (np.percentile(ys, 95) + 1) / h,
+        margin,
+        min_side,
+    )
+
+
+def _padded_square(
+    x0: float, y0: float, x1: float, y1: float, margin: float, min_side: float
+) -> list[float]:
+    side = float(min(1.0, max(max(x1 - x0, y1 - y0) * (1 + 2 * margin), min_side)))
     cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
     left = float(np.clip(cx - side / 2, 0.0, 1.0 - side))
     top = float(np.clip(cy - side / 2, 0.0, 1.0 - side))
@@ -227,6 +270,11 @@ async def finalize(
                 overlay = results[(sam_of[first_yes], prompts[0])].to_overlay()
         except Exception as exc:  # keep calibrating with the local baseline
             log.warning("tracker calibration failed: %s", exc)
+    roi_source = "sam" if roi else None
+    if roi is None and info.effective != Mode.MOCK:  # only a model judge watches the crop
+        signal = [c for label in ("yes", "no") for c in clips.get(label, [])]
+        roi = await asyncio.to_thread(motion_roi, signal, clips.get("rest", []))
+        roi_source = "motion" if roi else None
 
     # 6. blind Spark judge on each labelled clip (leave-one-out is implicit: the judge never trains)
     judge_loo: list[dict[str, Any]] = []
@@ -292,6 +340,7 @@ async def finalize(
         "signal_text": sig,
         "prompts": prompts,
         "roi": roi,
+        "roi_source": roi_source,
         "tracker": tracker_t,
         "local": local_t,
         "judge_loo": judge_loo,

@@ -12,7 +12,10 @@ Model id: the organizer asked for `meta-models/muse-spark-open-1026`; the docs o
 
 from __future__ import annotations
 
+import asyncio
+import dataclasses
 import json
+import tempfile
 import time
 from pathlib import Path
 from typing import Any
@@ -20,9 +23,11 @@ from typing import Any
 import httpx
 
 from app.config import Settings
+from app.perception.media import probe_duration, run_async
 
 from .base import (
     LLMRequest,
+    Part,
     ProviderError,
     RawResponse,
     Segment,
@@ -35,9 +40,51 @@ from .meta_api import _data_url, _post_with_retries, strict_schema
 
 DOCUMENTED_SLUG = "meta-models/muse-spark-open"
 
+# Muse Spark Open on Baseten samples video at 2 frames per second of video time, at most 96 per
+# video, and has no request field for the rate (measured 2026-10-29: a 12 s clip costs the same
+# tokens at 2 and 4 fps, and a numbered 48-frame clip played at 2 fps came back complete). Where a
+# role asks for a denser rate (`_video_fps`, Meta's `fps` field), the clip is slowed instead, up to
+# providers.baseten.video_fps, so each sampled frame is 1/fps s of real time, and the model is told.
+SAMPLED_FPS = 2.0
+MAX_FRAMES = 96
+
+
+async def slowed(part: Part, fps: float) -> Part:
+    """The video part re-timed: frames at `fps`, played at SAMPLED_FPS, with a note on its label.
+    At 2 fps three quick eyebrow raises read as one long lift, so the emergency signal was missed.
+    Judge-only sweep, 13 generated clips twice each: 2 fps 17/26 right (emergency 0/4), 4 fps
+    25/26 (emergency 4/4). Slower still, or with each frame's real time printed on it, the judge
+    read blinks as held eye closures (docs/DETECTOR_EVAL_GENERATED_PRIVACY.md)."""
+    with tempfile.TemporaryDirectory() as tmp:
+        src = part.path
+        if part.data is not None:
+            src = Path(tmp) / "in.mp4"
+            src.write_bytes(part.data)
+        if src is None:
+            return part
+        duration = await asyncio.to_thread(probe_duration, src)
+        fps = min(fps, MAX_FRAMES / max(duration, 0.1))
+        if fps <= SAMPLED_FPS:
+            return part
+        k = fps / SAMPLED_FPS
+        out = Path(tmp) / "slow.mp4"
+        await run_async(
+            [
+                "ffmpeg", "-y", "-v", "error", "-i", str(src),
+                "-vf", f"fps={fps:.4f},setpts={k:.4f}*PTS", "-r", f"{SAMPLED_FPS:g}",
+                "-frames:v", str(MAX_FRAMES), "-an", "-c:v", "libx264", "-pix_fmt", "yuv420p",
+                str(out),
+            ]
+        )  # fmt: skip
+        note = f"(Played {k:.3g}x slower than real time: divide every duration you see by {k:.3g}.)"
+        label = f"{part.label} {note}" if part.label else note
+        return dataclasses.replace(part, path=None, data=out.read_bytes(), label=label)
+
 
 class BasetenVisionLanguage(VisionLanguage):
     provider = "baseten"
+    # Muse Spark Open: 400 "Too many videos: 5 (max 2)" (observed; also in Baseten's docs)
+    max_videos = 2
 
     def __init__(self, settings: Settings, client: httpx.AsyncClient | None = None) -> None:
         import os
@@ -45,6 +92,7 @@ class BasetenVisionLanguage(VisionLanguage):
         cfg = settings.providers.get("baseten", {})
         self.settings = settings
         self.max_retries = int(cfg.get("max_retries", 2))
+        self.video_fps = float(cfg.get("video_fps", 4))
         self.timeout = float(cfg.get("timeout_s", 45))
         self.client = client or httpx.AsyncClient()
         modal_url = os.environ.get("MODAL_SPARK_URL", "").strip()
@@ -72,9 +120,10 @@ class BasetenVisionLanguage(VisionLanguage):
         for p in req.parts:
             if p.kind == "text":
                 content.append({"type": "text", "text": p.text or ""})
-            elif p.kind == "image":
-                if p.label:
-                    content.append({"type": "text", "text": p.label})
+                continue
+            if p.label:  # e.g. "YES clip 1": the describer must know which clip shows what
+                content.append({"type": "text", "text": p.label})
+            if p.kind == "image":
                 content.append(
                     {
                         "type": "image_url",
@@ -110,6 +159,10 @@ class BasetenVisionLanguage(VisionLanguage):
         }
 
     async def complete(self, req: LLMRequest, repair: str | None = None) -> RawResponse:
+        fps = min(req.context.get("_video_fps") or 0, self.video_fps)
+        if fps > SAMPLED_FPS:
+            parts = [await slowed(p, fps) if p.kind == "video" else p for p in req.parts]
+            req = dataclasses.replace(req, parts=parts)
         body = self.build_body(req, repair)
         t0 = time.perf_counter()
         try:

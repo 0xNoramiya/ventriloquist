@@ -252,6 +252,17 @@ SAM runs on a self-hosted endpoint if one is configured, otherwise on the on-dev
 open-weight endpoint configured, privacy mode stays fully on-device with mock models. In live mode
 every Meta request is sent with `store: false`.
 
+**Tested on Baseten.** On the generated clips, privacy mode gets 11 of 13 answer windows right: every
+YES, NO and emergency signal, with two resting clips misread as NO (live mode: 11 right, none
+wrong). A median answer takes 7.5 s, against 3.8 s live. Getting there took three changes that only
+a live key could show:
+- Muse Spark Open takes at most 2 videos per request, so calibration sends it one YES and one NO clip;
+- without SAM, the judge's crop comes from where the calibration clips move, computed on the device;
+- Baseten samples video at 2 frames per second with no setting for it, which blurred three eyebrow
+  raises into one, so the adapter plays clips at half speed and tells the model.
+
+Details: [`docs/DETECTOR_DATA_GENERATED.md`](docs/DETECTOR_DATA_GENERATED.md#privacy-mode-on-muse-spark-open-baseten).
+
 ## Hosted demo (no install)
 
 ![Hosted demo](docs/img/hosted-demo.png)

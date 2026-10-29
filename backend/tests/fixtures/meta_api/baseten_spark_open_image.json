@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-a9ca4c36e063446e97534bae0ee1fa42",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "The room contains a hospital bed and a three-drawer nightstand; there are no people present.",
+        "role": "assistant",
+        "reasoning_content": "We need to list furniture in room in one short sentence. Any people present? Image shows hospital room with bed, nightstand/dresser? Also maybe no people.\n\nWe must answer. No people present.\n\nProvide one short sentence listing furniture. Furniture: hospital bed, three-drawer nightstand/dresser.\n\nWe need to ensure compliance? It's safe."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "created": 1793243323,
+  "model": "meta-models/muse-spark-open-1026",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 553,
+    "completion_tokens": 100,
+    "total_tokens": 653,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 128
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 61,
+      "audio_tokens": 0,
+      "reasoning_tokens": 70,
+      "rejected_prediction_tokens": 212
+    }
+  }
+}

@@ -6,8 +6,11 @@ The script calibrates on the calibration clips, then runs every labelled clip th
 perception pipeline and reports a confusion matrix per source (tracker, local, spark) and fused,
 plus latency statistics. Results go to docs/DETECTOR_EVAL.md and data/labeled/results.json.
 
-    PYTHONPATH=backend:. backend/.venv/bin/python scripts/eval_detector.py [--mode mock|live] [--synthetic]
-        [--data DIR --name NAME --note TEXT]
+    PYTHONPATH=backend:. backend/.venv/bin/python scripts/eval_detector.py [--mode mock|live|privacy]
+        [--synthetic] [--data DIR --name NAME --note TEXT]
+
+--mode privacy runs the server's privacy path: the judge is Muse Spark Open (Baseten, or Modal with
+MODAL_SPARK_URL) and the tracker is self-hosted SAM (MODAL_SAM_URL) or the on-device optical flow.
 
 --synthetic builds a tiny labelled set from the synthetic probe media so the script can be exercised
 without recordings (those numbers say nothing about real patients).
@@ -93,7 +96,7 @@ def accuracy(m: dict[str, dict[str, int]]) -> float:
 
 async def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--mode", default="mock", choices=["mock", "live"])
+    ap.add_argument("--mode", default="mock", choices=["mock", "live", "privacy"])
     ap.add_argument("--synthetic", action="store_true")
     ap.add_argument("--fps", type=int, help="override perception.fps (calibration and answers)")
     ap.add_argument("--data", type=Path, help="another labelled folder with the same layout")
@@ -109,7 +112,10 @@ async def main() -> None:
     )
     ap.add_argument("--verbose", action="store_true", help="print each source's reading per clip")
     args = ap.parse_args()
-    os.environ["APP_MODE"] = args.mode
+    app_mode = (
+        "live" if args.mode == "privacy" else args.mode
+    )  # privacy is a session toggle on live
+    os.environ["APP_MODE"] = app_mode
 
     from app.config import load_settings
     from app.perception import calibration as calib
@@ -125,23 +131,26 @@ async def main() -> None:
     if not cal_dir.exists():
         print(f"No calibration clips in {cal_dir}. Record them first (see the module docstring).")
         return
-    settings = load_settings().model_copy(update={"app_mode": args.mode})
+    settings = load_settings().model_copy(update={"app_mode": app_mode})
     if args.fps:
         perception = settings.perception.model_copy(update={"fps": args.fps})
         settings = settings.model_copy(update={"perception": perception})
     work = base / "_work"
     store = Store(work / "data")
-    store.kv_set("app_mode", args.mode)
+    store.kv_set("app_mode", app_mode)
     store.kv_set("keep_clips_for_evaluation", True)
     hub = ProviderHub(settings, store)
     roles = Roles(hub, settings)
-    mode = Mode.LIVE if args.mode == "live" else Mode.MOCK
+    mode = Mode(args.mode)
+    if args.verbose:
+        print("mode:", hub.resolve(mode).to_dict())
     clips = {lab: sorted(cal_dir.glob(f"{lab}_*")) for lab in LABELS}
     cal = await calib.finalize(
         "eval", clips, work / "cal", hub=hub, roles=roles, settings=settings, mode=mode
     )
     if args.verbose:
         print("signal:", cal.get("signal_text"), "| SAM prompts:", cal.get("prompts"))
+        print("judge crop:", cal.get("roi"), "from", cal.get("roi_source"))
     rows: list[dict[str, Any]] = []
     for label in LABELS:
         for clip in sorted((base / label).glob("*")) if (base / label).exists() else []:

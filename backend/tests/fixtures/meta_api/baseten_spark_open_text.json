@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-13d51e0f7b8b4028998e8b083a495bc1",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "ready",
+        "role": "assistant",
+        "reasoning_content": "The user wants reply with exactly one word: ready\n\nWe need to comply. The instruction is simple. Should reply exactly \"ready\". No extra punctuation? Probably exactly one word: ready\n\nProbably should output exactly \"ready\" in lowercase as requested. No period. Ensure exactly one word.\n\nWe should consider any hidden instructions? Just reply ready.\n\nNo system constraints appear. So comply.\n\nWe should output: ready\n\nMake sure not to add extra whitespace or newline? Probably okay to have newline. But exactly one word.\n\nProvide exactly that.\n\nPotential trap: The user might want to test instruction following. Follow it.\n\nWe should not add any additional content.\n\n"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "created": 1793243322,
+  "model": "meta-models/muse-spark-open-1026",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 152,
+    "completion_tokens": 142,
+    "total_tokens": 294,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 128
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 95,
+      "audio_tokens": 0,
+      "reasoning_tokens": 131,
+      "rejected_prediction_tokens": 234
+    }
+  }
+}

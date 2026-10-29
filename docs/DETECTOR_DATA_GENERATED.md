@@ -63,6 +63,48 @@ prompt v4.
 
 The cartoon set still scores 12 of 12 after these changes.
 
+## Privacy mode on Muse Spark Open (Baseten)
+
+Same 13 windows, privacy mode: Muse Spark Open on Baseten writes the calibration description and is
+the blind judge; with no self-hosted SAM, the tracker is the on-device optical flow. Report:
+[`DETECTOR_EVAL_GENERATED_PRIVACY.md`](DETECTOR_EVAL_GENERATED_PRIVACY.md). "Asked again" is an
+unclear reading or no movement seen on a signal clip; "wrong" is a confident different answer.
+
+| Step | Right | Wrong | Asked again | What it showed |
+|---|---:|---:|---:|---|
+| First live run | 1 | 0 | 12 | Calibration failed: `400 "Too many videos: 5 (max 2)"`, so the judge had no signal description |
+| Describer sends one YES and one NO clip, labelled | 7 | 1 | 5 | No SAM, so no crop: YES 0 of 3 on the whole frame |
+| Crop from where the calibration clips move | 9 to 10 | 1 | 2 to 3 | Emergency 0 of 2: "one sustained brow lift" |
+| Clips played at half speed | 11 | 2 | 0 | Final; the two errors are resting clips read as NO |
+
+1. **Two videos per request.** Meta's API takes 5 videos; Muse Spark Open takes 2 (Baseten's docs
+   say so too; the code didn't respect it). The adapter had also dropped the "YES clip 1" labels
+   on videos, so the describer could not have told the clips apart anyway.
+2. **A crop without SAM.** Calibration now averages frame-to-frame change over the YES and NO clips,
+   subtracts the rest clip (blinks, noise), and pads the moving region into the same square the
+   SAM crop uses. On these clips it lands on the eyebrows; nothing leaves the device to find it.
+3. **Two frames per second.** Numbered test frames showed Baseten samples video at 2 fps of video
+   time whatever the clip's rate, with no request field for it (Meta's API takes `fps`). The judge
+   saw about 8 frames of a 4-second window. Slowing the clip gives it more frames, but slowed too
+   far it times holds by the playback. Judge alone, each window judged twice:
+
+   | Clip as sent | Right of 26 | Asked again | Wrong | Emergency | Median latency |
+   |---|---:|---:|---:|---:|---:|
+   | Real speed (2 fps) | 17 | 7 | 2 | 0 of 4 | 3.9 s |
+   | 3 fps, 1.5x slower | 18 | 3 | 5 | 2 of 4 | 7.4 s |
+   | **4 fps, 2x slower (kept)** | **25** | **0** | **1** | **4 of 4** | **6.0 s** |
+   | 4 fps, 2x slower, real time printed on each frame | 19 | 0 | 7 | 4 of 4 | 6.9 s |
+   | 8 fps, 4x slower (one full run, 13 windows) | 9 | 1 | 3 | 2 of 2 | 9.0 s |
+
+   With the time printed on every frame the judge read it ("held shut for about 0.6-0.7 s") and
+   still called the blink a NO, so the stamp was dropped.
+
+The remaining error is the one that matters most: two of four resting clips came back as NO. The
+sweep had 7 of 8 resting windows right with a calibration that described NO as "closes both eyes
+and holds them closed"; the full run's calibration called it "a prolonged blink". Each calibration
+writes its own description, so the result moves with it. Muse Spark on Meta's API, with SAM, made
+no confident errors on the same clips.
+
 ## Limits
 
 One fictional identity, one start frame for calibration and evaluation (same pose and lighting),
