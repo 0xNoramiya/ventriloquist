@@ -6,10 +6,11 @@ app's own models are all Meta's (see the main README). The script and timeline a
 
 Three kinds of material:
 
-- **App footage**: screen recordings of the running app on fly.io. In live mode the camera is the
-  generated Mr Hasan gesture clips from `data/labeled_generated` (the detector eval set), so SAM 3.1
-  and the blind Muse Spark judge really read every answer. The spelling beat is a mock run with the
-  simulated patient, and says so on screen.
+- **App footage**: screen recordings of the running app, on fly.io or on a local server running the
+  same build (`VENT_BASE=http://127.0.0.1:8010`). In live mode the camera is the generated Mr Hasan
+  gesture clips from `data/labeled_generated` (the detector eval set), so SAM 3.1 and the blind
+  Muse Spark judge really read every answer; in the privacy take Muse Spark Open on Baseten reads
+  them. The spelling beat is a mock run with the simulated patient, and says so on screen.
 - **Story scenes**: Higgsfield (GPT Image 2.5 stills, Seedance 2.5 image-to-video) of the same
   fictional patient, nurse and daughter. They never show the app doing anything.
 - **Sound**: ElevenLabs narration, a second voice standing in for the phone's built-in speech, an
@@ -28,6 +29,7 @@ node --env-file=../.env.local caption-timings.mjs   # word timings for the capti
 # app footage: live takes need the fly.io passcode (never commit it)
 VENT_PASSCODE=... node record-app.mjs calibrate
 VENT_PASSCODE=... node record-app.mjs session
+VENT_PASSCODE=... node record-app.mjs privacy   # needs BASETEN_API_KEY on the server
 node record-app.mjs spelling           # mock mode, simulated patient
 
 cd edit
@@ -43,7 +45,7 @@ The story clips and stills (`media/gen/`) came from Higgsfield; their prompts ar
 
 | File | What it does |
 |---|---|
-| `cues.json` | Narration lines (N1 to N9), the phone's lines (P0 to P8), the score's sections, the effects |
+| `cues.json` | Narration lines (N1 to N9, N8b), the phone's lines (P0 to P8), the score's sections, the effects; `say` is a spelling for the voice only |
 | `generate-audio.mjs` | Makes them with ElevenLabs; keeps files that exist unless `--force` |
 | `caption-timings.mjs` | ElevenLabs speech-to-text word timings, with the script's spelling kept |
 | `render-app-sounds.mjs` | The app's chime and alarm as WAV, from the same oscillator calls as the app |

@@ -2,9 +2,12 @@
 //
 //   VENT_PASSCODE=... node record-app.mjs calibrate   live: calibrate the daughter-scenario patient
 //   VENT_PASSCODE=... node record-app.mjs session     live: the session, relay, acknowledgement, alarm
+//   VENT_PASSCODE=... node record-app.mjs privacy     privacy: answers read by Muse Spark Open
 //   node record-app.mjs spelling                      mock: spelling with the simulated patient
 //
-// The camera is the generated Pak Hasan clips from data/labeled_generated (the detector eval set):
+// VENT_BASE points it at another server running the same build (default: the fly.io app).
+//
+// The camera is the generated Mr Hasan clips from data/labeled_generated (the detector eval set):
 // getUserMedia returns a canvas that loops a rest clip, and the moment the app starts a
 // MediaRecorder the canvas switches to the clip queued for that answer. So in live mode SAM 3.1 and
 // the blind judge really read every answer. Frames come from Chrome's screencast and are encoded
@@ -14,7 +17,7 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 
-const BASE = 'https://ventriloquist.fly.dev';
+const BASE = process.env.VENT_BASE ?? 'https://ventriloquist.fly.dev';
 const FLY_IP = '66.241.124.160'; // WSL can't resolve the fly hostname
 const here = (p) => fileURLToPath(new URL(p, import.meta.url));
 const CLIP_DIR = here('../data/labeled_generated/');
@@ -233,6 +236,33 @@ function answerFor(prompt) {
   return 'no';
 }
 
+/** Polls the session; queues the camera clip that answers each new question truthfully. */
+function driver(cg, ph, sid) {
+  let lastPrompt = null;
+  let lastState = null;
+  let trail = 0;
+  const counter = { yes: 0, no: 0 };
+  const poll = () => api(cg, 'GET', `/api/sessions/${sid}`);
+  const step = async () => {
+    const s = await poll();
+    if (s.state !== lastState) note('state', { state: s.state });
+    lastState = s.state;
+    if (s.prompt && s.prompt.id !== lastPrompt) {
+      lastPrompt = s.prompt.id;
+      const answer = answerFor(s.prompt);
+      const clip = answer === 'yes' ? `yes_${(counter.yes++ % 3) + 1}` : `no_${counter.no++ % 4}`;
+      await ph.evaluate((c) => window.__cam.queue(c), clip);
+      note('prompt', { kind: s.prompt.kind, text: s.prompt.text_en, answer, clip });
+    }
+    for (const row of s.trail.slice(trail)) {
+      note('read', { q: row.text_en, answer: row.answer, source: row.source, confidence: row.confidence, sources: row.sources });
+    }
+    trail = s.trail.length;
+    return s;
+  };
+  return { poll, step };
+}
+
 async function session(browser, dir) {
   const { pid } = state();
   if (!pid) throw new Error('run calibrate first');
@@ -255,28 +285,7 @@ async function session(browser, dir) {
   await ph.getByText('Tap to start').click();
   note('tap to start');
 
-  let lastPrompt = null;
-  let lastState = null;
-  let trail = 0;
-  const counter = { yes: 0, no: 0 };
-  const poll = () => api(cg, 'GET', `/api/sessions/${sid}`);
-  const step = async () => {
-    const s = await poll();
-    if (s.state !== lastState) note('state', { state: s.state });
-    lastState = s.state;
-    if (s.prompt && s.prompt.id !== lastPrompt) {
-      lastPrompt = s.prompt.id;
-      const answer = answerFor(s.prompt);
-      const clip = answer === 'yes' ? `yes_${(counter.yes++ % 3) + 1}` : `no_${counter.no++ % 4}`;
-      await ph.evaluate((c) => window.__cam.queue(c), clip);
-      note('prompt', { kind: s.prompt.kind, text: s.prompt.text_en, answer, clip });
-    }
-    for (const row of s.trail.slice(trail)) {
-      note('read', { q: row.text_en, answer: row.answer, source: row.source, confidence: row.confidence });
-    }
-    trail = s.trail.length;
-    return s;
-  };
+  const { poll, step } = driver(cg, ph, sid);
 
   // questions until the message is spoken, checked, and offered to Aisyah
   let s;
@@ -338,6 +347,41 @@ async function session(browser, dir) {
   return Promise.all(stops.map((stop) => stop()));
 }
 
+async function privacy(browser, dir) {
+  const { pid } = state();
+  if (!pid) throw new Error('run calibrate first');
+  const cg = await newPage(browser, { width: 1280, height: 1800, live: true, name: 'console' });
+  const ph = await newPage(browser, { width: 390, height: 844, live: true, name: 'phone' });
+  await cg.goto(BASE + '/');
+  const snap = await api(cg, 'POST', '/api/sessions', { patient_id: pid, scenario: 'daughter', privacy: true });
+  const sid = snap.session_id;
+  note('session', { sid, mode: snap.mode.effective, reason: snap.mode.reason });
+  if (snap.mode.effective !== 'privacy') throw new Error(`not privacy: ${snap.mode.reason}`);
+
+  await cg.goto(`${BASE}/caregiver/${sid}`);
+  await ph.goto(`${BASE}/patient/${sid}`);
+  await ph.getByText('Tap to start').waitFor();
+  const stops = [await screencast(cg, 'console', dir), await screencast(ph, 'phone', dir)];
+  await sleep(1500);
+  await cg.getByRole('button', { name: /^Privacy/ }).click(); // shows which models run
+  note('mode shown');
+  await sleep(2000);
+  await ph.getByText('Tap to start').click();
+  note('tap to start');
+  const { step } = driver(cg, ph, sid);
+  // three answers read by the open-weight judge, then a moment to read the trail
+  for (let i = 0; i < 600; i++) {
+    const s = await step();
+    const judged = s.trail.filter((r) => r.sources?.spark && !r.sources.spark.pending);
+    if (judged.length >= 3) break;
+    if (s.state === 'CAREGIVER_NEEDED') throw new Error('caregiver needed: ' + s.caregiver_reason);
+    await sleep(300);
+  }
+  note('three judged');
+  await sleep(5000);
+  return Promise.all(stops.map((stop) => stop()));
+}
+
 async function spelling(browser, dir) {
   const cg = await newPage(browser, { width: 1280, height: 1800, live: false, name: 'console' });
   const ph = await newPage(browser, { width: 390, height: 844, live: false, name: 'phone' });
@@ -367,7 +411,7 @@ async function spelling(browser, dir) {
   return Promise.all(stops.map((stop) => stop()));
 }
 
-const phases = { calibrate, session, spelling };
+const phases = { calibrate, session, privacy, spelling };
 const which = process.argv[2];
 if (!phases[which]) throw new Error(`usage: node record-app.mjs ${Object.keys(phases).join('|')}`);
 const dir = `${OUT}${which}/`;

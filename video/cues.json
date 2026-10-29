@@ -44,8 +44,14 @@
     },
     {
       "id": "N8",
-      "slot": 20,
-      "text": "Under the hood it's Meta's stack: Muse Spark from calibration to the blind judge, SAM 3.1, Voice Transcribe, Muse Wonder for a memory nurses approve, and the WhatsApp Cloud API. On generated test clips it read eleven of thirteen answers, none wrong, and asked again on the other two."
+      "slot": 11,
+      "text": "Under the hood it's Meta's stack: Muse Spark from calibration to the blind judge, SAM 3.1, Voice Transcribe, and Muse Wonder for memory."
+    },
+    {
+      "id": "N8b",
+      "slot": 11,
+      "text": "Privacy mode runs the same pipeline on Muse Spark Open, the open-weight model, on Baseten. Patient video never reaches a closed API.",
+      "say": "Privacy mode runs the same pipeline on Muse Spark Open, the open-weight model, on Base-ten. Patient video never reaches a closed API."
     },
     {
       "id": "N9",

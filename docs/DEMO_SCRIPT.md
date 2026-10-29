@@ -22,8 +22,10 @@ five seconds and again on the end card:
 ## As built
 
 The film is built and rendered by [`video/`](../video/README.md): narration and sound from
-ElevenLabs, story scenes from Higgsfield, app footage from live takes on https://ventriloquist.fly.dev,
+ElevenLabs, story scenes from Higgsfield, app footage from live takes of the deployed build,
 assembled with HyperFrames. Timings below are the plan; `video/edit/build.mjs` holds the exact cut.
+The 2026-10-29 takes ran on a local server with the same build and the same Meta and Baseten keys
+(`VENT_BASE` in `video/record-app.mjs`), since the fly.io passcode stays with Rifqi.
 
 ## Three kinds of footage
 
@@ -39,7 +41,7 @@ session beat is sped up and says so on screen.
 
 ## Timeline
 
-Narration lines (N1 to N9) are what ElevenLabs reads. They also live in
+Narration lines (N1 to N9, with N8b) are what ElevenLabs reads. They also live in
 [`video/cues.json`](../video/cues.json), which the audio script reads; keep the two the same. Words
 in *italics* are the phone speaking. The app speaks with the device's built-in text-to-speech,
 which a screen recording can't capture, so in the video an ElevenLabs voice through a small-speaker
@@ -53,14 +55,14 @@ filter stands in for it (lines P1 to P7 in `video/cues.json`).
 | 1:05-1:35 | Phone: *"Shall I send this to Aisyah on WhatsApp?"* **GEN** eyebrows rise. **GEN** the room at night: nobody there, only the phone lit on the rail. **APP** the console at the nurses' station: the yellow "The patient says" card with its chime, and the approval card "Send to Aisyah (daughter) on WhatsApp? The patient said yes." Caption "1 minute later": the phone repeats the message, "said 2 times" on the card. **GEN** a nurse at the station looks up. **APP** she taps "I'm coming", then Send (approving the relay also counts as seeing the message). Phone: *"A caregiver has seen your message and is coming."* | **N4** But the room is empty, and he can't press a call bell. So his words chime at the nurses' station and stay there until someone taps "I'm coming". If nobody does, the phone says them again and the alert gets louder. The WhatsApp message to Aisyah waits for a nurse's approval too. | Music thins to sustained strings. SFX: night ward hum; the app's own chime (rendered from the app, see Sound). |
 | 1:35-2:00 | **APP** relay card: Sent, Delivered, Read. **GEN** Aisyah at home; her phone buzzes; she reads (screen not visible), exhales, types. **APP** reply arrives; the trail shows Muse Spark's reading: not about his health, safe to read aloud. Phone reads her reply. **GEN** Mr Hasan's face relaxes. Caption: "No reply? It asks him about his son next." | **N5** Now an agent takes over. It watches the message reach Aisyah's phone and get read. When she answers, Muse Spark reads the reply first. Anything about his health waits for a nurse. This one doesn't, so he hears it. | SFX: phone buzz. Phone voice. Music: warm, rising. |
 | 2:00-2:15 | **APP** a second patient's spelling run in mock mode with the simulated patient, sped up and labelled "Simulated answers": *"Is this your message: I'm cold?"* no. *"Do you want to spell it?"* yes. Letter groups; K, U, C. The console flips EN to ID once: *"Apakah kata Bapak KUCING?"* yes. *"Who is feeding my cat?"* yes. Caption: "Simulated answers · sped up 13×". | **N6** Wrong guesses happen. He says no and spells it: three letters, and the completer finds "kucing", cat. The message: who is feeding my cat? | Music: light, playful. |
-| 2:15-2:25 | **GEN** eyebrows up three times, fast. **APP** the console turns red: "The patient needs help now." A note gives the real delay: "Alarm 15 s after the signal". A nurse taps "Acknowledge, I'm going". | **N7** Three quick yeses, at any moment, raise the alarm on every screen. | Music cuts. The app's own alarm (rendered from the app). |
-| 2:25-2:45 | **CARD** the models, one line each as they're named: Muse Spark (calibration, room reader, questions, blind judge, spelling, reply reader), SAM 3.1, Muse Voice Transcribe, Muse Wonder, Muse Image (pictograms), WhatsApp Cloud API. **APP** two seconds of the memory page: a proposed fact with its source, approved by a nurse. **CARD** "Generated test clips: 11 of 13 answers read, 0 wrong, 2 asked again." and the simulation chart from the README. | **N8** Under the hood it's Meta's stack: Muse Spark from calibration to the blind judge, SAM 3.1, Voice Transcribe, Muse Wonder for a memory nurses approve, and the WhatsApp Cloud API. On generated test clips it read eleven of thirteen answers, none wrong, and asked again on the other two. | Music: steady, clean pulse. |
+| 2:15-2:25 | **GEN** eyebrows up three times, fast. **APP** the console turns red: "The patient needs help now." A note gives the real delay: "Alarm 13 s after the signal" (measured on the take). A nurse taps "Acknowledge, I'm going". | **N7** Three quick yeses, at any moment, raise the alarm on every screen. | Music cuts. The app's own alarm (rendered from the app). |
+| 2:21-2:32 | **CARD** the models, one line each as they're named: Muse Spark (calibration, room reader, questions, blind judge, spelling, reply reader), SAM 3.1, Muse Voice Transcribe, Muse Wonder, Muse Image (pictograms), WhatsApp Cloud API. **CARD** "11 of 13 answers read on generated test clips of Mr Hasan, on Meta's API; 0 wrong, 2 asked again" and the simulation result. | **N8** Under the hood it's Meta's stack: Muse Spark from calibration to the blind judge, SAM 3.1, Voice Transcribe, and Muse Wonder for memory. | Music: steady, clean pulse. |
+| 2:32-2:43 | **APP** console and phone in privacy mode: the green "Privacy" badge opened to "Muse Spark Open on Baseten"; three answers, the trail reading "Muse Spark Open: yes 9x%". Notes: "Muse Spark Open on Baseten · sped up", then "Same test clips: 11 of 13 right, 2 resting clips read as NO". | **N8b** Privacy mode runs the same pipeline on Muse Spark Open, the open-weight model, on Baseten. Patient video never reaches a closed API. | Music continues. |
 | 2:45-3:00 | **GEN** four o'clock: Aisyah at the bedside, holding his hand; he raises his eyebrows. **CARD** end card: "Try it: ventriloquist.fly.dev", "github.com/0xNoramiya/ventriloquist", and the label. | **N9** Built in Indonesia, for patients who are awake and unheard. The patient does the talking. The phone just moves its lips. | Music: the piano theme returns and resolves. |
 
-**Privacy mode.** Only if privacy mode has run live on Muse Spark Open before recording (needs
-`BASETEN_API_KEY`), add to N8: "Privacy mode runs the same steps on Muse Spark Open, an open-weight
-model." and show the "What leaves this device" panel for two seconds. Otherwise leave it out: the
-video claims nothing that hasn't run.
+**Privacy mode.** It ran live on Muse Spark Open on 2026-10-29 (`docs/DETECTOR_DATA_GENERATED.md`),
+so the 2:32 beat shows a real privacy-mode session. The voice reads "Baseten" from the `say`
+spelling in `video/cues.json` ("Base-ten"); the captions keep the name.
 
 **WhatsApp.** If the WhatsApp Business account is connected by recording day, the 1:35 beat shows a
 real phone receiving the template (a consenting person's phone, number masked). If not, the APP
@@ -93,6 +95,7 @@ and the nurse are new fictional people, made once as reference stills and reused
 | A5 | Console + phone | Spelling KUCING, with the EN to ID toggle |
 | A6 | Console | Emergency alarm and acknowledgement |
 | A7 | Memory page | One fact with provenance, approved |
+| A8 | Console + phone, privacy mode | The "Privacy" badge opened, three answers read by Muse Spark Open on Baseten |
 
 ## Sound
 

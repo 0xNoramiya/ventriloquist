@@ -18,9 +18,10 @@ const dur = Object.fromEntries(
 const cal = take('calibrate');
 const ses = take('session');
 const spl = take(process.env.SPELLING ?? 'spelling');
+const prv = take('privacy');
 
 // ---------------------------------------------------------------- where everything lands
-const NARRATION = { N1: 0.7, N2: 15.5, N3: 32.9, N4: 74.4, N5: 98.4, N6: 120.6, N7: 131.9, N8: 141.4, N9: 164.2 };
+const NARRATION = { N1: 0.7, N2: 15.5, N3: 32.9, N4: 74.4, N5: 98.4, N6: 120.6, N7: 131.9, N8: 141.4, N8b: 152.9, N9: 164.2 };
 const S = {
   hook: 0,
   title: 5.8,
@@ -37,6 +38,7 @@ const S = {
   spell: 120.4,
   alarm: 131.6,
   stack: 141.0,
+  privacy: 152.4,
   close: 163.6,
   end: 170.4,
 };
@@ -63,10 +65,17 @@ function appShot(id, rec, from, at, length, opts = {}) {
   return { id, at, length, console: c, phone: p, ...opts };
 }
 
+// the sped-up run covers every question between the first answer and the confirmation
+const s3From = prompt('Is it about your body') + 9.2;
+const s3Speed = (prompt('Is this your message') - 0.2 - s3From) / 19.7;
 const session = [
-  appShot('s1', ses, prompt('Is it about your body') - 0.7, S.session, 3.4),
+  // from just after the first question: before it, the console shows the phone's pairing QR code
+  // and the local server's network address; the first frame holds through the crossfade
+  appShot('s1', ses, prompt('Is it about your body') + 0.2, S.session, 3.4, {
+    vf: ['tpad=start_mode=clone:start_duration=0.9'],
+  }),
   appShot('s2', ses, prompt('Is it about your body') + 2.7, 33.0, 6.5),
-  appShot('s3', ses, prompt('Is it about your body') + 9.2, 39.5, 19.7, { speed: 1.6 }),
+  appShot('s3', ses, s3From, 39.5, 19.7, { speed: s3Speed }),
   appShot('s4', ses, prompt('Is this your message') - 0.2, 59.2, 5.4),
   appShot('s5', ses, prompt('I want to see my daughter') - 0.4, 64.6, 4.8),
   appShot('s6', ses, prompt('Shall I send') - 0.4, 69.4, 4.6),
@@ -75,21 +84,22 @@ const station = [
   appShot('c1', ses, t('relay offered') - 0.1, S.station, 5.0),
   appShot('c2', ses, t('repeated') - 1.4, 85.2, 4.8),
 ];
-// the console shows the press about 1.6 s after the harness logged the click
-const ack = appShot('a1', ses, t("I'm coming") + 0.3, S.ack, S.relay - S.ack);
-const relay = appShot('r1', ses, t('send approved') + 1.0, S.relay, S.aisyah - S.relay, { speed: 2.5 });
+// Measured frame by frame on the 2026-10-29 takes (a local server; on fly.io every screen ran
+// about 1.7 s behind the harness log): the console shows the press 0.1 s after the logged click
+const ack = appShot('a1', ses, t("I'm coming") - 1.4, S.ack, S.relay - S.ack);
+const relay = appShot('r1', ses, t('send approved') - 0.6, S.relay, S.aisyah - S.relay, { speed: 2.5 });
 // the reply is read at PHONE_LINES.P8; hold the last frame rather than show the next message
-// the screen shows the reply about 1.6 s after the harness logged it
-const replyFrom = replyAt + 1.6 - (PHONE_LINES.P8 - S.reply);
+// the phone shows the reply 0.3 s before the harness logged it
+const replyFrom = replyAt - 0.75 - (PHONE_LINES.P8 - S.reply);
 const reply = appShot('r2', ses, replyFrom, S.reply, S.spell - S.reply, {
   vf: [`tpad=stop_mode=clone:stop_duration=6`],
   until: t('new message') - 0.3,
 });
-const listenEmergency = t('emergency queued') + 5.8;
+const listenEmergency = t('emergency queued') + 2.9;
 const alarm1 = appShot('e1', ses, listenEmergency - 0.4, S.alarm, 4.0);
-// measured on the recordings: the phone starts listening 6.0 s after the harness queued the
-// signal, and the red banner shows 1.4 s after the harness saw the alarm
-const alarmAt = t('alarm') + 1.4;
+// measured on the recordings: the phone starts listening 2.9 s after the harness queued the
+// signal, and the red banner shows 0.1 s before the harness saw the alarm (12.7 s after listening)
+const alarmAt = t('alarm');
 const alarm2 = appShot('e2', ses, alarmAt - 0.4, 135.6, S.stack - 135.6, {
   vf: [`tpad=stop_mode=clone:stop_duration=3`],
 });
@@ -99,6 +109,16 @@ const spellEnd = spl.at('phone', 'message confirmed');
 const spellSpeed = (spellEnd - spellStart) / (S.alarm - S.spell - 0.6);
 const spelling = appShot('sp', spl, spellStart, S.spell, S.alarm - S.spell, {
   speed: spellSpeed,
+  vf: [`tpad=stop_mode=clone:stop_duration=3`],
+});
+
+// privacy mode: from the first question (the pairing QR code is gone by then; the badge stays
+// open on "Muse Spark Open on Baseten") to the second answer read by Muse Spark Open
+const prvFrom = prv.at('phone', 'prompt') + 0.2;
+const prvTo = prv.at('phone', 'read', 1) + 3.0;
+const prvSpeed = (prvTo - prvFrom) / (S.close - S.privacy - 1.2);
+const privacy = appShot('pv', prv, prvFrom, S.privacy, S.close - S.privacy, {
+  speed: prvSpeed,
   vf: [`tpad=stop_mode=clone:stop_duration=3`],
 });
 
@@ -280,7 +300,7 @@ gsap.push(`tl.fromTo('#kb-g2', { scale: 1.03 }, { scale: 1, duration: ${S.cal - 
       camShots: [{ src: cam.no, at: camAt, length: 4.0 }],
       notes: [
         { at: S.session, length: 9.9, text: '<b>Live</b> · every answer read from the camera' },
-        { at: 39.5, length: 19.7, text: 'Sped up <b>1.6×</b>' },
+        { at: 39.5, length: 19.7, text: `Sped up <b>${s3Speed.toFixed(1)}×</b>` },
       ],
     }),
     { ground: true },
@@ -366,7 +386,7 @@ scene(
   split([alarm1, { ...alarm2, fade: 0 }], {
     pans: [{ at: S.alarm }],
     camShots: [{ src: cam.emergency, at: S.alarm + 0.6, length: 3.4, label: 'Phone camera: YES three times' }],
-    notes: [{ at: 136.0, length: 3.4, text: 'Alarm <b>16 s</b> after the signal' }],
+    notes: [{ at: 136.0, length: 3.4, text: 'Alarm <b>13 s</b> after the signal' }],
   }),
   { ground: true, cutIn: true },
 );
@@ -375,7 +395,7 @@ scene(
 scene(
   'stack',
   S.stack,
-  S.close,
+  S.privacy,
   `<div class="stack">
      <div class="col">
        <p class="kicker">Under the hood</p>
@@ -390,25 +410,45 @@ scene(
        </ul>
      </div>
      <div class="col right">
-       <div class="panel" id="st-p1"><p class="big">11 <i>of</i> 13</p><p>answers read on generated test clips of Mr Hasan</p><p class="small">0 wrong · 2 asked again</p></div>
+       <div class="panel" id="st-p1"><p class="big">11 <i>of</i> 13</p><p>answers read on generated test clips of Mr Hasan, on Meta's API</p><p class="small">0 wrong · 2 asked again</p></div>
        <div class="panel" id="st-p2"><p class="big">4.89 <i>vs</i> 6.41</p><p>questions per message, against a fixed-order board, at 10% answer noise</p><p class="small">Simulation, not clinical evidence</p></div>
      </div>
-   </div>`.replace(/<div class="stack">/, `<div class="clip stack" id="st" data-start="${S.stack}" data-duration="${f(S.close - S.stack + X)}" data-track-index="3">`),
+   </div>`.replace(/<div class="stack">/, `<div class="clip stack" id="st" data-start="${S.stack}" data-duration="${f(S.privacy - S.stack + X)}" data-track-index="3">`),
   { ground: true },
 );
 gsap.push(`tl.fromTo('#st .kicker', { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.5, ease: 'power3.out' }, ${S.stack + 0.3});`);
 gsap.push(`tl.fromTo('#st-h', { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.8, ease: 'expo.out' }, ${S.stack + 0.45});`);
-gsap.push(`tl.fromTo('#st-list li', { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.55, ease: 'power2.out', stagger: 1.25 }, ${S.stack + 1.3});`);
-gsap.push(`tl.fromTo('#st-p1', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.7, ease: 'back.out(1.4)' }, ${S.stack + 13.4});`);
-gsap.push(`tl.fromTo('#st-p2', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.7, ease: 'back.out(1.4)' }, ${S.stack + 16.0});`);
+gsap.push(`tl.fromTo('#st-list li', { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.5, ease: 'power2.out', stagger: 0.75 }, ${S.stack + 1.2});`);
+gsap.push(`tl.fromTo('#st-p1', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.7, ease: 'back.out(1.4)' }, ${S.stack + 5.6});`);
+gsap.push(`tl.fromTo('#st-p2', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.7, ease: 'back.out(1.4)' }, ${S.stack + 7.4});`);
 
-gsap.push(`tl.fromTo('#st', { y: 10 }, { y: -14, duration: ${S.close - S.stack + X}, ease: 'sine.inOut' }, ${S.stack});`);
+gsap.push(`tl.fromTo('#st', { y: 10 }, { y: -14, duration: ${S.privacy - S.stack + X}, ease: 'sine.inOut' }, ${S.stack});`);
 
-// 16. four o'clock: Aisyah at the bedside
+// 16. privacy mode: the same pipeline on Muse Spark Open, the open-weight model
+// the header first (the mode badge says which models run), then the question trail
+const PRIVACY_PANS = [
+  { at: S.privacy, x0: 0, y0: 80, s: 1.6 },
+  { at: S.privacy + 3.8, x0: 480, y0: 420, s: 1.6, d: 1.4 },
+];
+scene(
+  'privacy',
+  S.privacy,
+  S.close,
+  split([privacy], {
+    pans: PRIVACY_PANS,
+    notes: [
+      { at: S.privacy, length: 5.4, text: `Muse Spark Open on Baseten · sped up <b>${Math.round(prvSpeed)}×</b>` },
+      { at: S.privacy + 5.6, length: S.close - S.privacy - 5.6 + X, text: 'Same test clips: <b>11 of 13</b> right' },
+    ],
+  }),
+  { ground: true },
+);
+
+// 17. four o'clock: Aisyah at the bedside
 scene('close', S.close, S.end, `<div class="wrap" id="kb-g8">${video(story.g8, S.close, S.end - S.close + X)}</div>`);
 gsap.push(`tl.fromTo('#kb-g8', { scale: 1 }, { scale: 1.05, duration: ${S.end - S.close + X}, ease: 'none' }, ${S.close});`);
 
-// 17. end card
+// 18. end card
 scene(
   'end',
   S.end,

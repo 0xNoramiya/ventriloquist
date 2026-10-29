@@ -46,7 +46,7 @@ for (const [i, line] of narration.entries()) {
   if (!script.includes(line.text)) console.warn(`${line.id}: text differs from docs/DEMO_SCRIPT.md`);
   const s = await make(line.id, () =>
     client.textToSpeech.convert(voice.id, {
-      text: line.text,
+      text: line.say ?? line.text, // `say`: a spelling for the voice only, e.g. "Base-ten"
       modelId: voice.model,
       languageCode: 'en',
       voiceSettings: { stability: voice.stability, similarityBoost: voice.similarityBoost },
