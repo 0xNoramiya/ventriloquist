@@ -141,13 +141,21 @@ Details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Client protocol: [`docs
 | **Muse Image** | Generated the 34 AAC pictograms shown next to messages on the patient screen (`scripts/generate_pictograms.py`) |
 | SAM 3.1 open weights (optional, self-hosted on Modal) | Privacy-mode tracker when an endpoint is configured; otherwise an on-device optical-flow tracker |
 
+**The phone's voice is the browser's built-in text-to-speech, not a model.** Questions, confirmed
+messages and family replies are spoken through the Web Speech API (`speechSynthesis`) in the
+session language (`en-US` or `id-ID`). The app picks a voice that runs on the device when there is
+one. Some browsers only offer voices that run on the vendor's servers, and then the line goes
+there. With no voice at all, the phone shows the line and waits long enough for it to be read. The
+speaking rate and languages are under `speech` in `config.yaml`.
+
 The photos on the landing and calibration pages are generated images of one fictional patient.
 They play no part at runtime.
 
 Every model reply is checked against a schema (strict JSON schema on the Meta API) and repaired
 once; if it still fails, the role falls back to a safe default. Every call is logged with model,
-latency, tokens and cost. Verified request and response
-shapes: [`docs/API_NOTES.md`](docs/API_NOTES.md). A live run of every role: [`docs/LIVE_CHECK.md`](docs/LIVE_CHECK.md).
+latency, tokens and cost. Verified request and response shapes:
+[`docs/API_NOTES.md`](docs/API_NOTES.md). A live run of every role:
+[`docs/LIVE_CHECK.md`](docs/LIVE_CHECK.md).
 
 ![Caregiver console in live mode](docs/img/caregiver-live.png)
 
@@ -261,8 +269,8 @@ Toggle it per session or in settings. The same pipeline runs on open-weight mode
   zero-data-retention policy) or on Modal, so patient video need not touch a closed API.
 - **On-premises:** Muse Glimmer on a GPU box in the hospital (any OpenAI-compatible server) takes
   every text-only role. Images and video then stay on-device, read by the local optical-flow tracker,
-  so nothing leaves the building. In Indonesia, where health data is specific personal data under
-  UU 27/2022, that matters.
+  so nothing leaves the building, as long as the phone's browser has an on-device voice. In
+  Indonesia, where health data is specific personal data under UU 27/2022, that matters.
 
 SAM runs on a self-hosted endpoint if one is configured, otherwise on the on-device tracker. With no
 open-weight endpoint configured, privacy mode stays fully on-device with mock models. In live mode
