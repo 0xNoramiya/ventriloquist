@@ -1,7 +1,6 @@
 # Ventriloquist
 
 [![CI](https://github.com/0xNoramiya/ventriloquist/actions/workflows/ci.yml/badge.svg)](https://github.com/0xNoramiya/ventriloquist/actions/workflows/ci.yml)
-[![Hosted demo](https://github.com/0xNoramiya/ventriloquist/actions/workflows/pages.yml/badge.svg)](https://0xnoramiya.github.io/ventriloquist/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 **The patient does the talking. The phone just moves its lips.**
@@ -16,7 +15,6 @@ message aloud, in the first person, after the patient has confirmed it.
 |  |  |
 |---|---|
 | **Watch** | [The three-minute film](https://github.com/0xNoramiya/ventriloquist/releases/download/v0.2.0/ventriloquist-demo.mp4) (1080p, 80 MB) |
-| **Try** | [The hosted demo](https://0xnoramiya.github.io/ventriloquist/): the real engine runs in your browser, with no install, camera or keys |
 | **Use** | [ventriloquist.fly.dev](https://ventriloquist.fly.dev): the whole app, camera and all. Visitors get mock mode, which costs nothing |
 | **Read** | [how a question is chosen](backend/app/engine/eig.py) · [the fifteen safety rules](docs/SAFETY.md) · [what the models actually returned](docs/LIVE_CHECK.md) |
 
@@ -287,18 +285,6 @@ a live key could show:
 
 Details: [`docs/DETECTOR_DATA_GENERATED.md`](docs/DETECTOR_DATA_GENERATED.md#privacy-mode-on-muse-spark-open-baseten).
 
-## Hosted demo (no install)
-
-![Hosted demo](docs/img/hosted-demo.png)
-
-The demo page runs the real engine, written in Python, inside the browser through WebAssembly
-(Pyodide): the same session code, safety checks and mock models as the server, with the caregiver
-console and a phone-sized patient view side by side. No server, no camera, no keys. Answer with Y
-and N, or tick "Simulated patient" and watch.
-
-Open it at **https://0xnoramiya.github.io/ventriloquist/**. It deploys to GitHub Pages from
-`.github/workflows/pages.yml` on every push to `main`. Locally: `cd frontend && npm run dev:demo`.
-
 ## Deployed app
 
 **https://ventriloquist.fly.dev** runs the full app: the caregiver console, the patient phone with
@@ -328,6 +314,9 @@ HTTPS for the camera). Answer with Y / N / U / E on a keyboard, or let the simul
 real calibration, the patient view reads answers from the camera even without keys, using the
 on-device optical-flow tracker; nothing leaves the machine.
 
+**No backend at all**: `cd frontend && npm run dev:demo` runs the same Python engine in the browser
+through Pyodide, with mock models and keyboard answers, the console and the phone side by side.
+
 **Live mode**: set `MODEL_API_KEY` in `.env` and a `LIVE_PASSCODE`, then switch to live in Settings
 (or set `APP_MODE=live` in `.env`; a mode saved from Settings takes precedence over `.env`).
 `make probe` checks every endpoint; `PYTHONPATH=backend:. backend/.venv/bin/python scripts/live_check.py`
@@ -346,7 +335,7 @@ backend/app/providers   Meta Model API, Baseten/Modal, on-premises and mock adap
 backend/app/sessions    session orchestrator and state machine
 backend/app/safety      sensitive-topic and no-advice guards
 backend/app/prompts     versioned prompts for every model role
-frontend/               React app: caregiver console, patient phone view, hosted demo
+frontend/               React app: caregiver console, patient phone view, browser-only demo build
 sim/                    simulations behind the evaluation charts
 scripts/                API probes, live check, detector evaluation, asset builders
 docs/                   architecture, protocol, safety, evaluation, API notes, sources
@@ -354,8 +343,8 @@ docs/                   architecture, protocol, safety, evaluation, API notes, s
 
 ## Built during the hackathon
 
-Kickoff 2026-10-26 16:00 UTC; everything in this repository was written after that, in dated commits.
-The dated build log is [`HACKATHON_LOG.md`](HACKATHON_LOG.md) and the task list is [`TASKS.md`](TASKS.md).
+Kickoff 2026-10-26 16:00 UTC; everything in this repository was written after that. The commit
+history is the build log.
 
 ## Limitations and next steps
 
