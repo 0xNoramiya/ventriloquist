@@ -429,8 +429,11 @@ def write_markdown(
         *learning_curve_section(path.parent),
         "## 2. Detector evaluation",
         "",
-        "See `scripts/eval_detector.py`. Requires labeled clips recorded by consenting participants in",
-        "`data/labeled/{yes,no,rest,emergency}/` (gitignored). Results will be added here when recorded.",
+        "See `scripts/eval_detector.py`. Real-patient numbers need labelled clips recorded by",
+        "consenting participants in `data/labeled/{yes,no,rest,emergency}/` (gitignored); none are",
+        "recorded yet. Results on generated clips of a fictional patient, in live and privacy mode,",
+        "are in [`DETECTOR_DATA_GENERATED.md`](DETECTOR_DATA_GENERATED.md), and on cartoon clips in",
+        "[`DETECTOR_EVAL_SYNTHETIC.md`](DETECTOR_EVAL_SYNTHETIC.md).",
         "",
     ]
     path.write_text("\n".join(lines))
