@@ -92,6 +92,36 @@ def _clip(path, frames):
     return path
 
 
+def test_sam_tracks_every_part_the_signals_name():
+    """Issue #4: both prompts were `eyebrows` for a NO made with the eyes."""
+    from app.perception.calibration import sam_prompts
+    from app.schemas import CalibrationDescription
+
+    def desc(yes: tuple[str, str, str], no: tuple[str, str, str]) -> CalibrationDescription:
+        spec = lambda part, motion, prompt: {  # noqa: E731
+            "body_part": part,
+            "motion": motion,
+            "sam_prompt": prompt,
+            "description": motion,
+        }
+        return CalibrationDescription.model_validate(
+            {"yes": spec(*yes), "no": spec(*no), "distinct": True, "notes": ""}
+        )
+
+    real_face = desc(
+        ("eyebrows", "raises eyebrows and opens eyes wide", "eyebrows"),
+        ("eyebrows", "lowers eyebrows and holds eyes closed", "eyebrows"),
+    )
+    assert sam_prompts(real_face) == ["eyebrows", "eyes"]
+    nod = desc(("head", "small nod", "head"), ("head", "turns head to the side", "head"))
+    assert sam_prompts(nod) == ["head"]
+    many = desc(
+        ("eyebrows", "eyebrows up, mouth open, eyes wide", "eyebrows"),
+        ("hand", "lifts a finger", "hand"),
+    )
+    assert len(sam_prompts(many)) == 3
+
+
 def test_motion_roi_finds_where_the_signal_clips_move(tmp_path):
     """Without SAM (privacy mode) the judge's crop comes from where YES and NO move."""
     from app.perception.calibration import motion_roi

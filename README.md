@@ -104,8 +104,9 @@ flowchart LR
 ```
 
 1. **Bring your own signal.** Calibration records rest, 3 YES and 3 NO clips. Muse Spark describes
-   the movement and gives a SAM prompt such as "eyebrows"; SAM 3.1 tracks it on every clip to build
-   templates; leave-one-out accuracy sets the fusion weights and the channel error rates.
+   the movement and gives a SAM prompt such as "eyebrows", plus any other face part either signal
+   names, so a NO made with the eyes is watched at the eyes. SAM 3.1 tracks them on every clip to
+   build templates; leave-one-out accuracy sets the fusion weights and the channel error rates.
 2. **Context-aware priors with bounded influence.** Muse Spark sees evidence ids (S scene, T
    transcript, E caregiver event, M memory, H history) and proposes multipliers from {0.25, 0.5, 2, 4}
    for messages, each citing evidence, plus at most three new messages from fixed templates ("Where is
