@@ -52,6 +52,10 @@ held message), `ack_sensitive_silent` (acknowledge without speaking), `new_messa
 | `questions`, `max_questions` | questions asked for this message, cap (10) |
 | `trail` | `{n, prompt_id, kind, stage, text, text_en, answer, confidence, overridden, source, rephrased, sources: {tracker\|local\|spark\|keyboard\|caregiver: {...}}, group, top_after}` |
 | `spelling` | `{text, top: [[symbol, p]], completions: [[word, p]]}` or null |
+| `rejected` | model proposals the code refused `{what, text, why}`: uncited multipliers, sensitive or advice-like messages and questions |
+| `pending_ack` | spoken messages still waiting for someone to tap "I'm coming" (Safety rule 14) |
+| `relays` | family relays `{id, to, relation, phone (masked), patient_text, status, simulated, reply}` (Safety rule 15) |
+| `sentence_options` | candidate sentences while a spelled word is turned into a sentence, or null |
 | `message` | current message `{id, hypothesis_id, text_en, text_id, source, status: speaking\|needs_verification\|confirmed\|retracted, urgent, sensitive, categories, questions}` |
 | `messages` | this session's spoken messages with status (retracted ones are shown struck through) |
 | `evidence` | `{id: S1\|T1\|E1\|M1\|H1, kind, text, at, minutes_ago}` |

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
+from pathlib import Path
 
 import pytest
 
@@ -64,6 +66,60 @@ async def test_nothing_spoken_before_confirmation_yes(ctx):
             prompt = [x for x in events[:i] if x["event"] == "prompt"][-1]
             assert prompt["prompt"]["kind"] == "confirm"
             assert prev["observation"]["answer"] == "yes"
+
+
+def documented_snapshot_fields() -> set[str]:
+    """Field names in the snapshot table of docs/PROTOCOL.md (first column, backticked)."""
+    doc = (Path(__file__).resolve().parents[2] / "docs" / "PROTOCOL.md").read_text()
+    table = doc.split("## Snapshot")[1].split("## REST")[0]
+    fields: set[str] = set()
+    for line in table.splitlines():
+        if not line.startswith("|"):
+            continue
+        first = line.split("|")[1]
+        fields |= {m for m in re.findall(r"`([a-z_]+)`", first)}
+    return fields
+
+
+async def test_snapshot_shows_everything_the_protocol_documents(ctx):
+    """Safety rule 11 (transparency): the caregiver view can only show what the snapshot carries, so
+    every field documented in docs/PROTOCOL.md has to be in it. The table is abridged, so extra
+    fields are fine; missing ones are not."""
+    s = make_session(ctx, "daughter", SimulatedPatient(truth="see_person:aisyah", noise=0.0))
+    await s.start()
+    await run_until(s)
+    snap = s.view()
+    documented = documented_snapshot_fields()
+    assert len(documented) >= 20, documented
+    assert not (documented - set(snap)), f"documented but missing: {sorted(documented - set(snap))}"
+
+
+async def test_snapshot_explains_every_guess_and_every_model_call(ctx):
+    """The rest of rule 11: probabilities with the evidence behind them, a trail that says which
+    detector read each answer and whether a human overrode it, and every model call with its cost."""
+    s = make_session(ctx, "daughter", SimulatedPatient(truth="see_person:aisyah", noise=0.0))
+    await s.start()
+    await run_until(s)
+    snap = s.view()
+
+    top = snap["posterior"]
+    assert top and all({"id", "text_en", "p", "prior", "chips"} <= set(h) for h in top)
+    assert snap["other_p"] is not None
+    chips = [c for h in top for c in h["chips"]]
+    assert chips, "the daughter scenario's nurse remark should cite evidence"
+    ids = {e["id"] for e in snap["evidence"]}
+    assert all(set(c["evidence_id"].split(",")) <= ids for c in chips)
+
+    assert snap["trail"]
+    for step in snap["trail"]:
+        assert {"n", "kind", "answer", "confidence", "overridden", "sources"} <= set(step)
+        assert step["sources"]
+    assert snap["questions"] <= snap["max_questions"]
+    assert isinstance(snap["rejected"], list)
+    assert all(
+        {"role", "provider", "model", "latency_ms", "usd"} <= set(c) for c in snap["llm_calls"]
+    )
+    assert {"spent_usd", "max_usd", "level"} <= set(snap["budget"])
 
 
 async def test_post_speak_retraction_resumes(ctx):
