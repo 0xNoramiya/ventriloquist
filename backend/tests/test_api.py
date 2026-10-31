@@ -324,6 +324,32 @@ def test_open_deployment_gives_everyone_live_mode_but_guards_settings(tmp_path):
         config = c.get("/api/config").json()
         assert config["mode"] == "live" and config["public_live"] and not config["unlocked"]
         assert c.put("/api/settings", json={"budget_max_usd": 1000}).status_code == 403
+        # the landing page's no-camera demos stay in mock mode
+        demo = c.post("/api/scenarios/cold", json={"mock": True}).json()
+        assert demo["mode"]["requested"] == "mock"
+        # "try it on your own face": the scenario's patient first, then a session with its context
+        patient = c.post("/api/scenarios/daughter/patient", json={}).json()
+        assert patient["display_name"] == "Mr Hasan (fictional)"
+        snap = c.post(
+            "/api/sessions", json={"patient_id": patient["id"], "scenario": "daughter"}
+        ).json()
+        assert snap["mode"]["requested"] == "live" and snap["patient"]["id"] == patient["id"]
+
+
+def test_calibrate_first_session_keeps_the_scenario_context(client):
+    """The patient is created first (to calibrate); the session still gets the scenario's room."""
+    pid = client.post("/api/scenarios/daughter/patient", json={}).json()["id"]
+    with_scenario = client.post("/api/sessions", json={"patient_id": pid, "scenario": "daughter"})
+    # a second patient: the room transcript belongs to the patient, not to one session
+    other = client.post("/api/scenarios/daughter/patient", json={}).json()["id"]
+    plain = client.post("/api/sessions", json={"patient_id": other})
+
+    def evidence(sid: str) -> str:
+        snap = client.post(f"/api/sessions/{sid}/start").json()
+        return " ".join(e["text"] for e in snap["evidence"])
+
+    assert "Aisyah" in evidence(with_scenario.json()["session_id"])
+    assert "Aisyah" not in evidence(plain.json()["session_id"])
 
 
 def test_public_deployment_guards_settings_and_unlock(public_client):

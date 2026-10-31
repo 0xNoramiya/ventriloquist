@@ -142,15 +142,31 @@ export function Landing() {
   const [simulated, setSimulated] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [heroError, setHeroError] = useState<string | null>(null);
 
   const available = new Set(config?.scenarios.map((s) => s.id) ?? SCENARIOS.map((s) => s.id));
+
+  // On your own face: the scenario's patient, calibrated first, so answers fuse SAM 3.1 with the
+  // judge instead of the judge alone on default signals (weaker readings, more questions).
+  async function tryOnFace() {
+    unlockAudio();
+    setBusy('face');
+    setHeroError(null);
+    try {
+      const patient = await api.scenarioPatient('daughter');
+      navigate(`/calibrate/${patient.id}?scenario=daughter`);
+    } catch (e) {
+      setHeroError(e instanceof Error ? e.message : String(e));
+      setBusy(null);
+    }
+  }
 
   async function start(id: string) {
     unlockAudio();
     setBusy(id);
     setError(null);
     try {
-      const snap = await api.startScenario(id, { simulated, noise: 0.05 });
+      const snap = await api.startScenario(id, { simulated, noise: 0.05, mock: true });
       navigate(`/caregiver/${snap.session_id}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -170,15 +186,17 @@ export function Landing() {
             <Button
               variant="primary"
               size="lg"
-              busy={busy === 'daughter'}
-              onClick={() => void start('daughter')}
+              busy={busy === 'face'}
+              onClick={() => void tryOnFace()}
             >
-              {t('landing.cta')}
+              {t('landing.cta_face')}
             </Button>
             <LinkButton to="/setup" variant="secondary" size="lg">
               {t('landing.setup')}
             </LinkButton>
           </div>
+          <p className="max-w-[60ch] text-[15px] text-ink-soft">{t('landing.cta_face_hint')}</p>
+          {heroError ? <Notice tone="error">{heroError}</Notice> : null}
           <p className="max-w-[60ch] text-[15px] text-muted">
             <strong className="text-ink">{t('footer.not_device')}</strong>{' '}
             {t('landing.not_device_body')}

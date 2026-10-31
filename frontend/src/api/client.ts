@@ -124,14 +124,22 @@ export const api = {
   config: () => request<PublicConfig>('/config'),
   updateSettings: (body: SettingsUpdate) => json<PublicConfig>('/settings', 'PUT', body),
 
-  startScenario: (name: string, body: { simulated: boolean; noise?: number; language?: string }) =>
-    json<Snapshot>(`/scenarios/${encodeURIComponent(name)}`, 'POST', body),
+  startScenario: (
+    name: string,
+    body: { simulated: boolean; noise?: number; language?: string; mock?: boolean },
+  ) => json<Snapshot>(`/scenarios/${encodeURIComponent(name)}`, 'POST', body),
+  scenarioPatient: (name: string) =>
+    json<Patient>(`/scenarios/${encodeURIComponent(name)}/patient`, 'POST', {}),
 
   createPatient: (profile: PatientProfile) => json<Patient>('/patients', 'POST', profile),
   patient: (pid: string) => request<Patient>(`/patients/${encodeURIComponent(pid)}`),
 
-  createSession: (body: { patient_id: string; privacy?: boolean; passcode?: string }) =>
-    json<Snapshot>('/sessions', 'POST', body),
+  createSession: (body: {
+    patient_id: string;
+    privacy?: boolean;
+    passcode?: string;
+    scenario?: string;
+  }) => json<Snapshot>('/sessions', 'POST', body),
   start: (sid: string) => json<Snapshot>(`/sessions/${encodeURIComponent(sid)}/start`, 'POST'),
 
   framing: (pid: string, image: Blob) =>
