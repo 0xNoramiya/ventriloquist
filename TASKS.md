@@ -85,6 +85,6 @@ Status: `[x]` done, `[~]` in progress, `[ ]` to do. Updated as work proceeds.
 - [x] Safety rule 11 covered by tests, one of them reading the field table out of `docs/PROTOCOL.md`
 - [x] `make sim` keeps EVAL.md's pointer to the detector results
 - [x] README start-here block; the demo film published as a release asset
-- [ ] Record one consenting adult's own signals and run `--runs 3` on them: the first numbers from a real face (Rifqi)
+- [ ] Record one consenting adult's own signals and run `--runs 3` on them: the first numbers from a real face (Rifqi; `docs/RECORD_CLIPS.md`)
 - [ ] Submit by 2026-11-05 02:00 UTC
 

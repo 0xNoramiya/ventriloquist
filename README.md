@@ -206,7 +206,9 @@ context), simulated patients needed 7.05 questions per message on day 1 and 6.63
 ### Detector
 
 Real-patient detector numbers need labelled clips from consenting participants
-(`scripts/eval_detector.py`, data in `data/labeled/`, never committed). None are recorded yet.
+(`scripts/eval_detector.py`, data in `data/labeled/`, never committed). None are recorded yet; what
+it takes is twenty minutes and one consenting adult
+([`docs/RECORD_CLIPS.md`](docs/RECORD_CLIPS.md)).
 
 **Synthetic cartoon clips.** The pipeline runs end to end on them
 ([`docs/DETECTOR_EVAL_SYNTHETIC.md`](docs/DETECTOR_EVAL_SYNTHETIC.md)). In the live check
