@@ -408,23 +408,36 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         )
         return s.view()
 
-    @app.post("/api/scenarios/{name}")
-    async def start_scenario(
-        request: Request, name: str, body: dict[str, Any] | None = None
-    ) -> dict[str, Any]:
-        """Create the scenario's fictional patient and a session in one step (mock demos)."""
+    def scenario_patient(name: str, body: dict[str, Any]) -> str:
+        """Create the scenario's fictional patient; returns its id."""
         try:
             scenario = load_scenario(name)
         except KeyError as exc:
             raise HTTPException(404, str(exc)) from exc
-        body = body or {}
         profile = PatientProfile(**scenario["profile"])
         if body.get("language") in ("en", "id"):
             profile.language = body["language"]
-        pid = store.create_patient(profile.model_dump())
+        return store.create_patient(profile.model_dump())
+
+    @app.post("/api/scenarios/{name}/patient")
+    async def start_scenario_patient(
+        name: str, body: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
+        """The scenario's patient alone, to calibrate first; the session then comes from
+        POST /api/sessions with the scenario, since a session reads its calibration when created."""
+        return patient_or_404(scenario_patient(name, body or {}))
+
+    @app.post("/api/scenarios/{name}")
+    async def start_scenario(
+        request: Request, name: str, body: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
+        """Create the scenario's fictional patient and a session in one step. `mock` keeps it in
+        mock mode on a live deployment (the landing page's no-camera demos)."""
+        body = body or {}
+        pid = scenario_patient(name, body)
         s = await manager.create(
             patient_or_404(pid),
-            mode=mode_for(request, bool(body.get("privacy"))),
+            mode=Mode.MOCK if body.get("mock") else mode_for(request, bool(body.get("privacy"))),
             privacy=bool(body.get("privacy")),
             simulated_truth="scenario" if body.get("simulated") else None,
             simulated_noise=float(body.get("noise", 0.05)),

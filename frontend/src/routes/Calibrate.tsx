@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { api } from '../api/client';
 import type { CalibrationSummary, FramingResult, Lang, Patient, SignalSpec } from '../api/types';
 import { Button } from '../components/Button';
@@ -64,6 +64,8 @@ const STEPS: Step[] = ['intro', 'framing', 'record', 'finalize', 'results'];
 
 export default function Calibrate() {
   const { pid } = useParams<{ pid: string }>();
+  // From the landing page's "try it on your own face": the session gets that scenario's context.
+  const scenario = useSearchParams()[0].get('scenario');
   const t = useT();
   const navigate = useNavigate();
   // In live mode the camera still reads answers without calibration (blind judge only).
@@ -196,7 +198,7 @@ export default function Calibrate() {
     if (!pid) return;
     setBusy('session');
     try {
-      const snap = await api.createSession({ patient_id: pid });
+      const snap = await api.createSession({ patient_id: pid, scenario: scenario ?? undefined });
       navigate(`/caregiver/${snap.session_id}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
