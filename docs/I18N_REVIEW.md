@@ -98,6 +98,8 @@ Each taxonomy message also has a direct question (e.g. "Apakah {hon} merasa saki
 |---|---|
 | The patient needs help now. | Pasien butuh bantuan sekarang. |
 | Responses unclear. Please check with the patient in person. | Jawaban kurang jelas. Mohon periksa pasien secara langsung. |
+| Answer after the tone. | Jawab setelah bunyi nada. |
+| Answer after the tone, starting with your eyes open. | Jawab setelah bunyi nada, mulai dengan mata terbuka. |
 
 ## Changes after the first review pass (2026-10-27)
 
