@@ -193,6 +193,7 @@
   "cal.results.b": "b: NO read as YES",
   "cal.start_session": "Start a session",
   "cal.again": "Calibrate again",
+  "cal.start_anyway": "Start anyway",
   "signal.eyebrows_up": "Eyebrows up",
   "signal.eyes_shut": "Eyes shut",
   "signal.long_blink": "One long blink",

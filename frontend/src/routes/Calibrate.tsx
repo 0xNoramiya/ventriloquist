@@ -505,6 +505,7 @@ function Results({
   busy: string | null;
 }) {
   const t = useT();
+  const failed = !result.skipped && !result.ok;
   const [draft, setDraft] = useState({
     yes: { ...result.description.yes },
     no: { ...result.description.no },
@@ -651,14 +652,27 @@ function Results({
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <Button variant="primary" size="lg" busy={busy === 'session'} onClick={onStart}>
-          {t('cal.start_session')}
-        </Button>
-        <Button size="lg" busy={busy === 'restart'} onClick={onRestart}>
-          {t('cal.again')}
-        </Button>
-      </div>
+      {failed ? (
+        // A failed calibration reads answers poorly (issue #4): calibrating again comes first, and
+        // a session on it takes a deliberate "Start anyway".
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Button variant="primary" size="lg" busy={busy === 'restart'} onClick={onRestart}>
+            {t('cal.again')}
+          </Button>
+          <Button size="lg" busy={busy === 'session'} onClick={onStart}>
+            {t('cal.start_anyway')}
+          </Button>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Button variant="primary" size="lg" busy={busy === 'session'} onClick={onStart}>
+            {t('cal.start_session')}
+          </Button>
+          <Button size="lg" busy={busy === 'restart'} onClick={onRestart}>
+            {t('cal.again')}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

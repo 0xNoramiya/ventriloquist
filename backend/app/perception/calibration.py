@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -33,6 +34,15 @@ from .signals import default_calibration, signal_text  # noqa: F401  (re-exporte
 
 log = logging.getLogger(__name__)
 LABELS = ("rest", "yes", "no", "emergency")
+# Face parts SAM 3.1 is prompted with, and the words that name them in a signal's description.
+TRACKABLE_PARTS = {
+    "eyebrows": r"\beyebrows?\b",
+    "eyes": r"\beyes?\b|\beyelids?\b|\bblinks?\b",
+    "mouth": r"\bmouth\b|\blips?\b",
+    "head": r"\bhead\b|\bnods?\b",
+    "hand": r"\bhands?\b|\bfingers?\b|\bthumbs?\b",
+}
+MAX_SAM_PROMPTS = 3  # each one is a SAM call per answer window (in parallel, so cost, not wait)
 WINDOW_S = 4.0
 
 
@@ -65,6 +75,17 @@ async def _track_all(
 
     pairs = await asyncio.gather(*(one(c, p) for c in clips for p in prompts))
     return dict(pairs)
+
+
+def sam_prompts(desc: CalibrationDescription) -> list[str]:
+    """The describer's SAM prompts plus every face part either signal names. On the first real
+    face the describer gave `eyebrows` for both, though NO was "lowers eyebrows and holds eyes
+    closed": SAM never watched the eyes and scored 0 on the calibration clips (issue #4)."""
+    prompts = [desc.yes.sam_prompt.strip() or "face", desc.no.sam_prompt.strip() or "face"]
+    for spec in (desc.yes, desc.no):
+        named = f"{spec.body_part} {spec.motion}".lower()
+        prompts += [part for part, words in TRACKABLE_PARTS.items() if re.search(words, named)]
+    return list(dict.fromkeys(prompts))[:MAX_SAM_PROMPTS]
 
 
 def signal_roi(
@@ -211,9 +232,7 @@ async def finalize(
     else:
         res = await roles.describe_calibration(mode, clips, hint)
         desc, desc_meta = res.data, res.meta.to_dict()
-    prompts = list(
-        dict.fromkeys([desc.yes.sam_prompt.strip() or "face", desc.no.sam_prompt.strip() or "face"])
-    )
+    prompts = sam_prompts(desc)
 
     all_clips = [c for label in LABELS for c in clips.get(label, [])]
     fps = float(pcfg.fps)
