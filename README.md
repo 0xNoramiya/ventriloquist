@@ -25,8 +25,9 @@ message aloud, in the first person, after the patient has confirmed it.
 
 **Not a medical device.** Not a substitute for the nurse call system, monitors or clinical judgment.
 No patient has used it, and every detector number below comes from generated media. The one real
-face it has met is the author's own, live on the deployment; that run broke in three ways, all three
-are fixed, and none of it is a measurement yet ([the detector](#detector)).
+face it has met is the author's own, live on the deployment, in two sessions that broke in three
+ways. All three have fixes deployed, not yet re-tested on a face, and none of it is a measurement
+yet ([the detector](#detector)).
 
 Solo entry by Rifqi, emergency medicine intern in Indonesia, for the Meta Global AI Developer
 Hackathon 2026 (Indie Developer track, "Build for Your World").
@@ -275,10 +276,11 @@ never watched the eyes, where NO happens:
 | On-device optical flow | 0.44 | 0.33 |
 
 The app said the two movements were hard to tell apart, but let the session start anyway; both
-answers came back UNCLEAR and the patient was handed to the caregiver. An earlier run, started
-without calibration from the landing page, read all ten answers correctly but at 0.65 to 0.75
-confidence, roughly a fifth of the evidence a calibrated fused answer carries, so after eight
-questions the engine had still not reached a confirmation.
+answers came back UNCLEAR and the patient was handed to the caregiver. An earlier session, started
+without calibration from the landing page, read seven of its ten answers as YES or NO, with YES at
+only 0.65 to 0.75 confidence: roughly a fifth of the evidence a calibrated, fused answer carries.
+After eight questions the engine had still not reached a confirmation. The other three answers came
+back as no answer or unclear, two of them because the eyes were already shut when recording began.
 
 Three pull requests followed. SAM now tracks every face part either signal names, and a failed
 calibration offers "Calibrate again" before a session
@@ -374,8 +376,8 @@ history is the build log.
 ## Limitations and next steps
 
 - Needs clinical validation and ethics approval before any use with patients. Not a medical device.
-- The detector is untested on real patients and barely tested on real faces: one run on the
-  author's own, which failed and produced three fixes. Sedation, delirium, weakness, tape over the
+- The detector is untested on real patients and barely tested on real faces: two sessions on the
+  author's own, which exposed three failures. The fixes are deployed but not yet re-tested on a face. Sedation, delirium, weakness, tape over the
   face, poor light and camera placement will all cost accuracy. The next step is a labelled clip
   set from consenting volunteers, scored the way the generated one is.
 - The Indonesian strings have had one pass by the author, a native speaker; they and the
