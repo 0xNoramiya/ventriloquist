@@ -11,8 +11,14 @@ tube or tracheostomy. It asks the yes/no question that narrows things down faste
 movement the patient can make (raised eyebrows, a long blink, a finger lift), and only speaks a
 message aloud, in the first person, after the patient has confirmed it.
 
-**[Try the hosted demo](https://0xnoramiya.github.io/ventriloquist/)**: the real engine runs in your
-browser, with no install, camera or keys.
+### Start here
+
+|  |  |
+|---|---|
+| **Watch** | [The three-minute film](https://github.com/0xNoramiya/ventriloquist/releases/download/v0.2.0/ventriloquist-demo.mp4) (1080p, 80 MB) |
+| **Try** | [The hosted demo](https://0xnoramiya.github.io/ventriloquist/): the real engine runs in your browser, with no install, camera or keys |
+| **Use** | [ventriloquist.fly.dev](https://ventriloquist.fly.dev): the whole app, camera and all. Visitors get mock mode, which costs nothing |
+| **Read** | [how a question is chosen](backend/app/engine/eig.py) · [the fifteen safety rules](docs/SAFETY.md) · [what the models actually returned](docs/LIVE_CHECK.md) |
 
 > **Why the name.** "Vent" is ICU shorthand for a ventilator. In a bad version of this idea the
 > machine is the ventriloquist: it guesses, and puts words in a silent patient's mouth. Ventriloquist
@@ -236,8 +242,12 @@ for the NO squeeze. Four fixes followed:
 - SAM reports whether the body part was seen at all;
 - fusion became a logarithmic opinion pool.
 
-Now 11 of 13 are right, none wrong, and 2 come back as "ask again"; the judge alone was right on all
-12 it answered. Details: [`docs/DETECTOR_DATA_GENERATED.md`](docs/DETECTOR_DATA_GENERATED.md).
+Scoring the whole set three times over on one calibration (39 judgments) gives 11.3 of 13 right on
+average, between 10 and 12, and **no confidently wrong answer in any run**; the rest come back as
+"ask again". The judge was wrong three times across the three runs, SAM disagreed each time, and the
+phone asked the question again instead of guessing. A single pass over 13 windows reports luck as
+well as accuracy, which is why the report gives every run:
+[`docs/DETECTOR_DATA_GENERATED.md`](docs/DETECTOR_DATA_GENERATED.md).
 
 ![Generated patient and gestures](docs/img/generated-patient.jpg)
 
@@ -343,11 +353,16 @@ The dated build log is [`HACKATHON_LOG.md`](HACKATHON_LOG.md) and the task list 
 - The detector is untested on real patients. Sedation, delirium, weakness, tape over the face, poor
   light and camera placement will all cost accuracy; the next step is recording labelled clips with
   consenting volunteers and tuning thresholds.
-- Indonesian strings and the sensitive-topic lists need native and clinical review
+- The Indonesian strings have had one pass by the author, a native speaker; they and the
+  sensitive-topic lists still need an ICU nurse's reading and a second native speaker
   ([`docs/I18N_REVIEW.md`](docs/I18N_REVIEW.md)). Indonesian transcription needs testing on real speech.
 - In live mode one question takes about 10 to 11 s end to end: 2.5 to 3.5 s to speak the question,
   the 4 s answer window, about 3 s for the models. The window is a setting; shortening it needs
   testing with real patients.
+- Escalation ends at the caregiver screen. If a message is still unacknowledged after the phone has
+  repeated it and the console has escalated, nothing louder happens. The next rung is the one the
+  family relay already builds: with the caregiver's standing approval, carry an unacknowledged
+  urgent message to a consenting relative, who can telephone the ward.
 - Base rates are starting guesses. Personal learning helps, but only after a few confirmed messages.
 - Zero data retention on the Meta API is an organisation-level setting that has to be requested.
 

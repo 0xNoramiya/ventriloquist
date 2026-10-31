@@ -1,9 +1,12 @@
-# Indonesian strings for review
+# Indonesian strings: review status
 
-Rifqi: please check these patient-facing Indonesian strings. `{hon}` becomes Bapak, Ibu or Anda from
-the profile. They live in `backend/app/engine/taxonomy_v1.yaml` (messages and questions),
-`backend/app/engine/spelling.py` (spelling prompts), `backend/app/sessions/session.py` (alarm and
-pause texts) and `frontend/src/i18n/id.json` (screens).
+Every patient-facing Indonesian string, written and revised by the author, who is a native speaker
+and an emergency-medicine intern in Indonesia; the first review pass is recorded below. What they
+have not had is an ICU nurse reading them against real bedside speech, and a second native speaker
+on the honorifics. `{hon}` becomes Bapak, Ibu or Anda from the profile. They live in
+`backend/app/engine/taxonomy_v1.yaml` (messages and questions), `backend/app/engine/spelling.py`
+(spelling prompts), `backend/app/sessions/session.py` (alarm and pause texts) and
+`frontend/src/i18n/id.json` (screens).
 
 ## Messages (spoken aloud in first person)
 
@@ -109,7 +112,7 @@ Each taxonomy message also has a direct question (e.g. "Apakah {hon} merasa saki
 - Siblings: "saudari" is rare in speech; now "saudara perempuan" / "saudara laki-laki", with
   kakak/adik when the profile says older or younger. In-laws split into menantu, mertua and ipar.
 
-## Open questions for the reviewer
+## Still open, for a second reader
 
 1. Bapak/Ibu as "you" throughout, or mix with "Anda" for younger patients?
 2. "Disedot" for suction: is "dibersihkan lendirnya" more natural for patients?
