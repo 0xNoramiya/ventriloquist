@@ -170,6 +170,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def public_config(request: Request) -> dict[str, Any]:
         e, p = settings.engine, settings.perception
         tax = load_taxonomy()
+        # the mode this browser gets (mock on a public deployment without the passcode)
+        visitor = mode_for(request, False)
         return {
             "engine": {
                 "tau_confirm": store.kv_get("tau_confirm", e.tau_confirm),
@@ -185,9 +187,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 "idle_watch_interval_s": p.idle_watch_interval_s,
             },
             "speech": settings.raw.get("speech", {}),
-            "flags": hub.flags(),
-            # the mode this browser gets (mock on a public deployment without the passcode)
-            "mode": "mock" if mode_for(request, False) == Mode.MOCK else hub.app_mode(),
+            "flags": hub.flags(visitor),
+            "mode": "mock" if visitor == Mode.MOCK else hub.app_mode(),
             "privacy_default": hub.privacy_default(),
             "unlocked": bool(settings.live_passcode) and unlocked(request),
             "language": store.kv_get("language", settings.raw["app"]["default_language"]),

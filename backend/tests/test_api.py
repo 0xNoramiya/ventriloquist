@@ -297,6 +297,16 @@ def test_public_deployment_gives_visitors_mock_mode(public_client):
     assert c.post("/api/sessions", json={"patient_id": pid}).json()["mode"]["requested"] == "mock"
 
 
+def test_visitor_flags_follow_the_visitor_mode(public_client):
+    """Flags belong to the mode the browser actually gets. The idle watch is free in mock mode and
+    off by default in live mode (config.yaml), so a visitor without the passcode gets it on even
+    though the server is set to live."""
+    c = public_client
+    assert c.get("/api/config").json()["flags"]["idle_watch"] is True
+    key = {"X-Live-Passcode": "correct horse"}
+    assert c.get("/api/config", headers=key).json()["flags"]["idle_watch"] is False
+
+
 def test_public_deployment_guards_settings_and_unlock(public_client):
     c = public_client
     assert c.put("/api/settings", json={"budget_max_usd": 1000}).status_code == 403

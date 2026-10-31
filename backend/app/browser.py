@@ -52,6 +52,7 @@ class BrowserDemo:
 
     def config(self) -> str:
         from app.engine.taxonomy import load_taxonomy
+        from app.providers.registry import Mode
         from app.scenarios import load, names
 
         s = self.ctx.settings
@@ -67,7 +68,7 @@ class BrowserDemo:
                     "window_delay_ms": s.perception.window_delay_ms,
                 },
                 "speech": s.raw.get("speech", {}),
-                "flags": self.ctx.hub.flags(),
+                "flags": self.ctx.hub.flags(Mode.MOCK),
                 "mode": "mock",
                 "privacy_default": False,
                 "language": s.raw["app"]["default_language"],

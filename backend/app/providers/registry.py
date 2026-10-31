@@ -80,14 +80,18 @@ class ProviderHub:
     def privacy_default(self) -> bool:
         return bool(self.store.kv_get("privacy_mode", self.settings.features.privacy_mode))
 
-    def flag(self, name: str) -> bool:
+    def flag(self, name: str, mode: Mode | None = None) -> bool:
+        """`mode` is the mode this caller actually gets, which is not always the server's: a visitor
+        without the passcode is in mock mode on a live deployment, and the idle watch costs nothing
+        there. Without it the server's own mode decides."""
         default = getattr(self.settings.features, name)
-        if name == "idle_watch" and self.app_mode() == "mock":
+        effective = mode if mode is not None else self.app_mode()
+        if name == "idle_watch" and effective == Mode.MOCK:
             default = self.settings.features.idle_watch_mock
         return bool(self.store.kv_get(f"flag:{name}", default))
 
-    def flags(self) -> dict[str, bool]:
-        return {n: self.flag(n) for n in FLAG_NAMES}
+    def flags(self, mode: Mode | None = None) -> dict[str, bool]:
+        return {n: self.flag(n, mode) for n in FLAG_NAMES}
 
     def requested_mode(self, privacy: bool | None = None) -> Mode:
         if privacy if privacy is not None else self.privacy_default():
