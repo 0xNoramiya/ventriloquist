@@ -12,7 +12,9 @@ rather than in a public issue. I aim to reply within a week.
 
 - API keys live only in `.env`, which is gitignored. The browser never sees them; every model call
   goes through the backend.
-- Switching to live or privacy mode from the UI needs the `LIVE_PASSCODE` set in `.env`.
+- Switching to live or privacy mode from the UI needs the `LIVE_PASSCODE` set in `.env`. An open
+  deployment (`PUBLIC_LIVE=true`) gives every visitor live mode instead, capped by the budget guard;
+  the passcode then only guards Settings.
 - Every Meta Model API request is sent with `store: false`.
 - Session logs identify a patient by a pseudonymous id; profile names are redacted.
 - Clips, audio and the database stay in `data/` on the machine running the backend. That folder is

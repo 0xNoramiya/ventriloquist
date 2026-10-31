@@ -6,8 +6,10 @@ primary_region = "sin"
 [build]
 
 [env]
-  # Live only for a browser that entered LIVE_PASSCODE in Settings; everyone else gets mock mode.
+  # Open to everyone in live mode; the budget guard switches to mock at 90% of the budget, and
+  # LIVE_PASSCODE only guards Settings.
   APP_MODE = "live"
+  PUBLIC_LIVE = "true"
 
 [http_service]
   internal_port = 8080

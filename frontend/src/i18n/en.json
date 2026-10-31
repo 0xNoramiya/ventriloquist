@@ -581,6 +581,8 @@
   "settings.passcode_hint": "Required to leave mock mode or turn on privacy mode.",
   "unlock.title": "Live mode on this device",
   "unlock.hint": "This is a public deployment. Everyone gets mock mode, which costs nothing. With the passcode, this browser uses Meta's models: the camera reads answers and the room is analysed.",
+  "unlock.title_public": "Settings on this device",
+  "unlock.hint_public": "This is a public deployment. Everyone gets live mode with Meta's models until the budget runs out, then mock mode. The passcode lets this browser change settings.",
   "unlock.button": "Unlock",
   "unlock.wrong": "That passcode is not right.",
   "unlock.done": "Live mode is unlocked on this device.",

@@ -380,6 +380,8 @@ export interface PublicConfig {
   keep_clips_for_evaluation: boolean;
   budget: Budget;
   passcode_required: boolean;
+  /** Everyone gets live mode; the passcode only guards Settings. */
+  public_live?: boolean;
   /** This browser sent the right passcode (public deployment). */
   unlocked?: boolean;
   scenarios: { id: string; title: string }[];

@@ -122,9 +122,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         request: Request, privacy: bool | None = None, passcode: str | None = None
     ) -> Mode:
         """Live and privacy mode spend credit and send media out. On a public deployment only a
-        browser holding the passcode gets them; everyone else quietly gets mock mode."""
+        browser holding the passcode gets them, unless PUBLIC_LIVE opens them to everyone; the
+        budget guard still switches to mock mode at 90% of the budget."""
         mode = hub.requested_mode(privacy)
-        if mode != Mode.MOCK and settings.live_passcode and not unlocked(request, passcode):
+        if (
+            mode != Mode.MOCK
+            and settings.live_passcode
+            and not settings.public_live
+            and not unlocked(request, passcode)
+        ):
             return Mode.MOCK
         return mode
 
@@ -200,6 +206,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             ),
             "budget": hub.cost.status().to_dict(),
             "passcode_required": bool(settings.live_passcode),
+            "public_live": settings.public_live,
             "scenarios": [
                 {"id": n, "title": load_scenario(n).get("title", "")} for n in scenario_names()
             ],

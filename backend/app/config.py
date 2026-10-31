@@ -108,6 +108,9 @@ class Settings(BaseModel):
     baseten_api_key: str | None
     modal_sam_url: str | None
     live_passcode: str | None
+    # Open deployment: every visitor gets live (or privacy) mode, capped by the budget guard; the
+    # passcode then only guards Settings.
+    public_live: bool = False
     whatsapp_token: str | None = None
     whatsapp_phone_number_id: str | None = None
     whatsapp_app_secret: str | None = None
@@ -169,6 +172,7 @@ def load_settings(config_path: Path | None = None, env_file: Path | None = None)
         baseten_api_key=_env("BASETEN_API_KEY"),
         modal_sam_url=_env("MODAL_SAM_URL"),
         live_passcode=_env("LIVE_PASSCODE"),
+        public_live=(_env("PUBLIC_LIVE") or "").lower() in ("1", "true", "yes"),
         whatsapp_token=_env("WHATSAPP_TOKEN"),
         whatsapp_phone_number_id=_env("WHATSAPP_PHONE_NUMBER_ID"),
         whatsapp_app_secret=_env("WHATSAPP_APP_SECRET"),

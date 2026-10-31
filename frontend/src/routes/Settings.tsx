@@ -116,6 +116,7 @@ export default function Settings() {
         {config?.passcode_required ? (
           <UnlockPanel
             unlocked={Boolean(config.unlocked)}
+            publicLive={Boolean(config.public_live)}
             onChange={() => void loadConfig(true).then(setConfig)}
           />
         ) : null}
@@ -335,7 +336,15 @@ export default function Settings() {
 }
 
 /** Public deployment: live mode (real models, real cost) only for browsers with the passcode. */
-function UnlockPanel({ unlocked, onChange }: { unlocked: boolean; onChange: () => void }) {
+function UnlockPanel({
+  unlocked,
+  publicLive,
+  onChange,
+}: {
+  unlocked: boolean;
+  publicLive: boolean;
+  onChange: () => void;
+}) {
   const t = useT();
   const [value, setValue] = useState('');
   const [busy, setBusy] = useState(false);
@@ -380,8 +389,10 @@ function UnlockPanel({ unlocked, onChange }: { unlocked: boolean; onChange: () =
       onSubmit={(e) => void unlock(e)}
       className="flex flex-col gap-3 rounded-[var(--radius-panel)] bg-paper p-5 shadow-[inset_0_0_0_1px_var(--color-line)]"
     >
-      <p className="font-semibold">{t('unlock.title')}</p>
-      <p className="text-[15px] text-muted">{t('unlock.hint')}</p>
+      <p className="font-semibold">{t(publicLive ? 'unlock.title_public' : 'unlock.title')}</p>
+      <p className="text-[15px] text-muted">
+        {t(publicLive ? 'unlock.hint_public' : 'unlock.hint')}
+      </p>
       <div className="flex flex-wrap items-end gap-2">
         <Field label={t('settings.passcode')}>
           {(p) => (

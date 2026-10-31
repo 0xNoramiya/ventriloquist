@@ -581,6 +581,8 @@
   "settings.passcode_hint": "Diperlukan untuk keluar dari mode tiruan atau menyalakan mode privasi.",
   "unlock.title": "Mode langsung di perangkat ini",
   "unlock.hint": "Ini penerapan publik. Semua orang memakai mode tiruan, tanpa biaya. Dengan kode sandi, peramban ini memakai model Meta: kamera membaca jawaban dan ruangan dianalisis.",
+  "unlock.title_public": "Pengaturan di perangkat ini",
+  "unlock.hint_public": "Ini penerapan publik. Semua orang memakai mode langsung dengan model Meta sampai anggaran habis, lalu mode tiruan. Dengan kode sandi, peramban ini dapat mengubah pengaturan.",
   "unlock.button": "Buka",
   "unlock.wrong": "Kode sandi salah.",
   "unlock.done": "Mode langsung terbuka di perangkat ini.",

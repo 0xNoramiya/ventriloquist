@@ -15,7 +15,7 @@ message aloud, in the first person, after the patient has confirmed it.
 |  |  |
 |---|---|
 | **Watch** | [The three-minute film](https://github.com/0xNoramiya/ventriloquist/releases/download/v0.2.0/ventriloquist-demo.mp4) (1080p, 80 MB) |
-| **Use** | [ventriloquist.fly.dev](https://ventriloquist.fly.dev): the whole app, camera and all. Visitors get mock mode, which costs nothing |
+| **Use** | [ventriloquist.fly.dev](https://ventriloquist.fly.dev): the whole app on Meta's models, camera and all. Open to everyone, no passcode |
 | **Read** | [how a question is chosen](backend/app/engine/eig.py) · [the fifteen safety rules](docs/SAFETY.md) · [what the models actually returned](docs/LIVE_CHECK.md) |
 
 > **Why the name.** "Vent" is ICU shorthand for a ventilator. In a bad version of this idea the
@@ -288,10 +288,12 @@ Details: [`docs/DETECTOR_DATA_GENERATED.md`](docs/DETECTOR_DATA_GENERATED.md#pri
 ## Deployed app
 
 **https://ventriloquist.fly.dev** runs the full app: the caregiver console, the patient phone with
-its camera, and the family relay. Visitors get mock mode, which costs nothing. A browser that enters
-the passcode in Settings gets live mode with Meta's models; ask the author for it. Sessions live in
-memory on one machine that suspends when idle; the database and calibrations sit on a volume. Deploy
-with `make deploy` (`fly.toml`, `Dockerfile`; secrets `MODEL_API_KEY` and `LIVE_PASSCODE`).
+its camera, and the family relay. It is open to everyone in live mode with Meta's models
+(`PUBLIC_LIVE` in `fly.toml`), and privacy mode runs on Muse Spark Open. A budget guard switches the
+app to mock mode at 90% of its budget, and only Settings need the passcode. Sessions live in memory
+on one machine that suspends when idle; the database and calibrations sit on a volume. Deploy with
+`make deploy` (`fly.toml`, `Dockerfile`; secrets `MODEL_API_KEY`, `BASETEN_API_KEY` and
+`LIVE_PASSCODE`).
 
 ## Quickstart
 

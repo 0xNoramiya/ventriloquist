@@ -307,6 +307,25 @@ def test_visitor_flags_follow_the_visitor_mode(public_client):
     assert c.get("/api/config", headers=key).json()["flags"]["idle_watch"] is False
 
 
+def test_open_deployment_gives_everyone_live_mode_but_guards_settings(tmp_path):
+    """PUBLIC_LIVE: visitors get live mode without the passcode; Settings still need it."""
+    settings = load_settings().model_copy(
+        update={
+            "app_mode": "live",
+            "data_dir": tmp_path,
+            "model_api_key": "test-key",
+            "baseten_api_key": None,
+            "live_passcode": "correct horse",
+            "public_live": True,
+        }
+    )
+    with TestClient(create_app(settings)) as c:
+        assert c.post("/api/scenarios/cold", json={}).json()["mode"]["requested"] == "live"
+        config = c.get("/api/config").json()
+        assert config["mode"] == "live" and config["public_live"] and not config["unlocked"]
+        assert c.put("/api/settings", json={"budget_max_usd": 1000}).status_code == 403
+
+
 def test_public_deployment_guards_settings_and_unlock(public_client):
     c = public_client
     assert c.put("/api/settings", json={"budget_max_usd": 1000}).status_code == 403
