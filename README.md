@@ -285,16 +285,6 @@ a live key could show:
 
 Details: [`docs/DETECTOR_DATA_GENERATED.md`](docs/DETECTOR_DATA_GENERATED.md#privacy-mode-on-muse-spark-open-baseten).
 
-## Deployed app
-
-**https://ventriloquist.fly.dev** runs the full app: the caregiver console, the patient phone with
-its camera, and the family relay. It is open to everyone in live mode with Meta's models
-(`PUBLIC_LIVE` in `fly.toml`), and privacy mode runs on Muse Spark Open. A budget guard switches the
-app to mock mode at 90% of its budget, and only Settings need the passcode. Sessions live in memory
-on one machine that suspends when idle; the database and calibrations sit on a volume. Deploy with
-`make deploy` (`fly.toml`, `Dockerfile`; secrets `MODEL_API_KEY`, `BASETEN_API_KEY` and
-`LIVE_PASSCODE`).
-
 ## Quickstart
 
 Requirements: Python 3.11+, [uv](https://docs.astral.sh/uv/), Node 20+, ffmpeg.
