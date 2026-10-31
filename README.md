@@ -24,8 +24,9 @@ message aloud, in the first person, after the patient has confirmed it.
 > bounded guessing and confirm-before-speak exist to keep it that way.
 
 **Not a medical device.** Not a substitute for the nurse call system, monitors or clinical judgment.
-So far built and tested with fictional patients and synthetic media only; recordings with consenting
-actors come next.
+No patient has used it, and every detector number below comes from generated media. The one real
+face it has met is the author's own, live on the deployment; that run broke in three ways, all three
+are fixed, and none of it is a measurement yet ([the detector](#detector)).
 
 Solo entry by Rifqi, emergency medicine intern in Indonesia, for the Meta Global AI Developer
 Hackathon 2026 (Indie Developer track, "Build for Your World").
@@ -213,9 +214,9 @@ context), simulated patients needed 7.05 questions per message on day 1 and 6.63
 ### Detector
 
 Real-patient detector numbers need labelled clips from consenting participants
-(`scripts/eval_detector.py`, data in `data/labeled/`, never committed). None are recorded yet; what
-it takes is twenty minutes and one consenting adult
-([`docs/RECORD_CLIPS.md`](docs/RECORD_CLIPS.md)).
+(`scripts/eval_detector.py`, data in `data/labeled/`, never committed). None are recorded yet, so
+everything below is either generated media or one unscored run on a real face. What a scored set
+takes is twenty minutes and one consenting adult ([`docs/RECORD_CLIPS.md`](docs/RECORD_CLIPS.md)).
 
 **Synthetic cartoon clips.** The pipeline runs end to end on them
 ([`docs/DETECTOR_EVAL_SYNTHETIC.md`](docs/DETECTOR_EVAL_SYNTHETIC.md)). In the live check
@@ -259,6 +260,40 @@ well as accuracy, which is why the report gives every run:
 [`docs/DETECTOR_DATA_GENERATED.md`](docs/DETECTOR_DATA_GENERATED.md).
 
 ![Generated patient and gestures](docs/img/generated-patient.jpg)
+
+**A real face, once.** The author's own, live on the deployment on 2026-10-31. It is the worst
+result in this repository and the most useful one.
+
+The calibration failed. Muse Spark described YES as "raises eyebrows and opens eyes wide" and NO as
+"lowers eyebrows and holds eyes closed", then gave `eyebrows` as the SAM prompt for both, so SAM
+never watched the eyes, where NO happens:
+
+| Calibration leave-one-out accuracy | First real face | Generated clips |
+|---|---:|---:|
+| SAM 3.1 tracker | 0.00 | 0.75 |
+| Blind Muse Spark judge | 0.57 | 1.00 |
+| On-device optical flow | 0.44 | 0.33 |
+
+The app said the two movements were hard to tell apart, but let the session start anyway; both
+answers came back UNCLEAR and the patient was handed to the caregiver. An earlier run, started
+without calibration from the landing page, read all ten answers correctly but at 0.65 to 0.75
+confidence, roughly a fifth of the evidence a calibrated fused answer carries, so after eight
+questions the engine had still not reached a confirmation.
+
+Three pull requests followed. SAM now tracks every face part either signal names, and a failed
+calibration offers "Calibrate again" before a session
+([#5](https://github.com/0xNoramiya/ventriloquist/pull/5)); the landing page calibrates before it tries the
+app on your own face ([#3](https://github.com/0xNoramiya/ventriloquist/pull/3)); and a short tone marks the
+moment the answer window opens, because a patient whose eyes are already shut cannot see "Your
+answer now" ([#6](https://github.com/0xNoramiya/ventriloquist/pull/6)). The three failures are written up
+with their session logs in [#1](https://github.com/0xNoramiya/ventriloquist/issues/1),
+[#2](https://github.com/0xNoramiya/ventriloquist/issues/2) and
+[#4](https://github.com/0xNoramiya/ventriloquist/issues/4).
+
+What this is not: a measurement. One face, one camera, one room, and clips are deleted after
+analysis by design, so the run cannot be replayed. Nothing above is scored against a labelled set
+of real clips, and until it is, the only honest claim about a real face is that the app has met one
+and learned three things from it.
 
 ## Privacy mode
 
@@ -339,9 +374,10 @@ history is the build log.
 ## Limitations and next steps
 
 - Needs clinical validation and ethics approval before any use with patients. Not a medical device.
-- The detector is untested on real patients. Sedation, delirium, weakness, tape over the face, poor
-  light and camera placement will all cost accuracy; the next step is recording labelled clips with
-  consenting volunteers and tuning thresholds.
+- The detector is untested on real patients and barely tested on real faces: one run on the
+  author's own, which failed and produced three fixes. Sedation, delirium, weakness, tape over the
+  face, poor light and camera placement will all cost accuracy. The next step is a labelled clip
+  set from consenting volunteers, scored the way the generated one is.
 - The Indonesian strings have had one pass by the author, a native speaker; they and the
   sensitive-topic lists still need an ICU nurse's reading and a second native speaker
   ([`docs/I18N_REVIEW.md`](docs/I18N_REVIEW.md)). Indonesian transcription needs testing on real speech.
