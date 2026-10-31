@@ -78,3 +78,13 @@ Status: `[x]` done, `[~]` in progress, `[ ]` to do. Updated as work proceeds.
 - [ ] Record labelled clips with consenting volunteers into `data/labeled/`, run `scripts/eval_detector.py --mode live`
 - [ ] Try a full session on a phone over the LAN (`make dev`, open the QR code)
 - [ ] Test Indonesian Voice Transcribe on real speech (and Banjar if possible)
+
+## Session 3 (2026-10-31): submission pass
+- [x] `eval_detector --runs N`: three runs on the generated clips, no confidently wrong answer in 39 judgments
+- [x] Feature flags follow the browser's own mode (the idle watch was off for visitors on fly.io)
+- [x] Safety rule 11 covered by tests, one of them reading the field table out of `docs/PROTOCOL.md`
+- [x] `make sim` keeps EVAL.md's pointer to the detector results
+- [x] README start-here block; the demo film published as a release asset
+- [ ] Record one consenting adult's own signals and run `--runs 3` on them: the first numbers from a real face (Rifqi)
+- [ ] Submit by 2026-11-05 02:00 UTC
+
