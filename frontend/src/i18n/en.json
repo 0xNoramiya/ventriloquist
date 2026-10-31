@@ -205,6 +205,8 @@
   "signal.mouth": "Mouth movement",
   "patient.connecting": "Connecting…",
   "patient.title": "Patient screen",
+  "patient.cue.first": "Answer after the tone.",
+  "patient.cue.again": "Answer after the tone, starting with your eyes open.",
   "patient.reconnecting": "Reconnecting…",
   "patient.missing.title": "This session isn't available",
   "patient.missing.body": "Ask a caregiver to start a new session.",

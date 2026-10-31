@@ -205,6 +205,8 @@
   "signal.mouth": "Gerakan mulut",
   "patient.connecting": "Menghubungkan…",
   "patient.title": "Layar pasien",
+  "patient.cue.first": "Jawab setelah bunyi nada.",
+  "patient.cue.again": "Jawab setelah bunyi nada, mulai dengan mata terbuka.",
   "patient.reconnecting": "Menghubungkan ulang…",
   "patient.missing.title": "Sesi ini tidak tersedia",
   "patient.missing.body": "Minta perawat memulai sesi baru.",

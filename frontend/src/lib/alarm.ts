@@ -81,3 +81,12 @@ export function playChime(urgent = false): void {
     tone(c, t + 0.25, 880, 0.55, 0.16);
   }
 }
+
+/** The answer window opens: one short, soft note. A patient whose eyes are shut cannot see "Your
+ * answer now", and a NO squeezed before the window opens never shows the eyes closing (issue #2). */
+export function playAnswerTone(): void {
+  const c = context();
+  if (!c) return;
+  void c.resume();
+  tone(c, c.currentTime + 0.02, 1047, 0.22, 0.2);
+}

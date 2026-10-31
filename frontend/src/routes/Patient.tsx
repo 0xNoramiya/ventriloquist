@@ -5,12 +5,12 @@ import type { AnswerValue, Lang, Prompt, Snapshot } from '../api/types';
 import { Footer } from '../components/Shell';
 import { Pictogram } from '../components/Pictogram';
 import { translate, useT, type TFn } from '../i18n';
-import { unlockAudio } from '../lib/alarm';
+import { playAnswerTone, unlockAudio } from '../lib/alarm';
 import { cx } from '../lib/format';
 import { grabFrame, keepAwake, recordClip, startCamera, stopStream } from '../lib/media';
 import { signalPair } from '../lib/signals';
 import { speak, unlockSpeech, type SpeakHandle } from '../lib/speech';
-import { speechText } from '../lib/promptSpeech';
+import { type AnswerCue, speechText } from '../lib/promptSpeech';
 import { isHighlighted, LETTERS, SPECIALS } from '../lib/spelling';
 import { loadConfig } from '../lib/useConfig';
 import { useSessionSocket } from '../lib/useSessionSocket';
@@ -48,6 +48,7 @@ export default function Patient() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const speechRef = useRef<{ promptId: string; handle: SpeakHandle } | null>(null);
   const spokenRef = useRef<string | null>(null);
+  const cuedRef = useRef(false); // "Answer after the tone" said once this session
   const recordedRef = useRef<string | null>(null);
   const emergencySpokenRef = useRef(false);
   const settingsRef = useRef({ rate: 0.9, windowMs: 4000, delayMs: 300 });
@@ -120,6 +121,7 @@ export default function Patient() {
         if (useSession.getState().snapshot?.prompt?.id !== forPrompt) return;
         setRecording({ promptId: forPrompt, ms: windowMs });
         setUploadError(null);
+        playAnswerTone();
         recordClip(stream, windowMs)
           .then((clip) => {
             setRecording(null);
@@ -150,7 +152,12 @@ export default function Patient() {
     if (!speakable || spokenRef.current === p.id) return;
     spokenRef.current = p.id;
     const asksQuestion = PROMPTING.has(state);
-    const handle = speak(speechText(p, lang), lang, settingsRef.current.rate);
+    let cue: AnswerCue = null;
+    if (asksQuestion && usesCamera(useSession.getState().snapshot)) {
+      cue = !cuedRef.current ? 'first' : p.rephrased ? 'again' : null;
+      cuedRef.current = true;
+    }
+    const handle = speak(speechText(p, lang, cue), lang, settingsRef.current.rate);
     speechRef.current = { promptId: p.id, handle };
     void handle.done.then((outcome) => {
       if (speechRef.current?.handle === handle) speechRef.current = null;

@@ -40,8 +40,8 @@ Hackathon 2026 (Indie Developer track, "Build for Your World").
    the visitor who just left) and proposes how much more or less likely each message is, citing
    evidence. Plain code bounds that influence.
 3. The engine asks the question with the highest expected information gain under the patient's
-   measured error rates, speaks it, and reads the answer from a 4-second clip. A blind judge that
-   never sees the question checks the movement.
+   measured error rates, speaks it, plays a short tone, and reads the answer from the 4-second clip
+   that follows. A blind judge that never sees the question checks the movement.
 4. When one message reaches 70%, it asks "Is this your message?". Only a YES that lifts it to 95%
    lets the phone speak. Then: "Did I say it right?"
 5. Anything not on the list gets spelled, with word completions. Three quick YES signals raise an
