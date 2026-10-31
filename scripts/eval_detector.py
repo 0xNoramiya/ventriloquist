@@ -14,6 +14,10 @@ MODAL_SPARK_URL) and the tracker is self-hosted SAM (MODAL_SAM_URL) or the on-de
 
 --synthetic builds a tiny labelled set from the synthetic probe media so the script can be exercised
 without recordings (those numbers say nothing about real patients).
+
+--runs N scores every clip N times on one calibration. The judge is a language model and does not
+always answer the same way, so a single pass over a small set reports luck as much as accuracy; the
+report gives per-run numbers and their spread.
 """
 
 from __future__ import annotations
@@ -89,6 +93,25 @@ def confusion(rows: list[dict[str, Any]], key: str) -> dict[str, dict[str, int]]
     return m
 
 
+def score(rows: list[dict[str, Any]], key: str) -> dict[str, int]:
+    """Correct, confidently wrong, and "ask again" (unclear, or the source did not answer)."""
+    correct = sum(r[key] == r["true"] for r in rows)
+    unclear = sum(r[key] in ("unclear", None) for r in rows)
+    return {
+        "n": len(rows),
+        "answered": len(rows) - unclear,
+        "correct": correct,
+        "wrong": len(rows) - correct - unclear,
+        "unclear": unclear,
+    }
+
+
+def spread(values: list[int]) -> str:
+    if min(values) == max(values):
+        return str(values[0])
+    return f"{statistics.mean(values):.1f} (range {min(values)}-{max(values)})"
+
+
 def accuracy(m: dict[str, dict[str, int]]) -> float:
     total = sum(sum(v.values()) for v in m.values())
     return sum(m[t][t] for t in m) / total if total else 0.0
@@ -109,6 +132,12 @@ async def main() -> None:
         "--note",
         default="",
         help="one line describing the clips, printed in the report",
+    )
+    ap.add_argument(
+        "--runs",
+        type=int,
+        default=1,
+        help="score every clip this many times on one calibration, and report the spread",
     )
     ap.add_argument("--verbose", action="store_true", help="print each source's reading per clip")
     args = ap.parse_args()
@@ -151,44 +180,72 @@ async def main() -> None:
         print("signal:", cal.get("signal_text"), "| SAM prompts:", cal.get("prompts"))
         print("judge crop:", cal.get("roi"), "from", cal.get("roi_source"))
     rows: list[dict[str, Any]] = []
-    for label in LABELS:
-        for clip in sorted((base / label).glob("*")) if (base / label).exists() else []:
-            tmp = work / f"in_{clip.name}"
-            shutil.copy(clip, tmp)
-            perc = await perceive(
-                tmp, cal, work, hub=hub, roles=roles, settings=settings, mode=mode
-            )
-            sources = list(perc.sources)
-            if perc.late is not None:  # early decision on the tracker: still score the judge
-                late = await perc.late
-                if late is not None:
-                    sources.append(late)
-            src = {s.name: (s.top[0] if s.ok else None) for s in sources}
-            rows.append(
-                {
-                    "clip": clip.name,
-                    "true": "none" if label == "rest" else label,
-                    "fused": str(perc.observation.answer),
-                    "tracker": src.get("tracker"),
-                    "local": src.get("local"),
-                    "spark": src.get("spark"),
-                    "latency_ms": round(perc.latency_ms),
-                    "usd": perc.usd,
-                }
-            )
-            print(f"{clip.name:28s} true={rows[-1]['true']:9s} fused={rows[-1]['fused']:9s} {src}")
-            if args.verbose:
-                for x in sources:
-                    d = x.to_dict()
-                    keep = ("top", "p", "distances", "missing", "repetitions", "observed", "error")
-                    print("   ", x.name, {k: d[k] for k in keep if k in d})
+    for run in range(1, args.runs + 1):
+        if args.runs > 1:
+            print(f"--- run {run} of {args.runs} ---")
+        for label in LABELS:
+            for clip in sorted((base / label).glob("*")) if (base / label).exists() else []:
+                tmp = work / f"in_{clip.name}"
+                shutil.copy(clip, tmp)
+                perc = await perceive(
+                    tmp, cal, work, hub=hub, roles=roles, settings=settings, mode=mode
+                )
+                sources = list(perc.sources)
+                if perc.late is not None:  # early decision on the tracker: still score the judge
+                    late = await perc.late
+                    if late is not None:
+                        sources.append(late)
+                src = {s.name: (s.top[0] if s.ok else None) for s in sources}
+                rows.append(
+                    {
+                        "run": run,
+                        "clip": clip.name,
+                        "true": "none" if label == "rest" else label,
+                        "fused": str(perc.observation.answer),
+                        "tracker": src.get("tracker"),
+                        "local": src.get("local"),
+                        "spark": src.get("spark"),
+                        "latency_ms": round(perc.latency_ms),
+                        "usd": perc.usd,
+                    }
+                )
+                print(
+                    f"{clip.name:28s} true={rows[-1]['true']:9s} fused={rows[-1]['fused']:9s} {src}"
+                )
+                if args.verbose:
+                    for x in sources:
+                        d = x.to_dict()
+                        keep = (
+                            "top",
+                            "p",
+                            "distances",
+                            "missing",
+                            "repetitions",
+                            "observed",
+                            "error",
+                        )
+                        print("   ", x.name, {k: d[k] for k in keep if k in d})
     if not rows:
         print("No labelled clips found.")
         return
     lat = [r["latency_ms"] for r in rows]
+    runs = [[r for r in rows if r["run"] == i] for i in range(1, args.runs + 1)]
+    per_run = [
+        {
+            "run": i + 1,
+            "fused": score(rs, "fused"),
+            "judge": score(rs, "spark"),
+            "latency_ms_median": statistics.median([r["latency_ms"] for r in rs]),
+            "usd": round(sum(r["usd"] or 0 for r in rs), 4),
+        }
+        for i, rs in enumerate(runs)
+        if rs
+    ]
     result = {
         "mode": args.mode,
         "synthetic": args.synthetic,
+        "runs": args.runs,
+        "per_run": per_run,
         "n": len(rows),
         "calibration": {
             "accuracy": cal["accuracy"],
@@ -208,14 +265,47 @@ async def main() -> None:
         "# Detector evaluation",
         "",
         (
-            f"Mode `{args.mode}`, {len(rows)} clips at {settings.perception.fps} fps"
-            f"{' (SYNTHETIC cartoon clips: not evidence about real patients)' if args.synthetic else ''}."
+            f"Mode `{args.mode}`, {len(rows) // max(args.runs, 1)} clips"
+            + (f" scored {args.runs} times ({len(rows)} judgments)" if args.runs > 1 else "")
+            + f" at {settings.perception.fps} fps"
+            + (
+                " (SYNTHETIC cartoon clips: not evidence about real patients)"
+                if args.synthetic
+                else ""
+            )
+            + "."
         ),
         *([args.note] if args.note else []),
         f"Calibration leave-one-out accuracy: {cal['accuracy']}; error rates {cal['error_rates']}.",
         f"Latency per answer window: median {result['latency_ms']['median']} ms, p90 {result['latency_ms']['p90']} ms.",
         "",
     ]
+    if args.runs > 1:
+        clips_per_run = per_run[0]["fused"]["n"]
+        lines += [
+            f"## {args.runs} runs over the same {clips_per_run} clips",
+            "",
+            "One calibration, every clip scored again in each run. The blind judge is a language",
+            "model and does not always answer the same way, so a single pass over a set this small",
+            "reports luck as well as accuracy.",
+            "",
+            "| run | fused correct | wrong | ask again | judge correct / answered | median latency |",
+            "|---|---:|---:|---:|---:|---:|",
+            *[
+                f"| {r['run']} | {r['fused']['correct']} | {r['fused']['wrong']} |"
+                f" {r['fused']['unclear']} | {r['judge']['correct']} / {r['judge']['answered']} |"
+                f" {r['latency_ms_median']:.0f} ms |"
+                for r in per_run
+            ],
+            "",
+            f"Fused correct {spread([r['fused']['correct'] for r in per_run])} of {clips_per_run};"
+            f" confidently wrong {spread([r['fused']['wrong'] for r in per_run])};"
+            f" ask again {spread([r['fused']['unclear'] for r in per_run])}.",
+            "",
+            "The matrices below pool every run, so each cell counts "
+            f"{args.runs} judgments per clip.",
+            "",
+        ]
     for key in ("fused", "tracker", "local", "spark"):
         m = result["confusion"][key]
         if not any(sum(v.values()) for v in m.values()):

@@ -51,6 +51,32 @@ identical run at the first step scored 8 of 13 fused, 3 of them wrong. A judge-o
 runs per clip gave 12 of 26 on the whole frame, 24 of 26 on the crop, and 26 of 26 on the crop with
 prompt v4.
 
+### Three runs on the finished pipeline
+
+One pass over 13 windows reports luck as well as accuracy, so the whole set was scored three times
+on one calibration (`--runs 3`, $0.90, report
+[`DETECTOR_EVAL_GENERATED.md`](DETECTOR_EVAL_GENERATED.md)):
+
+| Run | Fused correct | Wrong | Asked again | Judge correct / answered | Median latency |
+|---|---:|---:|---:|---:|---:|
+| 1 | 12 | 0 | 1 | 12 / 13 | 3.7 s |
+| 2 | 12 | 0 | 1 | 13 / 13 | 4.0 s |
+| 3 | 10 | 0 | 3 | 10 / 12 | 4.6 s |
+
+Correct 11.3 of 13 on average (10 to 12), and the number that matters for a patient: **no
+confidently wrong answer in 39 judgments**. The judge was wrong three times across the three runs
+and SAM disagreed each time, so fusion returned UNCLEAR and the phone asked again instead of
+guessing. Every YES, NO and emergency signal was read in all three runs except one small, late
+raise in run 3; the clip that is hardest is the same one each time, a resting window the judge
+reads as NO.
+
+Run it:
+
+```bash
+PYTHONPATH=backend:. backend/.venv/bin/python scripts/eval_detector.py \
+  --mode live --data data/labeled_generated --name GENERATED --runs 3
+```
+
 1. **Resolution.** On a whole 320x240 frame this face is about 110 px wide and an eyebrow raise
    moves a few pixels. The judge reported "eyes open resting, no eyebrow raise" on clear raises.
    Calibration now takes the area SAM 3.1 tracked on the calibration clips, widens it, and the
