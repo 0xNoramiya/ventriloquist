@@ -106,13 +106,6 @@ sequenceDiagram
 
 The budget guard can drop any live or privacy session to mock mid-way (90% of the budget).
 
-## In-browser demo
-
-`backend/app/browser.py` wraps the same `Session` for Pyodide (Python compiled to WebAssembly). The
-browser-only build (`npm run dev:demo`) loads it in a Web Worker with numpy, pydantic, pyyaml and sqlite3 from the Pyodide CDN,
-unpacks the backend sources (`scripts/build_pyodide_bundle.py`) and swaps the WebSocket for
-`postMessage`. Same engine, same safety checks, mock providers, no server, no camera, no keys.
-
 ## Design decisions
 
 - **The LLM supplies intuition; code decides.** Every model output is a proposal: multipliers are

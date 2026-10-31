@@ -316,9 +316,6 @@ HTTPS for the camera). Answer with Y / N / U / E on a keyboard, or let the simul
 real calibration, the patient view reads answers from the camera even without keys, using the
 on-device optical-flow tracker; nothing leaves the machine.
 
-**No backend at all**: `cd frontend && npm run dev:demo` runs the same Python engine in the browser
-through Pyodide, with mock models and keyboard answers, the console and the phone side by side.
-
 **Live mode**: set `MODEL_API_KEY` in `.env` and a `LIVE_PASSCODE`, then switch to live in Settings
 (or set `APP_MODE=live` in `.env`; a mode saved from Settings takes precedence over `.env`).
 `make probe` checks every endpoint; `PYTHONPATH=backend:. backend/.venv/bin/python scripts/live_check.py`
@@ -337,7 +334,7 @@ backend/app/providers   Meta Model API, Baseten/Modal, on-premises and mock adap
 backend/app/sessions    session orchestrator and state machine
 backend/app/safety      sensitive-topic and no-advice guards
 backend/app/prompts     versioned prompts for every model role
-frontend/               React app: caregiver console, patient phone view, browser-only demo build
+frontend/               React app: caregiver console and patient phone view
 sim/                    simulations behind the evaluation charts
 scripts/                API probes, live check, detector evaluation, asset builders
 docs/                   architecture, protocol, safety, evaluation, API notes, sources

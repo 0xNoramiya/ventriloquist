@@ -10,7 +10,6 @@ const Memory = lazy(() => import('./routes/Memory'));
 const Eval = lazy(() => import('./routes/Eval'));
 const Settings = lazy(() => import('./routes/Settings'));
 const NotFound = lazy(() => import('./routes/NotFound'));
-const Demo = lazy(() => import('./routes/Demo'));
 
 export function App() {
   return (
@@ -22,7 +21,6 @@ export function App() {
           <Route path="/calibrate/:pid" element={<Calibrate />} />
           <Route path="/patient/:sid" element={<Patient />} />
           <Route path="/caregiver/:sid" element={<Caregiver />} />
-          <Route path="/demo/:sid" element={<Demo />} />
           <Route path="/memory/:pid" element={<Memory />} />
           <Route path="/eval" element={<Eval />} />
           <Route path="/settings" element={<Settings />} />

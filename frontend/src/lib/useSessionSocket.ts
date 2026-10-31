@@ -1,42 +1,8 @@
 import { useEffect } from 'react';
 import type { ClientMessage, ServerMessage } from '../api/types';
-import { demoBridge, isBrowserDemo } from '../demo/bridge';
 import { useSession } from '../store/session';
 
 const PING_MS = 20_000;
-
-// Hosted demo: one shared subscription to the in-browser session, however many views are mounted
-// (the demo page shows the caregiver and patient views side by side).
-let demoRefs = 0;
-let demoUnsubscribe: (() => void) | null = null;
-
-function attachDemo(sid: string): () => void {
-  const store = useSession.getState();
-  if (store.sid !== sid) store.reset(sid);
-  store.setConnection('connecting');
-  store.setSender((msg: ClientMessage) => {
-    if (msg.type !== 'ping') void demoBridge.send(msg);
-    return true;
-  });
-  demoRefs += 1;
-  if (!demoUnsubscribe) {
-    demoUnsubscribe = demoBridge.subscribe((m) => useSession.getState().receive(m));
-  }
-  void demoBridge.snapshot().then(
-    (snap) => {
-      if (snap) useSession.getState().receive({ type: 'snapshot', snapshot: snap });
-      else useSession.getState().setConnection('missing');
-    },
-    () => useSession.getState().setConnection('missing'),
-  );
-  return () => {
-    demoRefs -= 1;
-    if (demoRefs === 0 && demoUnsubscribe) {
-      demoUnsubscribe();
-      demoUnsubscribe = null;
-    }
-  };
-}
 
 function wsUrl(sid: string): string {
   const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -50,7 +16,6 @@ function wsUrl(sid: string): string {
 export function useSessionSocket(sid: string | undefined): void {
   useEffect(() => {
     if (!sid) return;
-    if (isBrowserDemo) return attachDemo(sid);
     const store = useSession.getState();
     store.reset(sid);
     store.setConnection('connecting');

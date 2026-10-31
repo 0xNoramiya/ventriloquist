@@ -15,9 +15,7 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\" \"scripts/**/*.mjs\" \"*.{ts,js,json,md}\"",
     "test": "vitest run",
     "smoke": "node scripts/smoke.mjs",
-    "a11y": "node scripts/a11y.mjs",
-    "build:demo": "node scripts/prepare-demo.mjs && tsc --noEmit && VITE_DEMO=browser vite build --base \"${DEMO_BASE:-/}\" && cp dist/index.html dist/404.html",
-    "dev:demo": "node scripts/prepare-demo.mjs && VITE_DEMO=browser vite --host"
+    "a11y": "node scripts/a11y.mjs"
   },
   "dependencies": {
     "@fontsource-variable/atkinson-hyperlegible-next": "5.2.6",

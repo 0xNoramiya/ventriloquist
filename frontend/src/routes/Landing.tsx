@@ -10,8 +10,6 @@ import { unlockAudio } from '../lib/alarm';
 import { cx } from '../lib/format';
 import { useConfig } from '../lib/useConfig';
 import { useT, type Key } from '../i18n';
-import { isBrowserDemo } from '../demo/bridge';
-import { DemoNotice } from '../demo/DemoNotice';
 
 const SCENARIOS: { id: string; title: Key; body: Key }[] = [
   // English patients first; the Indonesian ones show the second language.
@@ -153,7 +151,7 @@ export function Landing() {
     setError(null);
     try {
       const snap = await api.startScenario(id, { simulated, noise: 0.05 });
-      navigate(`/${isBrowserDemo ? 'demo' : 'caregiver'}/${snap.session_id}`);
+      navigate(`/caregiver/${snap.session_id}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
       setBusy(null);
@@ -168,7 +166,6 @@ export function Landing() {
             {t('landing.tagline')}
           </h1>
           <p className="max-w-[60ch] text-lg text-ink-soft sm:text-xl">{t('landing.lead')}</p>
-          <DemoNotice />
           <div className="flex flex-wrap gap-3">
             <Button
               variant="primary"
