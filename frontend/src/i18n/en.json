@@ -341,6 +341,7 @@
   "evidence.kind.memory": "Memory",
   "evidence.kind.history": "Earlier message",
   "evidence.kind.unknown": "Evidence",
+  "evidence.scripted": "Scenario",
   "time.just_now": "just now",
   "time.ago": "{m} min ago",
   "time.ago_h": "{h} h ago",

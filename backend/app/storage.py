@@ -237,8 +237,9 @@ class Store:
         start_s: float | None = None,
         end_s: float | None = None,
         at: str | None = None,
+        row_id: str | None = None,
     ) -> dict[str, Any]:
-        tid = new_id("tr")
+        tid = row_id or new_id("tr")
         at = at or now_iso()
         self.execute(
             "INSERT INTO transcript VALUES (?,?,?,?,?,?,?,?)",
@@ -255,9 +256,14 @@ class Store:
         return self.rows("SELECT * FROM transcript WHERE patient_id=? ORDER BY created_at", (pid,))
 
     def add_scene_fact(
-        self, pid: str, sid: str | None, text: str, snapshot_hash: str | None
+        self,
+        pid: str,
+        sid: str | None,
+        text: str,
+        snapshot_hash: str | None,
+        row_id: str | None = None,
     ) -> dict[str, Any]:
-        fid = new_id("sc")
+        fid = row_id or new_id("sc")
         at = now_iso()
         self.execute(
             "INSERT INTO scene_facts VALUES (?,?,?,?,?,?)", (fid, sid, pid, text, snapshot_hash, at)

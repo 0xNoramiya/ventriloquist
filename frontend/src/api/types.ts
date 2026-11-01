@@ -146,6 +146,7 @@ export interface Evidence {
   speaker?: string;
   event_kind?: string;
   source_type?: string;
+  scripted?: true; // written in advance by a demo scenario, not read from the room
 }
 
 export interface Alert {
