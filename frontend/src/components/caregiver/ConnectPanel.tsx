@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useT } from '../../i18n';
-import { defaultPhoneHost, lanHosts, patientUrl, savePhoneHost } from '../../lib/host';
+import {
+  defaultPhoneHost,
+  lanHosts,
+  onLocalNetwork,
+  patientUrl,
+  savePhoneHost,
+} from '../../lib/host';
 import { Button } from '../Button';
 import { inputClass } from '../Form';
 import { QRCode } from '../QRCode';
@@ -27,7 +33,9 @@ export function ConnectPanel({ sid, compact = false }: { sid: string; compact?: 
         <QRCode value={url} size={compact ? 132 : 168} label={t('connect.qr_label')} />
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-3">
-        <p className="text-[15px] text-ink-soft">{t('connect.body')}</p>
+        <p className="text-[15px] text-ink-soft">
+          {t(onLocalNetwork() ? 'connect.body' : 'connect.body_hosted')}
+        </p>
         <p className="break-all rounded-[var(--radius-control)] bg-wash px-3 py-2 text-[15px] font-semibold">
           {url}
         </p>

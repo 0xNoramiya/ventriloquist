@@ -15,6 +15,16 @@ function isLoopback(hostname: string): boolean {
   return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]';
 }
 
+/** A local install (loopback, a private IPv4 address or a .local name), which a phone reaches only
+ * on the same network and through a self-signed certificate. A hosted app is open from anywhere. */
+export function onLocalNetwork(hostname: string = window.location.hostname): boolean {
+  return (
+    isLoopback(hostname) ||
+    /^(10|192\.168|172\.(1[6-9]|2\d|3[01]))\./.test(hostname) ||
+    hostname.endsWith('.local')
+  );
+}
+
 /** Host (with port) the phone should open. Loopback is useless to a phone, so prefer a LAN IP. */
 export function defaultPhoneHost(): string {
   try {
