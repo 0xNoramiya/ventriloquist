@@ -100,6 +100,9 @@ Each taxonomy message also has a direct question (e.g. "Apakah {hon} merasa saki
 | Responses unclear. Please check with the patient in person. | Jawaban kurang jelas. Mohon periksa pasien secara langsung. |
 | Answer after the tone. | Jawab setelah bunyi nada. |
 | Answer after the tone, starting with your eyes open. | Jawab setelah bunyi nada, mulai dengan mata terbuka. |
+| After the tone, please show me YES. (calibration) | Setelah bunyi nada, tolong tunjukkan YA. |
+| After the tone, please show me NO. (calibration) | Setelah bunyi nada, tolong tunjukkan TIDAK. |
+| After the tone, please show me YES three times, quickly. (calibration) | Setelah bunyi nada, tolong tunjukkan YA tiga kali, dengan cepat. |
 
 ## Changes after the first review pass (2026-10-27)
 

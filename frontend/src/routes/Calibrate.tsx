@@ -16,6 +16,7 @@ import {
   stopStream,
 } from '../lib/media';
 import { speak } from '../lib/speech';
+import { playAnswerTone, unlockAudio } from '../lib/alarm';
 import { Photo } from '../components/Photo';
 import { SignalPicker } from '../components/SignalPicker';
 import { useConfig } from '../lib/useConfig';
@@ -141,11 +142,16 @@ export default function Calibrate() {
   async function recordNext() {
     if (!pid || !stream || !nextTask) return;
     setError(null);
-    speak(t(nextTask.say), lang);
+    unlockAudio(); // the tone below plays seconds after this tap; iOS needs the tap to allow it
+    const said = speak(t(nextTask.say), lang).done;
     for (let n = 3; n >= 1; n -= 1) {
       setPhase({ kind: 'countdown', n });
       await new Promise((r) => window.setTimeout(r, 1000));
     }
+    await said;
+    // Same cue as the answer window. Without it a brief YES was over before the clip began, and
+    // calibration learned YES from clips that held none (issue #13).
+    playAnswerTone();
     setPhase({ kind: 'recording', ms: nextTask.ms });
     try {
       const clip = await recordClip(stream, nextTask.ms);
