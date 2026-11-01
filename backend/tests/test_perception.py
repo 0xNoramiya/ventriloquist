@@ -10,7 +10,7 @@ from app.perception.calibration import signal_roi
 from app.perception.features import LEGACY_SAM_FEATURES, sam_feature_seq
 from app.perception.fusion import SourceResult, fuse, judge_probs, normalise_probs
 from app.perception.media import roi_crop_px
-from app.perception.pipeline import early_decision_ok
+from app.perception.pipeline import _template_source, early_decision_ok, yes_repetitions
 from app.providers.base import FrameTracks, TrackedObject, TrackResult
 
 
@@ -174,3 +174,55 @@ def test_a_single_source_keeps_its_own_reading():
     only = tracker("yes", 0.8, {})
     obs = fuse([only], {"tracker": 0.3})
     assert obs.answer == Answer.YES and obs.confidence == pytest.approx(0.8)
+
+
+FPS = 8.0
+EYEBROWS, EYES = slice(0, 6), slice(6, 12)  # sam_prompts puts the YES prompt (eyebrows) first
+
+
+def movement(frames: int, part: slice, starts: list[int], size: float = 2.0) -> np.ndarray:
+    seq = np.zeros((frames, 12))
+    for s in starts:
+        seq[s : s + 2, part] = size
+    return seq
+
+
+def test_blinks_on_the_eye_columns_are_not_repeated_yes():
+    """Issue #14: tracking the eyes for NO made every blink count toward the triple-YES alarm."""
+    raise_once = movement(32, EYEBROWS, [12]) + movement(32, EYES, [12], size=1.0)
+    tmpl = {
+        "baseline": {"mean": [0.0] * 12, "scale": [1.0] * 12},
+        "templates": {
+            "none": [np.zeros((32, 12)).tolist()],
+            "yes": [raise_once.tolist()],
+            "no": [movement(32, EYES, list(range(10, 22, 2))).tolist()],
+            "emergency": [movement(32, EYEBROWS, [4, 12, 20]).tolist()],
+        },
+        "temperature": 1.0,
+        "yes_amplitude": float(np.linalg.norm(raise_once, axis=1).max()),
+    }
+    templates = {k: [np.asarray(t) for t in v] for k, v in tmpl["templates"].items()}
+    blinks = movement(40, EYES, [4, 14, 24, 34], size=3.0)
+    amp = tmpl["yes_amplitude"]
+
+    assert yes_repetitions(blinks, templates, amp, FPS) == 4  # every column: the old count
+    assert yes_repetitions(blinks, templates, amp, FPS, yes_cols=6) == 0
+    triple = movement(40, EYEBROWS, [4, 14, 24])
+    assert yes_repetitions(triple, templates, amp, FPS, yes_cols=6) == 3
+
+    calm = _template_source("tracker", blinks, tmpl, FPS, 3, yes_cols=6)
+    assert calm.detail["repetitions"] == 0 and calm.probs["emergency"] < 0.5
+
+
+def test_a_repetition_must_clear_the_rest_level():
+    """A calibration whose YES clips missed the movement sets the YES bar below resting jitter."""
+    templates = {
+        "none": [movement(32, EYEBROWS, [6, 20], size=0.6)],
+        "yes": [movement(32, EYEBROWS, [12], size=0.8)],
+    }
+    amp = float(np.linalg.norm(templates["yes"][0], axis=1).max())
+    jitter = movement(40, EYEBROWS, [4, 14, 24, 34], size=0.5)
+
+    assert yes_repetitions(jitter, {"yes": templates["yes"]}, amp, FPS) == 4
+    assert yes_repetitions(jitter, templates, amp, FPS) == 0
+    assert yes_repetitions(movement(40, EYEBROWS, [4, 14, 24]), templates, amp, FPS) == 3

@@ -27,6 +27,7 @@ from .features import (
     Baseline,
     count_repetitions,
     normalise,
+    peak_amplitude,
     sam_feature_seq,
 )
 from .fusion import SourceResult, fuse, judge_probs, normalise_probs
@@ -57,6 +58,29 @@ class Perception:
         }
 
 
+def yes_repetitions(
+    x: np.ndarray,
+    templates: dict[str, list[np.ndarray]],
+    amplitude: float,
+    fps: float,
+    yes_cols: int | None = None,
+) -> int:
+    """How many times the YES movement repeats in a normalised clip (three is the emergency signal).
+
+    With several SAM prompts only the YES prompt's columns count: tracking the eyes for a NO turned
+    every blink into a repetition (issue #14). A repetition must also rise above the largest
+    movement seen at rest, or a calibration whose YES clips missed the movement sets the bar below
+    resting jitter. Both are measured on the stored templates, so calibrations saved before this
+    fix get it too.
+    """
+    cols = slice(None)
+    if yes_cols and yes_cols < x.shape[1] and templates.get("yes"):
+        cols = slice(0, yes_cols)
+        amplitude = float(np.median([peak_amplitude(t[:, cols]) for t in templates["yes"]]))
+    rest_peak = max((peak_amplitude(t[:, cols]) for t in templates.get("none", [])), default=0.0)
+    return count_repetitions(x[:, cols], max(amplitude, 2 * rest_peak), fps)
+
+
 def _template_source(
     name: str,
     seq: np.ndarray,
@@ -64,13 +88,14 @@ def _template_source(
     fps: float,
     emergency_count: int,
     missing: float = 0.0,
+    yes_cols: int | None = None,
 ) -> SourceResult:
     baseline = Baseline.from_dict(tmpl["baseline"])
     x = normalise(seq, baseline)
     templates = {k: [np.asarray(t) for t in v] for k, v in tmpl["templates"].items()}
     probs, dists = classify(x, templates, tmpl["temperature"])
     probs = normalise_probs(probs)
-    reps = count_repetitions(x, float(tmpl.get("yes_amplitude", 0.0)), fps)
+    reps = yes_repetitions(x, templates, float(tmpl.get("yes_amplitude", 0.0)), fps, yes_cols)
     if reps >= emergency_count:
         probs = normalise_probs({**probs, "emergency": max(probs.get("emergency", 0.0), 0.6)})
     if missing > 0:
@@ -186,7 +211,16 @@ async def perceive(
             if "seen" in names
             else np.mean([s.missing_fraction for s in seqs])
         )
-        res = _template_source("tracker", seq, tmpl, track_fps, pcfg.emergency_yes_count, missing)
+        # sam_prompts puts the YES prompt first
+        res = _template_source(
+            "tracker",
+            seq,
+            tmpl,
+            track_fps,
+            pcfg.emergency_yes_count,
+            missing,
+            yes_cols=seqs[0].values.shape[1],
+        )
         res.calls = calls
         return res
 
