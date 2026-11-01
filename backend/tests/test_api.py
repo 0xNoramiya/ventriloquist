@@ -307,6 +307,19 @@ def test_public_deployment_gives_visitors_mock_mode(public_client):
     assert c.post("/api/sessions", json={"patient_id": pid}).json()["mode"]["requested"] == "mock"
 
 
+def test_only_the_operator_lists_or_deletes_patients(public_client):
+    """Issue #22: on a public deployment a visitor could read every profile, relatives' phone
+    numbers included, and delete any patient."""
+    c = public_client
+    pid = c.post("/api/patients", json=PROFILE).json()["id"]
+    assert c.get("/api/patients").status_code == 403
+    assert c.delete(f"/api/patients/{pid}").status_code == 403
+    assert c.get(f"/api/patients/{pid}").status_code == 200  # the id is still enough to use it
+    key = {"X-Live-Passcode": "correct horse"}
+    assert [p["id"] for p in c.get("/api/patients", headers=key).json()] == [pid]
+    assert c.delete(f"/api/patients/{pid}", headers=key).json()["deleted"]
+
+
 def test_visitors_can_choose_privacy_mode_on_an_open_deployment(tmp_path):
     """Issue #24: the landing page offers privacy mode when asking for it would get it."""
     base = {

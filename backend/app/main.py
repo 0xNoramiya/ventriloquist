@@ -119,6 +119,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         given = passcode or request.headers.get("x-live-passcode") or ""
         return secrets.compare_digest(given, expected)
 
+    def operator_only(request: Request) -> None:
+        """Listing and deleting patients are for the operator. The app's screens never need them:
+        they create a patient and keep its id (issue #22)."""
+        if settings.live_passcode and not unlocked(request):
+            raise HTTPException(403, "This needs the passcode")
+
     def mode_for(
         request: Request, privacy: bool | None = None, passcode: str | None = None
     ) -> Mode:
@@ -286,7 +292,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return patient_or_404(pid)
 
     @app.get("/api/patients")
-    async def list_patients() -> list[dict[str, Any]]:
+    async def list_patients(request: Request) -> list[dict[str, Any]]:
+        operator_only(request)
         return store.list_patients()
 
     @app.get("/api/patients/{pid}")
@@ -307,7 +314,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return patient_or_404(pid)
 
     @app.delete("/api/patients/{pid}")
-    async def delete_patient(pid: str) -> dict[str, Any]:
+    async def delete_patient(request: Request, pid: str) -> dict[str, Any]:
+        operator_only(request)
         patient_or_404(pid)
         active = manager.active_for(pid)
         if active:
