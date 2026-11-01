@@ -307,6 +307,19 @@ def test_public_deployment_gives_visitors_mock_mode(public_client):
     assert c.post("/api/sessions", json={"patient_id": pid}).json()["mode"]["requested"] == "mock"
 
 
+def test_only_the_operator_lists_or_deletes_patients(public_client):
+    """Issue #22: on a public deployment a visitor could read every profile, relatives' phone
+    numbers included, and delete any patient."""
+    c = public_client
+    pid = c.post("/api/patients", json=PROFILE).json()["id"]
+    assert c.get("/api/patients").status_code == 403
+    assert c.delete(f"/api/patients/{pid}").status_code == 403
+    assert c.get(f"/api/patients/{pid}").status_code == 200  # the id is still enough to use it
+    key = {"X-Live-Passcode": "correct horse"}
+    assert [p["id"] for p in c.get("/api/patients", headers=key).json()] == [pid]
+    assert c.delete(f"/api/patients/{pid}", headers=key).json()["deleted"]
+
+
 def test_visitor_flags_follow_the_visitor_mode(public_client):
     """Flags belong to the mode the browser actually gets. The idle watch is free in mock mode and
     off by default in live mode (config.yaml), so a visitor without the passcode gets it on even
