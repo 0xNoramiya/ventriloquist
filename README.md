@@ -14,7 +14,7 @@ message aloud, in the first person, after the patient has confirmed it.
 
 |  |  |
 |---|---|
-| **Watch** | [The three-minute film](https://github.com/0xNoramiya/ventriloquist/releases/download/v0.2.0/ventriloquist-demo.mp4) (1080p, 80 MB) |
+| **Watch** | [The three-minute film](https://github.com/0xNoramiya/ventriloquist/releases/download/v0.2.0/ventriloquist-demo.mp4) (1080p, 80 MB). The patient is generated, and a generated voice stands in for the phone's browser speech, which a screen recording cannot capture |
 | **Use** | [ventriloquist.fly.dev](https://ventriloquist.fly.dev): the whole app on Meta's models, camera and all, or the same pipeline on open weights with privacy mode on. Open to everyone, no passcode |
 | **Read** | [how a question is chosen](backend/app/engine/eig.py) · [the fifteen safety rules](docs/SAFETY.md) · [what the models actually returned](docs/LIVE_CHECK.md) |
 
@@ -24,11 +24,8 @@ message aloud, in the first person, after the patient has confirmed it.
 > bounded guessing and confirm-before-speak exist to keep it that way.
 
 **Not a medical device.** Not a substitute for the nurse call system, monitors or clinical judgment.
-No patient has used it, and every detector number below comes from generated media. The one real
-face it has met is the author's own, live on the deployment. The first calibration and two sessions
-broke in three ways; recalibrated on the same face after those fixes, it broke in two more. All five
-have fixes deployed, the last two not yet re-tested on a face, and none of it is a measurement yet
-([the detector](#detector)).
+No patient has used it. Every detector number below comes from generated media; the only real face
+it has met is the author's, and what happened there is [in the detector section](#detector).
 
 Solo entry by Rifqi, emergency medicine intern in Indonesia, for the Meta Global AI Developer
 Hackathon 2026 (Indie Developer track, "Build for Your World").
@@ -49,11 +46,12 @@ Hackathon 2026 (Indie Developer track, "Build for Your World").
    lets the phone speak. Then: "Did I say it right?"
 5. Anything not on the list gets spelled, with word completions. Three quick YES signals raise an
    alarm from any screen.
-6. All of it also runs on open weights. Privacy mode puts every role on **Muse Spark Open** (Baseten
-   or Modal) with **Muse Glimmer** on the hospital's own server for the text-only ones, and no
-   patient video reaches a closed API. On the same 13 generated clips the detector reads 0.85 of the
-   answer windows correctly against 0.87 on Muse Spark 1.3 — one run against three, and inside the
-   closed model's own spread of 10 to 12 of 13 ([the numbers](#privacy-mode)).
+6. All of it also runs on open weights. Privacy mode puts every role on **Muse Spark Open** on
+   Baseten, and no patient video reaches a closed API. On the same 13 generated clips the detector
+   reads 0.85 of the answer windows correctly against 0.87 on Muse Spark 1.3: one run against
+   three, and inside the closed model's own spread of 10 to 12 of 13 ([the numbers](#privacy-mode)).
+   Routes for Muse Spark Open on Modal and **Muse Glimmer** on the hospital's own server are
+   written but have not run against a real endpoint yet.
 
 | Patient phone (confirm before speaking) | Patient phone (spelling, Indonesian) | Caregiver console |
 |---|---|---|
@@ -142,8 +140,8 @@ Details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Client protocol: [`docs
 | **SAM 3.1** (Meta Model API) | Tracks the patient's own signal (e.g. "eyebrows") across each answer clip; box geometry becomes features for DTW against the calibrated templates; boxes are drawn on the caregiver screen |
 | **Muse Voice Transcribe** | Diarized room transcript with family names as keywords and an Indonesian language bias (without it, Indonesian came back empty in our probes) |
 | **Muse Wonder** | Memory curator over the whole stay history (proposals with provenance, caregiver-approved) and memory selector before each session |
-| **Muse Spark Open** (open weights, Baseten or Modal) | Privacy mode: the same Spark roles on an open-weight model, including room audio via its audio input |
-| **Muse Glimmer** (open weights, on your own hardware) | Optional on-premises privacy tier: the text-only roles (priors, questions, completions, sentences, sensitive classifier, memory) on an OpenAI-compatible server in the hospital |
+| **Muse Spark Open** (open weights, on Baseten; a Modal route is written, not yet run) | Privacy mode: the same Spark roles on an open-weight model, including room audio via its audio input |
+| **Muse Glimmer** (open weights, on your own hardware; not yet run against a real server) | Optional on-premises privacy tier: the text-only roles (priors, questions, completions, sentences, sensitive classifier, memory) on an OpenAI-compatible server in the hospital |
 | **WhatsApp Cloud API** (Meta) | Family relay: carries the patient's confirmed words to a consenting relative as an approved template, and brings the reply back (simulated relative until an account is connected) |
 | **Muse Image** | Generated the 34 AAC pictograms shown next to messages on the patient screen (`scripts/generate_pictograms.py`) |
 | SAM 3.1 open weights (optional, self-hosted on Modal) | Privacy-mode tracker when an endpoint is configured; otherwise an on-device optical-flow tracker |
@@ -210,7 +208,10 @@ and compares five strategies under identical conditions. **Simulation, not clini
 At 10% answer noise with strong context, EIG with context finalized in **4.89** questions on average
 (including the confirmation) against **6.41** for a fixed-order board, with 67.2% vs 54.8% of
 messages correct within the 10-question cap, and fewer wrong messages finalized (0.5% vs 2.6%).
-Under heavy noise the engine hands over to the caregiver instead of guessing. Every table:
+That is the best case. With no room context, EIG does no better than the board at the same noise:
+6.60 questions against 6.23, and 57.0% correct against 54.8%. The gain comes from context and
+memory, not from the question order alone. Under heavy noise the engine hands over to the caregiver
+instead of guessing. Every table:
 [`docs/EVAL.md`](docs/EVAL.md).
 
 Memory compounds, modestly: with personal base rates learned from confirmed messages (no room
@@ -335,8 +336,10 @@ the session then run on Muse Spark Open. An operator can also make it the defaul
 same pipeline runs on open-weight models:
 
 - **Partner inference:** Muse Spark Open on Baseten (whose synchronous Model APIs fall under its
-  zero-data-retention policy) or on Modal, so patient video need not touch a closed API.
-- **On-premises:** Muse Glimmer on a GPU box in the hospital (any OpenAI-compatible server) takes
+  zero-data-retention policy) or on Modal (written, not yet run), so patient video need not touch
+  a closed API.
+- **On-premises** (written and tested against a stand-in server, not yet a real Glimmer one): Muse
+  Glimmer on a GPU box in the hospital (any OpenAI-compatible server) takes
   every text-only role. Images and video then stay on-device, read by the local optical-flow tracker,
   so nothing leaves the building, as long as the phone's browser has an on-device voice. In
   Indonesia, where health data is specific personal data under UU 27/2022, that matters.
