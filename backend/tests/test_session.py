@@ -517,3 +517,17 @@ async def test_scenario_evidence_is_marked_as_scripted(ctx):
     assert len(live) == 1 and "scripted" not in live[0]
     assert "scripted" not in format_evidence(items)  # the models see the same text as before
     await s.end()
+
+
+def test_the_console_has_a_label_for_every_prompt_kind():
+    """Issue #20: a kind missing from the frontend showed as a raw i18n key in the console."""
+    from app.sessions.session import PROMPT_KINDS
+
+    frontend = Path(__file__).resolve().parents[2] / "frontend" / "src"
+    union = (frontend / "api" / "types.ts").read_text()
+    union = union.split("export type PromptKind =", 1)[1].split(";", 1)[0]
+    assert set(re.findall(r"'([a-z_]+)'", union)) == set(PROMPT_KINDS)
+    for lang in ("en", "id"):
+        labels = json.loads((frontend / "i18n" / f"{lang}.json").read_text())
+        missing = [k for k in PROMPT_KINDS if f"prompt.kind.{k}" not in labels]
+        assert not missing, f"{lang}.json has no label for {missing}"

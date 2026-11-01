@@ -74,11 +74,23 @@ CAREGIVER_REASONS = {
 }
 
 
+PROMPT_KINDS = (
+    "ask",
+    "confirm",
+    "offer_spell",
+    "spelling",
+    "post_check",
+    "refine_offer",
+    "worse",
+    "relay_offer",
+    "message",
+)
+
+
 @dataclass
 class Prompt:
     id: str
-    # ask | confirm | offer_spell | spelling | post_check | refine_offer | worse | relay_offer | message
-    kind: str
+    kind: str  # one of PROMPT_KINDS; the console has a label for each
     # main | sentence | refine | spelling | post_check | refine_offer | worse | relay_offer | speak
     stage: str
     text: str
@@ -89,6 +101,10 @@ class Prompt:
     rephrased: bool = False
     sub: str | None = None  # spelling: letter | checkpoint | word
     asked_at: str = field(default_factory=now_iso)
+
+    def __post_init__(self) -> None:
+        if self.kind not in PROMPT_KINDS:
+            raise ValueError(f"unknown prompt kind {self.kind!r}: add it to PROMPT_KINDS")
 
     def to_dict(self, lang: str, honorific: str) -> dict[str, Any]:
         return {

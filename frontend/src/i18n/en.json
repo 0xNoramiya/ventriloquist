@@ -311,6 +311,7 @@
   "prompt.kind.post_check": "Check after speaking",
   "prompt.kind.refine_offer": "Offer to say more",
   "prompt.kind.worse": "Follow-up",
+  "prompt.kind.relay_offer": "Offer to send to family",
   "prompt.kind.message": "Message",
   "bars.title": "Likely messages",
   "bars.meta": "Asks to confirm at {tau}",

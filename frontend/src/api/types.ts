@@ -28,6 +28,7 @@ export type PromptKind =
   | 'post_check'
   | 'refine_offer'
   | 'worse'
+  | 'relay_offer'
   | 'message';
 
 export interface Question {
