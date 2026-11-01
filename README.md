@@ -430,11 +430,6 @@ history is the build log.
 ## Limitations and next steps
 
 - Needs clinical validation and ethics approval before any use with patients. Not a medical device.
-- The detector is untested on real patients and barely tested on real faces: three calibrations and
-  four sessions on the author's own, which exposed five failures, all fixed and deployed. The third
-  calibration passed; no session has yet finished a message on a real face. Sedation, delirium, weakness, tape over the
-  face, poor light and camera placement will all cost accuracy. The next step is a labelled clip
-  set from consenting volunteers, scored the way the generated one is.
 - The Indonesian strings have had one pass by the author, a native speaker; they and the
   sensitive-topic lists still need an ICU nurse's reading and a second native speaker
   ([`docs/I18N_REVIEW.md`](docs/I18N_REVIEW.md)). Indonesian transcription needs testing on real speech.
