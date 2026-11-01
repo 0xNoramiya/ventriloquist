@@ -311,6 +311,7 @@
   "prompt.kind.post_check": "Pemeriksaan setelah diucapkan",
   "prompt.kind.refine_offer": "Tawaran menjelaskan lebih lanjut",
   "prompt.kind.worse": "Pertanyaan lanjutan",
+  "prompt.kind.relay_offer": "Tawaran kirim ke keluarga",
   "prompt.kind.message": "Pesan",
   "bars.title": "Pesan yang paling mungkin",
   "bars.meta": "Minta konfirmasi pada {tau}",
