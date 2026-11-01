@@ -74,7 +74,7 @@ held message), `ack_sensitive_silent` (acknowledge without speaking), `new_messa
 | route | purpose |
 |---|---|
 | `GET /api/health`, `GET /api/config`, `GET/PUT /api/settings`, `GET /api/budget` | status, public config (taxonomy, event kinds, scenarios, flags), runtime settings |
-| `POST /api/patients`, `GET /api/patients`, `GET/PUT/DELETE /api/patients/{pid}` | profile (`display_name, language, honorific, family[{name, relation}], notes[], spiritual_preference, simulation_consent`); DELETE wipes everything |
+| `POST /api/patients`, `GET /api/patients`, `GET/PUT/DELETE /api/patients/{pid}` | profile (`display_name, language, honorific, family[{name, relation}], notes[], spiritual_preference, simulation_consent`); DELETE wipes everything. With `LIVE_PASSCODE` set, listing and DELETE need the passcode |
 | `POST /api/calibration/{pid}/framing` (image), `POST .../clip` (multipart `label`: rest\|yes\|no\|emergency, `file`), `DELETE .../clips`, `POST .../finalize` (`{hint?, description?, skip?, privacy?}`), `GET /api/calibration/{pid}`, `PUT .../description` | bring-your-own-signal calibration |
 | `POST /api/sessions` (`{patient_id, privacy, simulated_patient?, simulated_noise, scenario?, passcode?}`), `POST /api/scenarios/{name}` (`{simulated?, noise?, language?, privacy?}`) | create a session (scenario = fictional patient + evidence) |
 | `GET /api/sessions/{sid}`, `POST .../start`, `.../spoken`, `.../answer`, `.../clip`, `.../idle`, `.../audio`, `.../transcript` (`{speaker, text}`), `.../snapshot` (image), `.../event` (`{kind, label}`), `.../override` (`{action}`), `.../end`, `GET .../log` | session control |
