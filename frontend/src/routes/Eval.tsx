@@ -230,7 +230,7 @@ export default function Eval() {
             <p className="max-w-[62ch] text-ink-soft">{t('eval.detector.body')}</p>
             <p>
               <code className="rounded-[var(--radius-chip)] bg-wash px-2 py-1 text-[15px]">
-                python scripts/eval_detector.py
+                python eval/detector.py
               </code>
             </p>
           </div>

@@ -12,7 +12,7 @@ Parts (default: all):
 Needs MODEL_API_KEY. Synthetic media comes from scripts/make_probe_media.py (data/probe_media/).
 Writes docs/LIVE_CHECK.md and data/live_check/live_check.json. Typical cost: well under $0.50.
 
-    PYTHONPATH=backend:. backend/.venv/bin/python scripts/live_check.py [--part roles]
+    PYTHONPATH=backend:. backend/.venv/bin/python eval/live_check.py [--part roles]
 """
 
 from __future__ import annotations
@@ -259,7 +259,7 @@ def write_markdown(report: dict[str, Any]) -> None:
         "# Live check",
         "",
         (
-            f"Last run {report['started']} with `scripts/live_check.py` against the real Meta Model API "
+            f"Last run {report['started']} with `eval/live_check.py` against the real Meta Model API "
             f"(`APP_MODE=live`). Fictional patients and synthetic media only. Cost of the last run: "
             f"${report['spend_usd']:.3f}; all live-check runs in this data directory: "
             f"${report.get('spend_total_usd', report['spend_usd']):.3f}."

@@ -10,6 +10,7 @@ import mimetypes
 import os
 import secrets
 import shutil
+import sys
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -677,7 +678,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def sim_run(body: dict[str, Any] | None = None) -> dict[str, Any]:
         from dataclasses import asdict
 
-        from sim.simulate import run as run_sim
+        # The harness is `eval/sim/`, outside the backend package. The container and the Makefile
+        # put the repository root on PYTHONPATH; a bare `pytest` in backend/ does not, so resolve
+        # it here rather than depending on how the server was started.
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
+        from eval.sim.simulate import run as run_sim
 
         trials = int(min(max((body or {}).get("trials", 150), 20), 500))
         seed = int((body or {}).get("seed", 7))

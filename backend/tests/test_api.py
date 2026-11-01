@@ -62,6 +62,16 @@ def test_health_and_config(client):
     assert len(cfg["taxonomy"]) >= 30
 
 
+def test_sim_routes_run_the_simulation_harness(client):
+    """The console's "run it yourself" button imports the harness at call time, so a move of
+    `eval/sim/` breaks this route and nothing else."""
+    body = client.post("/api/sim/run", json={"trials": 20, "seed": 7}).json()
+    assert body["label"] == "simulation, not clinical evidence"
+    assert body["trials"] == 20 and body["results"]
+    assert {"strategy", "mean_q", "wrong_rate"} <= set(body["results"][0])
+    assert client.get("/api/sim/results").status_code == 200
+
+
 def test_patient_requires_simulation_consent(client):
     r = client.post("/api/patients", json={**PROFILE, "simulation_consent": False})
     assert r.status_code == 400

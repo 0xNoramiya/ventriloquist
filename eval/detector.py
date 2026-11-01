@@ -6,7 +6,7 @@ The script calibrates on the calibration clips, then runs every labelled clip th
 perception pipeline and reports a confusion matrix per source (tracker, local, spark) and fused,
 plus latency statistics. Results go to docs/DETECTOR_EVAL.md and data/labeled/results.json.
 
-    PYTHONPATH=backend:. backend/.venv/bin/python scripts/eval_detector.py [--mode mock|live|privacy]
+    PYTHONPATH=backend:. backend/.venv/bin/python eval/detector.py [--mode mock|live|privacy]
         [--synthetic] [--data DIR --name NAME --note TEXT]
 
 --mode privacy runs the server's privacy path: the judge is Muse Spark Open (Baseten, or Modal with

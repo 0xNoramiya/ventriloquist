@@ -15,7 +15,7 @@ message aloud, in the first person, after the patient has confirmed it.
 |  |  |
 |---|---|
 | **Watch** | [The three-minute film](https://github.com/0xNoramiya/ventriloquist/releases/download/v0.2.0/ventriloquist-demo.mp4) (1080p, 80 MB) |
-| **Use** | [ventriloquist.fly.dev](https://ventriloquist.fly.dev): the whole app on Meta's models, camera and all. Open to everyone, no passcode |
+| **Use** | [ventriloquist.fly.dev](https://ventriloquist.fly.dev): the whole app on Meta's models, camera and all, or the same pipeline on open weights with privacy mode on. Open to everyone, no passcode |
 | **Read** | [how a question is chosen](backend/app/engine/eig.py) · [the fifteen safety rules](docs/SAFETY.md) · [what the models actually returned](docs/LIVE_CHECK.md) |
 
 > **Why the name.** "Vent" is ICU shorthand for a ventilator. In a bad version of this idea the
@@ -48,6 +48,11 @@ Hackathon 2026 (Indie Developer track, "Build for Your World").
    lets the phone speak. Then: "Did I say it right?"
 5. Anything not on the list gets spelled, with word completions. Three quick YES signals raise an
    alarm from any screen.
+6. All of it also runs on open weights. Privacy mode puts every role on **Muse Spark Open** (Baseten
+   or Modal) with **Muse Glimmer** on the hospital's own server for the text-only ones, and no
+   patient video reaches a closed API. On the same 13 generated clips the detector reads 0.85 of the
+   answer windows correctly against 0.87 on Muse Spark 1.3 — one run against three, and inside the
+   closed model's own spread of 10 to 12 of 13 ([the numbers](#privacy-mode)).
 
 | Patient phone (confirm before speaking) | Patient phone (spelling, Indonesian) | Caregiver console |
 |---|---|---|
@@ -215,7 +220,7 @@ context), simulated patients needed 7.05 questions per message on day 1 and 6.63
 ### Detector
 
 Real-patient detector numbers need labelled clips from consenting participants
-(`scripts/eval_detector.py`, data in `data/labeled/`, never committed). None are recorded yet, so
+([`eval/detector.py`](eval/detector.py), data in `data/labeled/`, never committed). None are recorded yet, so
 everything below is either generated media or one unscored run on a real face. What a scored set
 takes is twenty minutes and one consenting adult ([`docs/RECORD_CLIPS.md`](docs/RECORD_CLIPS.md)).
 
@@ -346,7 +351,7 @@ on-device optical-flow tracker; nothing leaves the machine.
 
 **Live mode**: set `MODEL_API_KEY` in `.env` and a `LIVE_PASSCODE`, then switch to live in Settings
 (or set `APP_MODE=live` in `.env`; a mode saved from Settings takes precedence over `.env`).
-`make probe` checks every endpoint; `PYTHONPATH=backend:. backend/.venv/bin/python scripts/live_check.py`
+`make probe` checks every endpoint; `PYTHONPATH=backend:. backend/.venv/bin/python eval/live_check.py`
 runs every role for well under a dollar. The budget guard warns at 70% of `budget.max_usd` and switches
 to mock at 90%.
 
@@ -363,8 +368,8 @@ backend/app/sessions    session orchestrator and state machine
 backend/app/safety      sensitive-topic and no-advice guards
 backend/app/prompts     versioned prompts for every model role
 frontend/               React app: caregiver console and patient phone view
-sim/                    simulations behind the evaluation charts
-scripts/                API probes, live check, detector evaluation, asset builders
+eval/                   every published number: engine simulation, detector, live check
+scripts/                API probes and asset builders
 docs/                   architecture, protocol, safety, evaluation, API notes, sources
 ```
 
