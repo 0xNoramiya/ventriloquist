@@ -269,18 +269,18 @@ well as accuracy, which is why the report gives every run:
 
 ![Generated patient and gestures](docs/img/generated-patient.jpg)
 
-**A real face.** The author's own, live on the deployment on 2026-10-31, and recalibrated on
+**A real face.** The author's own, live on the deployment on 2026-10-31, and recalibrated twice on
 2026-11-01. The first run is the worst result in this repository and the most useful one.
 
 The calibration failed. Muse Spark described YES as "raises eyebrows and opens eyes wide" and NO as
 "lowers eyebrows and holds eyes closed", then gave `eyebrows` as the SAM prompt for both, so SAM
 never watched the eyes, where NO happens:
 
-| Calibration leave-one-out accuracy | First real face | Same face, recalibrated | Generated clips |
-|---|---:|---:|---:|
-| SAM 3.1 tracker | 0.00 | 0.33 | 0.75 |
-| Blind Muse Spark judge | 0.57 | 0.43 | 1.00 |
-| On-device optical flow | 0.44 | 0.22 | 0.33 |
+| Calibration leave-one-out accuracy | First real face | Recalibrated | Third calibration | Generated clips |
+|---|---:|---:|---:|---:|
+| SAM 3.1 tracker | 0.00 | 0.33 | 0.11 | 0.75 |
+| Blind Muse Spark judge | 0.57 | 0.43 | 1.00 | 1.00 |
+| On-device optical flow | 0.44 | 0.22 | 0.67 | 0.33 |
 
 The app said the two movements were hard to tell apart, but let the session start anyway; both
 answers came back UNCLEAR and the patient was handed to the caregiver. An earlier session, started
@@ -299,7 +299,7 @@ with their session logs in [#1](https://github.com/0xNoramiya/ventriloquist/issu
 [#2](https://github.com/0xNoramiya/ventriloquist/issues/2) and
 [#4](https://github.com/0xNoramiya/ventriloquist/issues/4).
 
-With those three live, the same face calibrated again on 2026-11-01 (the middle column) and failed
+With those three live, the same face calibrated again on 2026-11-01 (the second column) and failed
 again, for a new reason. SAM watched the eyes this time, but every source missed all three YES
 clips; the judge saw no eyebrow raise in any of them. The phone spoke the request, counted down
 three seconds and then recorded four, with no tone, so a quick YES was over before the clip began
@@ -321,13 +321,31 @@ the 0.50 alarm ([#14](https://github.com/0xNoramiya/ventriloquist/issues/14)). T
 requests followed: calibration clips start on the same tone as answers, and the phone now says
 "After the tone, please show me YES" ([#16](https://github.com/0xNoramiya/ventriloquist/pull/16));
 and only the YES movement, rising above the level seen at rest, counts toward an emergency
-([#15](https://github.com/0xNoramiya/ventriloquist/pull/15)). Both are deployed, not yet re-tested
-on a face.
+([#15](https://github.com/0xNoramiya/ventriloquist/pull/15)).
+
+With both live, the third calibration that night was the first to pass on a real face (the third
+column). The judge got all seven held-out clips right, and optical flow rose to 0.67. SAM stayed
+weak at 0.11, so the app gave it about a hundredth of the judge's weight.
+
+The session that followed was meant to say two things, "Please change my position" and "My mouth is
+dry", where the engine expects one message at a time. Seven of the ten answers were read correctly,
+at 0.75 to 0.90 confidence; two came back as no answer or unclear. One answer decided it. At
+question 6, "Do you want to change position?", that message stood at 0.52; the author meant YES,
+and the judge read NO at 0.85, having seen "both eyes closed and held shut for ~1.7s then opened
+wide". Replayed with that answer read as YES, the message reaches 0.86, the phone asks "Is this
+your message?", and a YES read at the session's usual 0.85 lifts it to 0.97, past the 0.95 it needs
+before speaking, on question 7. Instead the session reached the cap with "My mouth is dry" on top
+at about 0.44, the other half of what was meant, and spoke nothing. No false alarm this time: SAM
+counted three repetitions on one answer, scored 0.43 against the 0.50 alarm, and at its weight
+barely moved the reading.
+
+So both fixes did their job. What is left is the reading itself: a confident misread at the one
+question that mattered, which no fix to the timing could have caught.
 
 What this is not: a measurement. One face, one camera, one room, and clips are deleted after
-analysis by design, so neither run can be replayed. Nothing above is scored against a labelled set
-of real clips, and until it is, the only honest claim about a real face is that the app has met one
-twice and learned five things from it.
+analysis by design, so no run can be replayed. Nothing above is scored against a labelled set of
+real clips, and until it is, the only honest claim about a real face is that the app has met one,
+passed calibration on it once, and not yet finished a message on it.
 
 ## Privacy mode
 
@@ -412,10 +430,9 @@ history is the build log.
 ## Limitations and next steps
 
 - Needs clinical validation and ethics approval before any use with patients. Not a medical device.
-- The detector is untested on real patients and barely tested on real faces: two calibrations and
-  three sessions on the author's own, which exposed five failures. All five fixes are deployed; the
-  last two ([#15](https://github.com/0xNoramiya/ventriloquist/pull/15),
-  [#16](https://github.com/0xNoramiya/ventriloquist/pull/16)) are not yet re-tested on a face. Sedation, delirium, weakness, tape over the
+- The detector is untested on real patients and barely tested on real faces: three calibrations and
+  four sessions on the author's own, which exposed five failures, all fixed and deployed. The third
+  calibration passed; no session has yet finished a message on a real face. Sedation, delirium, weakness, tape over the
   face, poor light and camera placement will all cost accuracy. The next step is a labelled clip
   set from consenting volunteers, scored the way the generated one is.
 - The Indonesian strings have had one pass by the author, a native speaker; they and the
