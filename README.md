@@ -330,7 +330,9 @@ twice and learned five things from it.
 
 ## Privacy mode
 
-Toggle it per session or in settings. The same pipeline runs on open-weight models:
+On the hosted app, switch on "Open weights only" under "Try it on your own face": calibration and
+the session then run on Muse Spark Open. An operator can also make it the default in Settings. The
+same pipeline runs on open-weight models:
 
 - **Partner inference:** Muse Spark Open on Baseten (whose synchronous Model APIs fall under its
   zero-data-retention policy) or on Modal, so patient video need not touch a closed API.

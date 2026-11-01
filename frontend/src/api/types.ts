@@ -378,6 +378,10 @@ export interface PublicConfig {
   flags: Record<string, boolean>;
   mode: string;
   privacy_default: boolean;
+  /** Asking for privacy mode would get it: Muse Spark Open is configured and this browser may use it. */
+  privacy_available?: boolean;
+  /** Which open-weight models privacy mode uses here, e.g. "Muse Spark Open on Baseten". */
+  privacy_route?: string | null;
   language: Lang;
   keep_clips_for_evaluation: boolean;
   budget: Budget;
