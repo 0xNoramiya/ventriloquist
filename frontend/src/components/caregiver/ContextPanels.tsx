@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { api } from '../../api/client';
 import type { Evidence } from '../../api/types';
 import { useT, type Key } from '../../i18n';
-import { ago, cx } from '../../lib/format';
+import { cx, evidenceLabel } from '../../lib/format';
 import { Button } from '../Button';
 import { Notice, Select, Switch, inputClass } from '../Form';
 
@@ -15,10 +15,7 @@ function EvidenceRow({ e }: { e: Evidence }) {
       </span>
       <div className="min-w-0">
         <p className="leading-snug">{e.text}</p>
-        <p className="text-sm text-muted">
-          {t(`evidence.kind.${e.kind}` as Key)}
-          {e.minutes_ago !== null ? ` · ${ago(t, e.minutes_ago)}` : ''}
-        </p>
+        <p className="text-sm text-muted">{evidenceLabel(t, e)}</p>
       </div>
     </li>
   );

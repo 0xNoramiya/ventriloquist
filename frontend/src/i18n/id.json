@@ -341,6 +341,7 @@
   "evidence.kind.memory": "Memori",
   "evidence.kind.history": "Pesan sebelumnya",
   "evidence.kind.unknown": "Bukti",
+  "evidence.scripted": "Skenario",
   "time.just_now": "baru saja",
   "time.ago": "{m} menit lalu",
   "time.ago_h": "{h} jam lalu",

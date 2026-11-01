@@ -501,3 +501,19 @@ async def test_retracted_message_needs_no_acknowledgement(ctx):
     assert retracted.id not in [m.id for m in s.pending_ack()]
     await asyncio.sleep(0.4)
     assert not retracted.escalated
+
+
+async def test_scenario_evidence_is_marked_as_scripted(ctx):
+    """Issue #18: the console must not show a scenario's written facts as camera or room input."""
+    from app.roles import format_evidence
+
+    s = make_session(ctx, "daughter")
+    ctx.store.add_transcript(s.pid, s.id, "Nurse", "Shall I raise the head of the bed?")
+    await s.start()
+    items = s.evidence.to_list()
+    scripted = {e["kind"] for e in items if e.get("scripted")}
+    assert scripted == {"scene", "transcript", "event"}
+    live = [e for e in items if "raise the head" in e["text"]]
+    assert len(live) == 1 and "scripted" not in live[0]
+    assert "scripted" not in format_evidence(items)  # the models see the same text as before
+    await s.end()

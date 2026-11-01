@@ -12,6 +12,13 @@ import yaml
 from app.storage import Store
 
 DIR = Path(__file__).parent
+TAG = "_scn_"  # in the id of every row a scenario writes; new_id() never produces it
+
+
+def is_scripted(row_id: str | None) -> bool:
+    """True for evidence a scenario wrote in advance, not something the camera, the microphone
+    or a nurse supplied (issue #18)."""
+    return bool(row_id) and TAG in row_id
 
 
 def names() -> list[str]:
@@ -30,13 +37,15 @@ def apply(store: Store, scenario: dict[str, Any], pid: str, sid: str) -> None:
     """Insert the scenario's evidence with back-dated server timestamps."""
     now = datetime.now(UTC)
     ev = scenario.get("evidence") or {}
-    for t in ev.get("transcript") or []:
+    for i, t in enumerate(ev.get("transcript") or []):
         at = (now - timedelta(minutes=float(t.get("minutes_ago", 1)))).isoformat(
             timespec="milliseconds"
         )
-        store.add_transcript(pid, sid, t.get("speaker", "room"), t["text"], at=at)
-    for f in ev.get("scene") or []:
-        store.add_scene_fact(pid, sid, f, "scenario")
+        store.add_transcript(
+            pid, sid, t.get("speaker", "room"), t["text"], at=at, row_id=f"tr{TAG}{sid}_{i}"
+        )
+    for i, f in enumerate(ev.get("scene") or []):
+        store.add_scene_fact(pid, sid, f, "scenario", row_id=f"sc{TAG}{sid}_{i}")
     for e in ev.get("events") or []:
         at = (now - timedelta(minutes=float(e.get("minutes_ago", 1)))).isoformat(
             timespec="milliseconds"
@@ -44,7 +53,7 @@ def apply(store: Store, scenario: dict[str, Any], pid: str, sid: str) -> None:
         store.execute(
             "INSERT INTO events VALUES (?,?,?,?,?,?)",
             (
-                f"ev_{sid}_{e['kind']}_{int(e.get('minutes_ago', 0))}",
+                f"ev{TAG}{sid}_{e['kind']}_{int(e.get('minutes_ago', 0))}",
                 sid,
                 pid,
                 e["kind"],

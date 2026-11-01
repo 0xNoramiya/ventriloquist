@@ -47,6 +47,7 @@ from app.relay.channels import WhatsAppChannel
 from app.roles import Roles
 from app.safety.advice import message_problems
 from app.safety.sensitive import detect
+from app.scenarios import is_scripted
 from app.storage import Store, new_id, now_iso
 
 from .log import SessionLog
@@ -324,7 +325,7 @@ class Session:
         now = datetime.now(UTC)
         ev = EvidenceStore()
         for f in store.scene_facts(self.pid, self.id):
-            ev.add("scene", f["text"], f["created_at"], f["id"])
+            ev.add("scene", f["text"], f["created_at"], f["id"], **_origin(f["id"]))
         window = (
             now - timedelta(minutes=self.ctx.settings.raw["context"]["transcript_window_min"])
         ).isoformat()
@@ -335,13 +336,19 @@ class Session:
                 t["created_at"],
                 t["id"],
                 speaker=t["speaker"],
+                **_origin(t["id"]),
             )
         since_events = (now - timedelta(hours=12)).isoformat()
         for e in store.events(self.pid, since_events):
             label = e["label"] or e["kind"].replace("_", " ")
             mins = minutes_between(e["created_at"], now)
             ev.add(
-                "event", f"{label} ({_ago(mins)})", e["created_at"], e["id"], event_kind=e["kind"]
+                "event",
+                f"{label} ({_ago(mins)})",
+                e["created_at"],
+                e["id"],
+                event_kind=e["kind"],
+                **_origin(e["id"]),
             )
         since_hist = (now - timedelta(hours=48)).isoformat()
         for m in store.messages(self.pid, "confirmed")[-10:]:
@@ -1510,6 +1517,11 @@ class Session:
             "ended_at": now_iso(),
             "mode": str(self.mode),
         }
+
+
+def _origin(row_id: str) -> dict[str, Any]:
+    """Shown to the caregiver only: the text the models see is the same either way."""
+    return {"scripted": True} if is_scripted(row_id) else {}
 
 
 def _ago(minutes: float) -> str:
