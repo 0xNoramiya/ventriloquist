@@ -79,6 +79,9 @@ export default function Calibrate() {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [framing, setFraming] = useState<FramingResult | null>(null);
+  const framingOk = Boolean(
+    framing?.face_visible && framing.upper_body_visible && framing.lighting_ok,
+  );
   const [busy, setBusy] = useState<string | null>(null);
   const [counts, setCounts] = useState<Record<Label, number>>({
     rest: 0,
@@ -388,10 +391,14 @@ export default function Calibrate() {
                 ) : null}
                 <div className="flex flex-wrap gap-3">
                   <Button
-                    variant={framing ? 'primary' : 'secondary'}
+                    variant={framingOk ? 'primary' : 'secondary'}
                     onClick={() => setStep('record')}
                   >
-                    {framing ? t('cal.next') : t('cal.framing.skip')}
+                    {framingOk
+                      ? t('cal.next')
+                      : framing
+                        ? t('cal.framing.continue_anyway')
+                        : t('cal.framing.skip')}
                   </Button>
                 </div>
               </div>
