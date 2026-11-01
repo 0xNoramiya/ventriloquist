@@ -25,9 +25,10 @@ message aloud, in the first person, after the patient has confirmed it.
 
 **Not a medical device.** Not a substitute for the nurse call system, monitors or clinical judgment.
 No patient has used it, and every detector number below comes from generated media. The one real
-face it has met is the author's own, live on the deployment, in two sessions that broke in three
-ways. All three have fixes deployed, not yet re-tested on a face, and none of it is a measurement
-yet ([the detector](#detector)).
+face it has met is the author's own, live on the deployment. The first calibration and two sessions
+broke in three ways; recalibrated on the same face after those fixes, it broke in two more. All five
+have fixes deployed, the last two not yet re-tested on a face, and none of it is a measurement yet
+([the detector](#detector)).
 
 Solo entry by Rifqi, emergency medicine intern in Indonesia, for the Meta Global AI Developer
 Hackathon 2026 (Indie Developer track, "Build for Your World").
@@ -221,7 +222,7 @@ context), simulated patients needed 7.05 questions per message on day 1 and 6.63
 
 Real-patient detector numbers need labelled clips from consenting participants
 ([`eval/detector.py`](eval/detector.py), data in `data/labeled/`, never committed). None are recorded yet, so
-everything below is either generated media or one unscored run on a real face. What a scored set
+everything below is either generated media or two unscored runs on a real face. What a scored set
 takes is twenty minutes and one consenting adult ([`docs/RECORD_CLIPS.md`](docs/RECORD_CLIPS.md)).
 
 **Synthetic cartoon clips.** The pipeline runs end to end on them
@@ -267,18 +268,18 @@ well as accuracy, which is why the report gives every run:
 
 ![Generated patient and gestures](docs/img/generated-patient.jpg)
 
-**A real face, once.** The author's own, live on the deployment on 2026-10-31. It is the worst
-result in this repository and the most useful one.
+**A real face.** The author's own, live on the deployment on 2026-10-31, and recalibrated on
+2026-11-01. The first run is the worst result in this repository and the most useful one.
 
 The calibration failed. Muse Spark described YES as "raises eyebrows and opens eyes wide" and NO as
 "lowers eyebrows and holds eyes closed", then gave `eyebrows` as the SAM prompt for both, so SAM
 never watched the eyes, where NO happens:
 
-| Calibration leave-one-out accuracy | First real face | Generated clips |
-|---|---:|---:|
-| SAM 3.1 tracker | 0.00 | 0.75 |
-| Blind Muse Spark judge | 0.57 | 1.00 |
-| On-device optical flow | 0.44 | 0.33 |
+| Calibration leave-one-out accuracy | First real face | Same face, recalibrated | Generated clips |
+|---|---:|---:|---:|
+| SAM 3.1 tracker | 0.00 | 0.33 | 0.75 |
+| Blind Muse Spark judge | 0.57 | 0.43 | 1.00 |
+| On-device optical flow | 0.44 | 0.22 | 0.33 |
 
 The app said the two movements were hard to tell apart, but let the session start anyway; both
 answers came back UNCLEAR and the patient was handed to the caregiver. An earlier session, started
@@ -297,10 +298,35 @@ with their session logs in [#1](https://github.com/0xNoramiya/ventriloquist/issu
 [#2](https://github.com/0xNoramiya/ventriloquist/issues/2) and
 [#4](https://github.com/0xNoramiya/ventriloquist/issues/4).
 
+With those three live, the same face calibrated again on 2026-11-01 (the middle column) and failed
+again, for a new reason. SAM watched the eyes this time, but every source missed all three YES
+clips; the judge saw no eyebrow raise in any of them. The phone spoke the request, counted down
+three seconds and then recorded four, with no tone, so a quick YES was over before the clip began
+([#13](https://github.com/0xNoramiya/ventriloquist/issues/13)).
+
+The session that followed was meant to ask "What day and time is it?". Ten questions took 2
+minutes 7 seconds, a median of 11.8 s each against 13.3 s before. Seven of the ten answers were
+read correctly, at 0.71 to 0.93 confidence; two came back as no answer and one NO was read as YES.
+At that confidence an answer moves the odds only 2.5 to 6 times, and replaying the session through
+the engine with all ten read correctly still leaves "day and time" at 0.53, short of the 0.70 it
+needs before it asks to confirm. So the session reached the ten-question cap and handed over, with
+"what happened" (36%) and "day and time" (23%) on the caregiver screen, and no wrong message was
+spoken. The simulation predicts this: at 20% answer noise the engine finishes about 4% of messages
+and hands over about 80% ([`docs/EVAL.md`](docs/EVAL.md)).
+
+The logs also showed a near miss. The eye tracking added in [#5](https://github.com/0xNoramiya/ventriloquist/pull/5) counted blinks as repeated
+movements, and six of the ten answers reached three, the emergency count. Each scored 0.43 against
+the 0.50 alarm ([#14](https://github.com/0xNoramiya/ventriloquist/issues/14)). Two more pull
+requests followed: calibration clips start on the same tone as answers, and the phone now says
+"After the tone, please show me YES" ([#16](https://github.com/0xNoramiya/ventriloquist/pull/16));
+and only the YES movement, rising above the level seen at rest, counts toward an emergency
+([#15](https://github.com/0xNoramiya/ventriloquist/pull/15)). Both are deployed, not yet re-tested
+on a face.
+
 What this is not: a measurement. One face, one camera, one room, and clips are deleted after
-analysis by design, so the run cannot be replayed. Nothing above is scored against a labelled set
+analysis by design, so neither run can be replayed. Nothing above is scored against a labelled set
 of real clips, and until it is, the only honest claim about a real face is that the app has met one
-and learned three things from it.
+twice and learned five things from it.
 
 ## Privacy mode
 
@@ -381,8 +407,10 @@ history is the build log.
 ## Limitations and next steps
 
 - Needs clinical validation and ethics approval before any use with patients. Not a medical device.
-- The detector is untested on real patients and barely tested on real faces: two sessions on the
-  author's own, which exposed three failures. The fixes are deployed but not yet re-tested on a face. Sedation, delirium, weakness, tape over the
+- The detector is untested on real patients and barely tested on real faces: two calibrations and
+  three sessions on the author's own, which exposed five failures. All five fixes are deployed; the
+  last two ([#15](https://github.com/0xNoramiya/ventriloquist/pull/15),
+  [#16](https://github.com/0xNoramiya/ventriloquist/pull/16)) are not yet re-tested on a face. Sedation, delirium, weakness, tape over the
   face, poor light and camera placement will all cost accuracy. The next step is a labelled clip
   set from consenting volunteers, scored the way the generated one is.
 - The Indonesian strings have had one pass by the author, a native speaker; they and the
