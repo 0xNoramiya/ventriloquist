@@ -142,10 +142,10 @@ export const api = {
   }) => json<Snapshot>('/sessions', 'POST', body),
   start: (sid: string) => json<Snapshot>(`/sessions/${encodeURIComponent(sid)}/start`, 'POST'),
 
-  framing: (pid: string, image: Blob) =>
+  framing: (pid: string, image: Blob, privacy = false) =>
     upload<FramingResult>(
       `/calibration/${encodeURIComponent(pid)}/framing`,
-      { file: image },
+      { file: image, privacy: String(privacy) },
       `framing.${extFor(image)}`,
     ),
   calibrationClip: (pid: string, label: string, clip: Blob) =>
@@ -158,7 +158,7 @@ export const api = {
     request<{ counts: Record<string, number> }>(`/calibration/${encodeURIComponent(pid)}/clips`, {
       method: 'DELETE',
     }),
-  finalizeCalibration: (pid: string, body: { hint?: string; skip?: boolean }) =>
+  finalizeCalibration: (pid: string, body: { hint?: string; skip?: boolean; privacy?: boolean }) =>
     json<CalibrationSummary>(`/calibration/${encodeURIComponent(pid)}/finalize`, 'POST', body),
   editDescription: (pid: string, body: Record<string, unknown>) =>
     json<CalibrationSummary>(`/calibration/${encodeURIComponent(pid)}/description`, 'PUT', body),

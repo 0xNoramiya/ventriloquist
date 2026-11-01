@@ -66,11 +66,14 @@ const STEPS: Step[] = ['intro', 'framing', 'record', 'finalize', 'results'];
 export default function Calibrate() {
   const { pid } = useParams<{ pid: string }>();
   // From the landing page's "try it on your own face": the session gets that scenario's context.
-  const scenario = useSearchParams()[0].get('scenario');
+  const [params] = useSearchParams();
+  const scenario = params.get('scenario');
+  const privacy = params.get('privacy') === '1'; // from the landing page's open-weights switch
   const t = useT();
   const navigate = useNavigate();
   // In live mode the camera still reads answers without calibration (blind judge only).
-  const liveMode = useConfig().config?.mode === 'live';
+  const { config } = useConfig();
+  const liveMode = config?.mode === 'live';
   const [patient, setPatient] = useState<Patient | null>(null);
   const [step, setStep] = useState<Step>('intro');
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -129,7 +132,7 @@ export default function Calibrate() {
     setError(null);
     try {
       const frame = await grabFrame(videoRef.current);
-      setFraming(await api.framing(pid, frame));
+      setFraming(await api.framing(pid, frame, privacy));
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -185,10 +188,11 @@ export default function Calibrate() {
     setBusy(skip ? 'skip' : 'finalize');
     setError(null);
     try {
-      const res = await api.finalizeCalibration(
-        pid,
-        skip ? { skip: true, hint: hint || undefined } : { hint: hint || undefined },
-      );
+      const res = await api.finalizeCalibration(pid, {
+        hint: hint || undefined,
+        privacy,
+        ...(skip ? { skip: true } : {}),
+      });
       setResult(res);
       setStep('results');
       stopStream(stream);
@@ -204,7 +208,11 @@ export default function Calibrate() {
     if (!pid) return;
     setBusy('session');
     try {
-      const snap = await api.createSession({ patient_id: pid, scenario: scenario ?? undefined });
+      const snap = await api.createSession({
+        patient_id: pid,
+        privacy,
+        scenario: scenario ?? undefined,
+      });
       navigate(`/caregiver/${snap.session_id}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -221,6 +229,13 @@ export default function Calibrate() {
           <p className="text-sm text-muted">{patient ? patient.display_name : ' '}</p>
           <h1 className="text-[34px] font-bold">{t('cal.title')}</h1>
           <p className="mt-1 max-w-[62ch] text-lg text-ink-soft">{t('cal.lead')}</p>
+          {privacy ? (
+            <div className="mt-3 max-w-[62ch]">
+              <Notice tone="info">
+                {t('cal.privacy_note', { route: config?.privacy_route ?? '' })}
+              </Notice>
+            </div>
+          ) : null}
         </div>
 
         <ol className="flex flex-wrap gap-x-6 gap-y-2" aria-label={t('cal.progress')}>

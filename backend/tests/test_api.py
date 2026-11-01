@@ -307,6 +307,30 @@ def test_public_deployment_gives_visitors_mock_mode(public_client):
     assert c.post("/api/sessions", json={"patient_id": pid}).json()["mode"]["requested"] == "mock"
 
 
+def test_visitors_can_choose_privacy_mode_on_an_open_deployment(tmp_path):
+    """Issue #24: the landing page offers privacy mode when asking for it would get it."""
+    base = {
+        "app_mode": "live",
+        "model_api_key": "test-key",
+        "baseten_api_key": "test-key",
+        "live_passcode": "correct horse",
+    }
+    open_settings = load_settings().model_copy(
+        update={**base, "data_dir": tmp_path / "open", "public_live": True}
+    )
+    with TestClient(create_app(open_settings)) as c:
+        config = c.get("/api/config").json()
+        assert config["privacy_available"]
+        assert config["privacy_route"] == "Muse Spark Open on Baseten"
+        pid = c.post("/api/patients", json=PROFILE).json()["id"]
+        snap = c.post("/api/sessions", json={"patient_id": pid, "privacy": True}).json()
+        assert snap["mode"]["effective"] == "privacy"
+    guarded = load_settings().model_copy(update={**base, "data_dir": tmp_path / "guarded"})
+    with TestClient(create_app(guarded)) as c:
+        config = c.get("/api/config").json()  # a visitor without the passcode gets mock mode
+        assert not config["privacy_available"] and config["privacy_route"] is None
+
+
 def test_visitor_flags_follow_the_visitor_mode(public_client):
     """Flags belong to the mode the browser actually gets. The idle watch is free in mock mode and
     off by default in live mode (config.yaml), so a visitor without the passcode gets it on even

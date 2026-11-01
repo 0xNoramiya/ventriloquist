@@ -179,6 +179,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         tax = load_taxonomy()
         # the mode this browser gets (mock on a public deployment without the passcode)
         visitor = mode_for(request, False)
+        # what asking for privacy mode would get this browser (issue #24)
+        private = hub.resolve(mode_for(request, True))
         return {
             "engine": {
                 "tau_confirm": store.kv_get("tau_confirm", e.tau_confirm),
@@ -197,6 +199,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "flags": hub.flags(visitor),
             "mode": "mock" if visitor == Mode.MOCK else hub.app_mode(),
             "privacy_default": hub.privacy_default(),
+            "privacy_available": private.effective == Mode.PRIVACY,
+            "privacy_route": private.reason if private.effective == Mode.PRIVACY else None,
             "unlocked": bool(settings.live_passcode) and unlocked(request),
             "language": store.kv_get("language", settings.raw["app"]["default_language"]),
             "keep_clips_for_evaluation": bool(

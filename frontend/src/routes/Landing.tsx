@@ -140,6 +140,7 @@ export function Landing() {
   const navigate = useNavigate();
   const { config, error: configError } = useConfig();
   const [simulated, setSimulated] = useState(false);
+  const [openWeights, setOpenWeights] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [heroError, setHeroError] = useState<string | null>(null);
@@ -154,7 +155,8 @@ export function Landing() {
     setHeroError(null);
     try {
       const patient = await api.scenarioPatient('daughter');
-      navigate(`/calibrate/${patient.id}?scenario=daughter`);
+      const privacy = openWeights && config?.privacy_available ? '&privacy=1' : '';
+      navigate(`/calibrate/${patient.id}?scenario=daughter${privacy}`);
     } catch (e) {
       setHeroError(e instanceof Error ? e.message : String(e));
       setBusy(null);
@@ -196,6 +198,16 @@ export function Landing() {
             </LinkButton>
           </div>
           <p className="max-w-[60ch] text-[15px] text-ink-soft">{t('landing.cta_face_hint')}</p>
+          {config?.privacy_available ? (
+            <div className="max-w-[60ch]">
+              <Switch
+                checked={openWeights}
+                onChange={setOpenWeights}
+                label={t('landing.privacy')}
+                description={t('landing.privacy_hint', { route: config.privacy_route ?? '' })}
+              />
+            </div>
+          ) : null}
           {heroError ? <Notice tone="error">{heroError}</Notice> : null}
           <p className="max-w-[60ch] text-[15px] text-muted">
             <strong className="text-ink">{t('footer.not_device')}</strong>{' '}
