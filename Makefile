@@ -33,14 +33,14 @@ test:
 	cd frontend && npm run typecheck && npm test --silent
 
 lint:
-	cd backend && .venv/bin/ruff check app tests ../sim ../scripts && .venv/bin/ruff format --check app tests ../sim ../scripts
+	cd backend && .venv/bin/ruff check app tests ../eval ../scripts && .venv/bin/ruff format --check app tests ../eval ../scripts
 	cd frontend && npm run lint
 
 format:
-	cd backend && .venv/bin/ruff check --fix app tests ../sim ../scripts && .venv/bin/ruff format app tests ../sim ../scripts
+	cd backend && .venv/bin/ruff check --fix app tests ../eval ../scripts && .venv/bin/ruff format app tests ../eval ../scripts
 
 sim:
-	$(PY) -m sim.simulate
+	$(PY) -m eval.sim.simulate
 
 probe:
 	$(PY) scripts/probe_all.py
@@ -49,7 +49,7 @@ demo-mock:
 	$(PY) -m app.cli demo --scenario daughter
 
 eval-detector:
-	$(PY) scripts/eval_detector.py
+	$(PY) eval/detector.py
 
 letter-stats:
 	$(PY) scripts/build_letter_stats.py

@@ -24,7 +24,7 @@ COPY backend/ ./
 
 WORKDIR /app
 COPY config.yaml ./
-COPY sim/ sim/
+COPY eval/sim/ eval/sim/
 COPY docs/sim_results.json docs/learning_curve.json docs/
 COPY --from=web /web/dist frontend/dist
 

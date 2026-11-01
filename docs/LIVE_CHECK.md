@@ -1,6 +1,6 @@
 # Live check
 
-Last run 2026-10-26T18:21:28+00:00 with `scripts/live_check.py` against the real Meta Model API (`APP_MODE=live`). Fictional patients and synthetic media only. Cost of the last run: $0.171; all live-check runs in this data directory: $1.150.
+Last run 2026-10-26T18:21:28+00:00 with `eval/live_check.py` against the real Meta Model API (`APP_MODE=live`). Fictional patients and synthetic media only. Cost of the last run: $0.171; all live-check runs in this data directory: $1.150.
 
 ## Model roles
 

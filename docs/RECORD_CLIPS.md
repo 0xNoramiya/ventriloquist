@@ -48,7 +48,7 @@ ffmpeg -ss 0.5 -i IN.mp4 -t 4 -an -c:v libx264 -pix_fmt yuv420p data/labeled/yes
 ## Score them
 
 ```bash
-PYTHONPATH=backend:. backend/.venv/bin/python scripts/eval_detector.py \
+PYTHONPATH=backend:. backend/.venv/bin/python eval/detector.py \
   --mode live --data data/labeled --name REAL --runs 3 --verbose
 ```
 

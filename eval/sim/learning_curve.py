@@ -5,7 +5,7 @@ Each simulated patient has their own habits (base rates skewed by a log-normal f
 (Dirichlet, 3-day half-life), exactly as in the live system. No room context, so the curve isolates
 the effect of memory. Simulation, not clinical evidence.
 
-    python -m sim.learning_curve [--patients 300] [--noise 0.05]
+    python -m eval.sim.learning_curve [--patients 300] [--noise 0.05]
 """
 
 from __future__ import annotations

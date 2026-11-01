@@ -31,7 +31,7 @@ signal, so its label was ambiguous.
 The clips stay in `data/labeled_generated/` (gitignored), with a manifest of each clip's label and
 variation.
 
-Run it: `PYTHONPATH=backend:. backend/.venv/bin/python scripts/eval_detector.py --mode live
+Run it: `PYTHONPATH=backend:. backend/.venv/bin/python eval/detector.py --mode live
 --data data/labeled_generated --name GENERATED --verbose`.
 
 ## What the realistic face exposed
@@ -73,7 +73,7 @@ reads as NO.
 Run it:
 
 ```bash
-PYTHONPATH=backend:. backend/.venv/bin/python scripts/eval_detector.py \
+PYTHONPATH=backend:. backend/.venv/bin/python eval/detector.py \
   --mode live --data data/labeled_generated --name GENERATED --runs 3
 ```
 
