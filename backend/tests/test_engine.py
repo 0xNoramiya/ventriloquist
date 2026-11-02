@@ -209,7 +209,7 @@ def test_confirm_gating(seed, eps):
     prior, _ = build_prior(hyps)
     d = MessageDecider(hyps, prior, questions, CFG)
     act, trail = run_patient(d, truth, rng, eps)
-    assert d.n_questions <= CFG.max_questions
+    assert d.n_questions <= CFG.max_questions + 1  # + the one final confirmation (issue #32)
     if act.kind == ActionKind.FINALIZE:
         last, said_yes = trail[-1]
         assert last.kind == ActionKind.CONFIRM and said_yes
