@@ -177,7 +177,10 @@ export default function Patient() {
     const { event } = lastEvent;
     if ((event.type === 'reminder' || event.type === 'relay_reply') && event.text)
       speak(event.text, lang, settingsRef.current.rate);
-    if (event.type === 'acknowledged') speak(t('patient.ack.seen'), lang, settingsRef.current.rate);
+    if (event.type === 'acknowledged') {
+      const words = event.coming === false ? 'patient.ack.read' : 'patient.ack.seen';
+      speak(t(words), lang, settingsRef.current.rate);
+    }
   }, [started, lastEvent, lang, t]);
 
   // Emergency: say once, calmly, that help is coming.
@@ -407,7 +410,9 @@ function Stage({
                 last.acknowledged_at ? 'text-voice' : 'text-mist-soft',
               )}
             >
-              {last.acknowledged_at ? `✓ ${t('patient.ack.seen')}` : t('patient.ack.waiting')}
+              {last.acknowledged_at
+                ? `✓ ${t(last.ack_coming === false ? 'patient.ack.read' : 'patient.ack.seen')}`
+                : t('patient.ack.waiting')}
             </p>
           </>
         ) : null}

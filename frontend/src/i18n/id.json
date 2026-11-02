@@ -239,6 +239,7 @@
   "patient.done.last": "Pesan terakhir:",
   "patient.ack.waiting": "Menunggu perawat melihatnya.",
   "patient.ack.seen": "Perawat sudah melihat pesan Anda dan sedang datang.",
+  "patient.ack.read": "Perawat sudah melihat pesan Anda.",
   "patient.ended.title": "Sesi selesai",
   "patient.ended.body": "Terima kasih. Perawat dapat memulai sesi baru kapan saja.",
   "spell.to": "sampai",

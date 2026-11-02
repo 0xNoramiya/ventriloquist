@@ -239,6 +239,7 @@
   "patient.done.last": "Last message:",
   "patient.ack.waiting": "Waiting for a caregiver to see it.",
   "patient.ack.seen": "A caregiver has seen your message and is coming.",
+  "patient.ack.read": "A caregiver has seen your message.",
   "patient.ended.title": "Session ended",
   "patient.ended.body": "Thank you. A caregiver can start a new session any time.",
   "spell.to": "to",

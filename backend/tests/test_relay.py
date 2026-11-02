@@ -72,6 +72,9 @@ async def test_patient_says_yes_caregiver_approves_reply_is_read_aloud(ctx):
     assert relay.patient_text == "I want to see my daughter, Aisyah."
     assert await s.relay.approve(relay.id)
     assert s.messages[-1].acknowledged_at  # approving means a caregiver read the message
+    assert s.messages[-1].ack_coming is False  # and not that anyone is coming (issue #33)
+    ack = [e for e in events if e.get("type") == "acknowledged"]
+    assert ack and ack[-1]["coming"] is False
     await until(lambda: relay.status == "read_to_patient")
     spoken = [e for e in events if e.get("type") == "relay_reply"]
     assert spoken and spoken[0]["text"].startswith("Aisyah replied:")

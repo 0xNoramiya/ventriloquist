@@ -127,8 +127,10 @@ export interface PatientMessage {
   categories: string[];
   questions: number;
   at?: string;
-  /** A caregiver tapped "I'm coming". */
+  /** A caregiver tapped "I'm coming", or read it to approve a family message. */
   acknowledged_at?: string | null;
+  /** False when the acknowledgement only means a caregiver read it: nobody said they are coming. */
+  ack_coming?: boolean | null;
   /** Times the phone has said it. */
   announced?: number;
   /** Still unacknowledged after every repeat. */
@@ -256,6 +258,8 @@ export interface ServerEvent {
   text_en?: string;
   message_id?: string;
   urgent?: boolean;
+  /** For an acknowledgement: false when a caregiver read the message without saying they are coming. */
+  coming?: boolean;
 }
 
 export type ServerMessage =
