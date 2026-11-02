@@ -14,7 +14,7 @@ message aloud, in the first person, after the patient has confirmed it.
 
 |  |  |
 |---|---|
-| **Watch** | [The three-minute film](https://github.com/0xNoramiya/ventriloquist/releases/download/v0.2.0/ventriloquist-demo.mp4) (1080p, 80 MB). The patient is generated, and a generated voice stands in for the phone's browser speech, which a screen recording cannot capture |
+| **Watch** | [The three-minute film on YouTube](https://youtu.be/T7wxuwt0JrY) ([or download it](https://github.com/0xNoramiya/ventriloquist/releases/download/v0.2.0/ventriloquist-demo.mp4), 1080p, 80 MB). The patient is generated, and a generated voice stands in for the phone's browser speech, which a screen recording cannot capture |
 | **Use** | [ventriloquist.fly.dev](https://ventriloquist.fly.dev): the whole app on Meta's models, camera and all, or the same pipeline on open weights with privacy mode on. Open to everyone, no passcode |
 | **Read** | [how a question is chosen](backend/app/engine/eig.py) · [the fifteen safety rules](docs/SAFETY.md) · [what the models actually returned](docs/LIVE_CHECK.md) |
 
@@ -25,7 +25,12 @@ message aloud, in the first person, after the patient has confirmed it.
 
 **Not a medical device.** Not a substitute for the nurse call system, monitors or clinical judgment.
 No patient has used it, and every detector number below comes from generated media
-([the detector](#detector)).
+([the detector](#detector)). The only real face it has met is the author's: by the third
+calibration the blind judge read all seven held-out clips right, but no session has finished a
+message on a real face yet ([#1](https://github.com/0xNoramiya/ventriloquist/issues/1),
+[#4](https://github.com/0xNoramiya/ventriloquist/issues/4),
+[#13](https://github.com/0xNoramiya/ventriloquist/issues/13),
+[#14](https://github.com/0xNoramiya/ventriloquist/issues/14)).
 
 Solo entry by Rifqi, emergency medicine intern in Indonesia, for the Meta Global AI Developer
 Hackathon 2026 (Indie Developer track, "Build for Your World").
@@ -44,8 +49,8 @@ Hackathon 2026 (Indie Developer track, "Build for Your World").
    that follows. A blind judge that never sees the question checks the movement.
 4. When one message reaches 70%, it asks "Is this your message?". Only a YES that lifts it to 95%
    lets the phone speak. Then: "Did I say it right?"
-5. Anything not on the list gets spelled, with word completions. Three quick YES signals raise an
-   alarm from any screen.
+5. Anything not on the list gets spelled, with word completions. Three quick YES signals during
+   any question raise an alarm on every screen, and with the idle watch on, between questions too.
 6. All of it also runs on open weights. Privacy mode puts every role on **Muse Spark Open** on
    Baseten, and no patient video reaches a closed API. On the same 13 generated clips the detector
    reads 0.85 of the answer windows correctly against 0.87 on Muse Spark 1.3: one run against
@@ -79,7 +84,8 @@ tracheostomy patients reported 75% top-1 accuracy on phrases from the app's supp
 Orally intubated patients have a tube in the mouth, which makes lip reading harder still.
 
 So Ventriloquist does not read lips. It takes the yes/no conversation that already happens at the
-bedside, asks fewer questions to reach the message, and lets the patient start it at any time. Full
+bedside, asks fewer questions to reach the message, and, with the idle watch on, lets the patient
+start it without waiting to be asked. Full
 citations and quotes: [`docs/SOURCES.md`](docs/SOURCES.md).
 
 ## What it is, and what it is not
@@ -136,7 +142,7 @@ Details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Client protocol: [`docs
 
 | Model | Role in Ventriloquist |
 |---|---|
-| **Muse Spark 1.3** (Meta Model API) | Calibration describer (watches the YES/NO clips, names the movement, writes the SAM prompt); framing check; scene reader (bedside photo to facts, no identities); prior builder (evidence-cited multipliers and template messages); question proposer; blind answer judge on a crop around the patient's signal at 15 fps; spelling completer and sentence builder; sensitive-topic classifier; reader of relatives' WhatsApp replies (what the patient hears, and what a nurse must read first) |
+| **Muse Spark 1.3** (Meta Model API) | Calibration describer (watches the YES/NO clips, names the movement, writes the SAM prompt); framing check; scene reader (bedside photo to facts, no identities); prior builder (evidence-cited multipliers and template messages); question proposer; blind answer judge on a 15 fps crop around the patient's signal, which Meta's API samples at 8 frames per second; spelling completer and sentence builder; sensitive-topic classifier; reader of relatives' WhatsApp replies (what the patient hears, and what a nurse must read first) |
 | **SAM 3.1** (Meta Model API) | Tracks the patient's own signal (e.g. "eyebrows") across each answer clip; box geometry becomes features for DTW against the calibrated templates; boxes are drawn on the caregiver screen |
 | **Muse Voice Transcribe** | Diarized room transcript with family names as keywords and an Indonesian language bias (without it, Indonesian came back empty in our probes) |
 | **Muse Wonder** | Memory curator over the whole stay history (proposals with provenance, caregiver-approved) and memory selector before each session |
@@ -352,6 +358,10 @@ history is the build log.
 ## Limitations and next steps
 
 - Needs clinical validation and ethics approval before any use with patients. Not a medical device.
+- On the hosted app the idle watch is off, because every check between messages is a paid model
+  call. The phone watches the patient only while a question is open, so the patient cannot start a
+  message or raise the alarm between questions there; the caregiver's Emergency button works at any
+  time. An operator can turn it on in Settings.
 - The Indonesian strings have had one pass by the author, a native speaker; they and the
   sensitive-topic lists still need an ICU nurse's reading and a second native speaker
   ([`docs/I18N_REVIEW.md`](docs/I18N_REVIEW.md)). Indonesian transcription needs testing on real speech.
