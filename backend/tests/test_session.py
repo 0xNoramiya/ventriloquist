@@ -478,7 +478,7 @@ async def test_acknowledging_stops_reminders_and_tells_the_patient(ctx):
     assert not await s.acknowledge(msg.id)  # once
     await asyncio.sleep(0.5)
     assert not [e for e in events if e.get("type") == "reminder"]
-    assert {"type": "acknowledged", "message_id": msg.id} in events
+    assert {"type": "acknowledged", "message_id": msg.id, "coming": True} in events
     assert msg.acknowledged_at and not msg.escalated and s.pending_ack() == []
 
 

@@ -103,6 +103,7 @@ Each taxonomy message also has a direct question (e.g. "Apakah {hon} merasa saki
 | After the tone, please show me YES. (calibration) | Setelah bunyi nada, tolong tunjukkan YA. |
 | After the tone, please show me NO. (calibration) | Setelah bunyi nada, tolong tunjukkan TIDAK. |
 | After the tone, please show me YES three times, quickly. (calibration) | Setelah bunyi nada, tolong tunjukkan YA tiga kali, dengan cepat. |
+| A caregiver has seen your message. (a family message was approved) | Perawat sudah melihat pesan Anda. |
 
 ## Changes after the first review pass (2026-10-27)
 

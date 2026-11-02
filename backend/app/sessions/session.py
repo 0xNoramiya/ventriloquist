@@ -136,6 +136,9 @@ class Message:
     questions: int = 0
     at: str = field(default_factory=now_iso)
     acknowledged_at: str | None = None  # a caregiver tapped "I'm coming"
+    # False when the acknowledgement only means a caregiver read it (approving a family message):
+    # the patient is told it was seen, never that someone is coming (issue #33)
+    ack_coming: bool | None = None
     announced: int = 0  # times the phone has said it
     escalated: bool = False  # still unacknowledged after every repeat
 
@@ -1081,13 +1084,15 @@ class Session:
             return self.message
         return next((m for m in self.messages if m.id == message_id), None)
 
-    async def acknowledge(self, message_id: str) -> bool:
-        """A caregiver has seen the message and is coming; the patient's screen says so."""
+    async def acknowledge(self, message_id: str, coming: bool = True) -> bool:
+        """A caregiver has seen the message and, unless `coming` is False, is on the way; the
+        patient's screen says which."""
         async with self.lock:
             msg = self._find_message(message_id)
             if msg is None or msg.acknowledged_at is not None or msg.status == "retracted":
                 return False
             msg.acknowledged_at = now_iso()
+            msg.ack_coming = coming
             self.alerts = [
                 a
                 for a in self.alerts
@@ -1096,8 +1101,10 @@ class Session:
             task = self._ack_tasks.pop(message_id, None)
             if task is not None:
                 task.cancel()
-            self.log.write("message_ack", message_id=message_id, announced=msg.announced)
-        await self._notify({"type": "acknowledged", "message_id": message_id})
+            self.log.write(
+                "message_ack", message_id=message_id, announced=msg.announced, coming=coming
+            )
+        await self._notify({"type": "acknowledged", "message_id": message_id, "coming": coming})
         return True
 
     def pending_ack(self) -> list[Message]:

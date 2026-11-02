@@ -174,7 +174,8 @@ class RelayAgent:
         if relay is None or relay.status != "awaiting_approval":
             return False
         relay.note("approved")
-        await self.s.acknowledge(relay.message_id)  # the caregiver has read the message
+        # the caregiver has read the message, which says nothing about coming to the bed
+        await self.s.acknowledge(relay.message_id, coming=False)
         await self._send(relay)
         return True
 
