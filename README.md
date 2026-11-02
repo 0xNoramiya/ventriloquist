@@ -205,17 +205,22 @@ and compares five strategies under identical conditions. **Simulation, not clini
 
 ![Mean questions per message](docs/img/sim_mean_questions.svg)
 
-At 10% answer noise with strong context, EIG with context finalized in **4.89** questions on average
-(including the confirmation) against **6.41** for a fixed-order board, with 67.2% vs 54.8% of
-messages correct within the 10-question cap, and fewer wrong messages finalized (0.5% vs 2.6%).
-That is the best case. With no room context, EIG does no better than the board at the same noise:
-6.60 questions against 6.23, and 57.0% correct against 54.8%. The gain comes from context and
-memory, not from the question order alone. Under heavy noise the engine hands over to the caregiver
-instead of guessing. Every table:
-[`docs/EVAL.md`](docs/EVAL.md).
+At 10% answer noise with strong context, EIG with context finalized in **5.05** questions on average
+(including the confirmation) against **6.41** for a fixed-order board, with 68.8% vs 54.8% of
+messages correct within the cap, and fewer wrong messages finalized (0.8% vs 2.6%). That is the
+best case. With no room context, EIG does no better than the board at the same noise: 6.82
+questions against 6.23, and 58.7% correct against 54.8%. The gain comes from context and memory,
+not from the question order alone. Under heavy noise the engine hands over to the caregiver instead
+of guessing. Every table: [`docs/EVAL.md`](docs/EVAL.md).
+
+The film shows 4.89 questions and 67.2%, measured before a message that the tenth answer leaves
+ready to confirm got one last "Is this your message?" instead of a handover
+([#32](https://github.com/0xNoramiya/ventriloquist/issues/32)). That rule finishes 1.5 to 3 points
+more messages in every noisy cell. The average per finished message rises because the messages it
+rescues finish on the eleventh question.
 
 Memory compounds, modestly: with personal base rates learned from confirmed messages (no room
-context), simulated patients needed 7.05 questions per message on day 1 and 6.63 by day 10.
+context), simulated patients needed 7.02 questions per message on day 1 and 6.64 by day 10.
 
 ![Learning curve](docs/img/learning_curve.svg)
 

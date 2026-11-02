@@ -21,6 +21,7 @@ from .posterior import bayes_update, confirm_no, effective_error_rates, normaliz
 from .questions import Scored, score_questions, yes_matrix
 from .taxonomy import confirm_question, spell_offer_question
 from .types import (
+    META_IDS,
     META_OTHER,
     META_SPELL,
     META_STOP,
@@ -107,6 +108,7 @@ class MessageDecider:
         self.unclear_streak = 0
         self.confirm_no_high = 0
         self.spell_offers = 0
+        self.final_confirm = False  # the one confirmation allowed past the cap (issue #32)
         self.pending: Action | None = None
         self.turns: list[Turn] = []
         self.finalized: Hypothesis | None = None
@@ -159,9 +161,14 @@ class MessageDecider:
 
     def next_action(self) -> Action:
         cfg = self.cfg
-        if self.n_questions >= cfg.max_questions:
-            return self._set(Action(ActionKind.CAREGIVER, reason="question_cap"))
         top_h, p_top = self.top(1)[0]
+        if self.n_questions >= cfg.max_questions:
+            # A message the last answer made ready to confirm gets that one question before the
+            # handover, so the patient can still say YES to it (issue #32).
+            if not self.final_confirm and p_top >= cfg.tau_confirm and top_h.id not in META_IDS:
+                self.final_confirm = True
+                return self._confirm(top_h)
+            return self._set(Action(ActionKind.CAREGIVER, reason="question_cap"))
         if p_top >= cfg.tau_confirm:
             if top_h.id != META_OTHER:
                 return self._confirm(top_h)
