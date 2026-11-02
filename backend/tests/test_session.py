@@ -114,7 +114,7 @@ async def test_snapshot_explains_every_guess_and_every_model_call(ctx):
     for step in snap["trail"]:
         assert {"n", "kind", "answer", "confidence", "overridden", "sources"} <= set(step)
         assert step["sources"]
-    assert snap["questions"] <= snap["max_questions"]
+    assert snap["questions"] <= snap["max_questions"] + 1  # + the final confirmation (#32)
     assert isinstance(snap["rejected"], list)
     assert all(
         {"role", "provider", "model", "latency_ms", "usd"} <= set(c) for c in snap["llm_calls"]

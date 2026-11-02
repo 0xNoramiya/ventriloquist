@@ -209,7 +209,7 @@ def test_confirm_gating(seed, eps):
     prior, _ = build_prior(hyps)
     d = MessageDecider(hyps, prior, questions, CFG)
     act, trail = run_patient(d, truth, rng, eps)
-    assert d.n_questions <= CFG.max_questions
+    assert d.n_questions <= CFG.max_questions + 1  # + the one final confirmation (issue #32)
     if act.kind == ActionKind.FINALIZE:
         last, said_yes = trail[-1]
         assert last.kind == ActionKind.CONFIRM and said_yes
@@ -292,7 +292,41 @@ def test_question_cap():
         act = d.observe(yes(0.55) if rng.random() < 0.5 else no(0.55))
         if act.kind == ActionKind.ENTER_SPELLING:
             break
-    assert d.n_questions <= CFG.max_questions
+    assert d.n_questions <= CFG.max_questions + 1  # + the one final confirmation (issue #32)
+
+
+def _at_cap(p_top: float) -> tuple[MessageDecider, str]:
+    hyps, questions = taxonomy_setup()
+    prior, _ = build_prior(hyps)
+    d = MessageDecider(hyps, prior, questions, CFG)
+    target = d.ids.index("thirst")
+    rest = (1.0 - p_top) / (len(d.ids) - 1)
+    d.p = np.full(len(d.ids), rest)
+    d.p[target] = p_top
+    d.n_questions = CFG.max_questions
+    return d, "thirst"
+
+
+def test_a_message_ready_to_confirm_gets_one_question_past_the_cap():
+    """Issue #32: the cap handed over messages at 0.77 and 0.85 without asking the patient."""
+    d, hid = _at_cap(0.8)
+    act = d.next_action()
+    assert act.kind == ActionKind.CONFIRM and act.hypothesis.id == hid
+    assert d.observe(yes(0.97)).kind == ActionKind.FINALIZE
+    assert d.n_questions == CFG.max_questions + 1
+
+
+def test_the_cap_still_holds_after_the_final_confirmation():
+    d, _ = _at_cap(0.8)
+    d.next_action()
+    act = d.observe(no(0.97))
+    assert act.kind == ActionKind.CAREGIVER and act.reason == "question_cap"
+    d, _ = _at_cap(0.8)
+    d.next_action()
+    act = d.observe(yes(0.6))  # not enough to speak, and no second final confirmation
+    assert act.kind == ActionKind.CAREGIVER and act.reason == "question_cap"
+    d, _ = _at_cap(0.6)  # below tau_confirm: straight to the caregiver, as before
+    assert d.next_action().reason == "question_cap"
 
 
 def test_no_identical_question_repeats():
