@@ -20,7 +20,7 @@ below exist to keep it that way, and each one is enforced in code and covered by
 | 4 | Confirm before speaking | the policy finalizes only after a confirmation answered YES that lifts the posterior to at least 0.95; the state machine only reaches SPEAKING from PROCESSING (finalized) or CAREGIVER_NEEDED (acknowledged) | `test_confirm_gating` (property test), `test_nothing_spoken_before_confirmation_yes`, `test_speaking_only_reachable_from_processing_or_caregiver` |
 | 5 | Verify after speaking | "Did I say it right?" after every spoken message; NO marks it retracted on the caregiver screen and resumes; two retractions hand over to the caregiver | `test_post_speak_retraction`, `test_post_speak_retraction_resumes` |
 | 6 | Emergency path always active | triple YES within 4 s (detector repetition count, blind judge class, or keyboard E), or the caregiver button, from any state, including a judge verdict that arrives after an early decision on the tracker: full-screen alarm, loud tone, "The patient needs help now."; false alarms are accepted | `test_emergency_from_every_state`, `test_emergency_reachable_from_every_state`, `test_triple_yes_observation_triggers_alarm`, `test_late_judge_emergency_raises_alarm`, `test_emergency_bypasses_engine` |
-| 7 | Blind judging | the Spark judge receives only the clip and the patient's calibrated signal description (`roles.judge`); clips are uploaded with a prompt id, never the question text | `test_meta_vision_language_request_and_response` checks the request body |
+| 7 | Blind judging | the Spark judge receives only the clip and the patient's calibrated signal description (`roles.judge`); clips are uploaded with a prompt id, never the question text | `test_the_judge_request_holds_only_the_clip_and_the_signals`, `test_the_judge_cannot_be_given_the_question` |
 | 8 | Bounded priors | before any answer: no message above 0.40, "something else" at least 0.08, every message at least 0.005; LLM multipliers only from {0.25, 0.5, 2, 4}, each must cite evidence, product clipped to [0.1, 8]; personal factor clipped to [0.5, 3] | `test_bounds_hold_against_adversarial_inputs`, `test_build_prior_bounded_with_adversarial_multipliers`, `test_uncited_multiplier_forced_to_one` |
 | 9 | Fatigue and consistency | at most 10 questions per message (confirmations and re-asks count), plus one final confirmation when the tenth answer leaves a message at or above 0.70, so a message ready to confirm is never handed over unasked; 3 unclear answers in a row, or 2 confirmation NOs on messages above 0.9, pause with "Responses unclear. Please check with the patient in person."; no condition is ever named; spelling has its own caps (80 prompts, 3 sentence rounds) | `test_question_cap`, `test_a_message_ready_to_confirm_gets_one_question_past_the_cap`, `test_the_cap_still_holds_after_the_final_confirmation`, `test_two_high_confirmation_nos_pause`, `test_unclear_three_times_hands_to_caregiver`, `test_spelling_loop_is_capped` |
 | 10 | Human override everywhere | caregiver YES / NO / UNCLEAR, skip, spell, pause, resume, new message, end; overrides are logged and carry a badge in the trail; while the alarm is active only acknowledge and end are accepted | `test_caregiver_override_applies_and_is_badged`, `test_monkey.py` (random patient answers and caregiver actions in strict mode: no invalid transition, nothing spoken without a confirmation YES or acknowledgement; 300 seeds checked, 40 in the default suite) |
@@ -45,8 +45,11 @@ as specific personal data.
 
 ## Known limits
 
-- The detector has only been evaluated on synthetic cartoon clips (`docs/DETECTOR_EVAL_SYNTHETIC.md`).
-  Real patients with sedation, delirium, weakness, poor lighting or a taped face will be harder.
+- The detector has been scored only on generated media: synthetic cartoon clips
+  (`docs/DETECTOR_EVAL_SYNTHETIC.md`) and 13 generated photoreal clips of one fictional patient, with
+  the fixes tuned on those same clips (`docs/DETECTOR_DATA_GENERATED.md`). The only real face it has
+  met is the author's, which has calibrated but not finished a message. Real patients with sedation,
+  delirium, weakness, poor lighting or a taped face will be harder.
 - The sensitive keyword lists need review by ICU clinicians and native Indonesian speakers.
 - Base rates are starting guesses, not clinical data.
 - The simulation results in `docs/EVAL.md` compare strategies under simulated patients; they are not
