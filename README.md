@@ -8,7 +8,8 @@
 A phone on the bed rail gives a voice to awake ICU patients who cannot speak because of a breathing
 tube or tracheostomy. It asks the yes/no question that narrows things down fastest, reads whatever
 movement the patient can make (raised eyebrows, a long blink, a finger lift), and only speaks a
-message aloud, in the first person, after the patient has confirmed it.
+message aloud, in the first person, after the patient has confirmed it. It never diagnoses or gives
+advice: Meta's models see, hear and propose, and plain code decides what to ask and when to speak.
 
 ### Start here
 
@@ -17,6 +18,15 @@ message aloud, in the first person, after the patient has confirmed it.
 | **Watch** | [The three-minute film on YouTube](https://youtu.be/T7wxuwt0JrY) ([or download it](https://github.com/0xNoramiya/ventriloquist/releases/download/v0.2.0/ventriloquist-demo.mp4), 1080p, 80 MB). The patient is generated, and a generated voice stands in for the phone's browser speech, which a screen recording cannot capture |
 | **Use** | [ventriloquist.fly.dev](https://ventriloquist.fly.dev): the whole app on Meta's models, camera and all, or the same pipeline on open weights with privacy mode on. Open to everyone, no passcode |
 | **Read** | [how a question is chosen](backend/app/engine/eig.py) · [the fifteen safety rules](docs/SAFETY.md) · [what the models actually returned](docs/LIVE_CHECK.md) |
+
+### Hackathon entry
+
+|  |  |
+|---|---|
+| **Entry** | Meta Global AI Developer Hackathon 2026, Indie Developer track, "Build for Your World". Solo, by Rifqi, an emergency medicine intern in Indonesia |
+| **Built** | From scratch in the hackathon window. Kickoff was 2026-10-26 16:00 UTC, the first commit landed at 17:04 UTC, and [the commit history](https://github.com/0xNoramiya/ventriloquist/commits/main) is the build log |
+| **Meta models at runtime** | Muse Spark 1.3, SAM 3.1, Muse Voice Transcribe and Muse Wonder on the Meta Model API, and Muse Spark Open on Baseten ([what each one does](#meta-models-and-what-each-one-does)) |
+| **Bonus prizes** | **Best Build on Meta Open Weight Models**: privacy mode moves every Muse Spark role to Muse Spark Open on Baseten, and reads 0.85 of answers right against 0.87 on the closed model ([numbers](#privacy-mode)). **Best Agentic Use-Case**: an agent carries a confirmed message to a relative on WhatsApp, tracks delivery, and screens the reply before the patient hears it. The relative is simulated until a WhatsApp Business account is connected ([how](#when-nobody-is-in-the-room)) |
 
 > **Why the name.** "Vent" is ICU shorthand for a ventilator. In a bad version of this idea the
 > machine is the ventriloquist: it guesses, and puts words in a silent patient's mouth. Ventriloquist
@@ -31,9 +41,6 @@ message on a real face yet ([#1](https://github.com/0xNoramiya/ventriloquist/iss
 [#4](https://github.com/0xNoramiya/ventriloquist/issues/4),
 [#13](https://github.com/0xNoramiya/ventriloquist/issues/13),
 [#14](https://github.com/0xNoramiya/ventriloquist/issues/14)).
-
-Solo entry by Rifqi, emergency medicine intern in Indonesia, for the Meta Global AI Developer
-Hackathon 2026 (Indie Developer track, "Build for Your World").
 
 ---
 
