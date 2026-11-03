@@ -15,7 +15,7 @@ advice: Meta's models see, hear and propose, and plain code decides what to ask 
 
 |  |  |
 |---|---|
-| **Watch** | [The film, 2:55](https://github.com/0xNoramiya/ventriloquist/releases/download/v0.3.0/ventriloquist-demo.mp4) (1080p): the running app on live Meta models, the Meta stack, then the numbers. The patient is generated, and a generated voice stands in for the phone's browser speech, which a screen recording cannot capture. An [earlier 3:00 cut](https://youtu.be/T7wxuwt0JrY) streams on YouTube |
+| **Watch** | [The film, 2:55](https://youtu.be/E3SYIP_EP6o) on YouTube, or [download it](https://github.com/0xNoramiya/ventriloquist/releases/download/v0.3.0/ventriloquist-demo.mp4) (1080p): the running app on live Meta models, the Meta stack, then the numbers. The patient is generated, and a generated voice stands in for the phone's browser speech, which a screen recording cannot capture |
 | **Use** | [ventriloquist.fly.dev](https://ventriloquist.fly.dev): the whole app on Meta's models, camera and all, or the same pipeline on open weights with privacy mode on. Open to everyone, no passcode |
 | **Read** | [how a question is chosen](backend/app/engine/eig.py) · [the fifteen safety rules](docs/SAFETY.md) · [what the models actually returned](docs/LIVE_CHECK.md) |
 
@@ -229,8 +229,7 @@ of guessing. Every table: [`docs/EVAL.md`](docs/EVAL.md).
 When the tenth answer leaves a message ready to confirm, the phone asks "Is this your message?" once
 more instead of handing over ([#32](https://github.com/0xNoramiya/ventriloquist/issues/32)). That
 rule finishes 1.5 to 3 points more messages in every noisy cell. The average per finished message
-rises a little, because the messages it rescues finish on the eleventh question. The earlier YouTube
-cut of the film predates the rule and shows 4.89 questions.
+rises a little, because the messages it rescues finish on the eleventh question.
 
 Memory compounds, modestly: with personal base rates learned from confirmed messages (no room
 context), simulated patients needed 7.02 questions per message on day 1 and 6.64 by day 10.
