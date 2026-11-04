@@ -37,8 +37,9 @@ advice: Meta's models see, hear and propose, and plain code decides what to ask 
 No patient has used it, and every detector number below comes from generated media
 ([the detector](#detector)). The only real person it has met is the author. On 2026-11-04 a live
 session on the hosted app finished a message from the author's own hand signals (YES a raised
-finger, NO a fist) in 8 questions, confirmed again after it was spoken; SAM 3.1 and the blind judge
-disagreed on 3 of 9 answers, and each time the phone asked again
+finger, NO a fist) in 8 questions, confirmed again after it was spoken. SAM 3.1's reading differed
+from the blind judge's on 6 of 9 answers: the three where both were confident made the phone ask
+again, and the judge, right every time, decided the rest
 ([#48](https://github.com/0xNoramiya/ventriloquist/issues/48)). Earlier attempts with eyebrow and eye
 signals never finished one ([#1](https://github.com/0xNoramiya/ventriloquist/issues/1),
 [#4](https://github.com/0xNoramiya/ventriloquist/issues/4),
@@ -224,7 +225,8 @@ and compares five strategies under identical conditions. **Simulation, not clini
 At 10% answer noise with strong context, EIG with context finalized in **5.05** questions on average
 (including the confirmation) against **6.41** for a fixed-order board, with 68.8% vs 54.8% of
 messages correct within the cap, and fewer wrong messages finalized (0.8% vs 2.6%). That is the
-best case. With no room context, EIG does no better than the board at the same noise: 6.82
+best case, and its context is assumed: the simulation gives the true message a x4 evidence factor in
+80% of trials. How often Muse Spark's real reading of a room does that has not been measured. With no room context, EIG does no better than the board at the same noise: 6.82
 questions against 6.23, and 58.7% correct against 54.8%. The gain comes from context and memory,
 not from the question order alone. Under heavy noise the engine hands over to the caregiver instead
 of guessing. Every table: [`docs/EVAL.md`](docs/EVAL.md).
