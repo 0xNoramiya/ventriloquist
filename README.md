@@ -35,9 +35,12 @@ advice: Meta's models see, hear and propose, and plain code decides what to ask 
 
 **Not a medical device.** Not a substitute for the nurse call system, monitors or clinical judgment.
 No patient has used it, and every detector number below comes from generated media
-([the detector](#detector)). The only real face it has met is the author's: by the third
-calibration the blind judge read all seven held-out clips right, but no session has finished a
-message on a real face yet ([#1](https://github.com/0xNoramiya/ventriloquist/issues/1),
+([the detector](#detector)). The only real person it has met is the author. On 2026-11-04 a live
+session on the hosted app finished a message from the author's own hand signals (YES a raised
+finger, NO a fist) in 8 questions, confirmed again after it was spoken; SAM 3.1 and the blind judge
+disagreed on 3 of 9 answers, and each time the phone asked again
+([#48](https://github.com/0xNoramiya/ventriloquist/issues/48)). Earlier attempts with eyebrow and eye
+signals never finished one ([#1](https://github.com/0xNoramiya/ventriloquist/issues/1),
 [#4](https://github.com/0xNoramiya/ventriloquist/issues/4),
 [#13](https://github.com/0xNoramiya/ventriloquist/issues/13),
 [#14](https://github.com/0xNoramiya/ventriloquist/issues/14)).

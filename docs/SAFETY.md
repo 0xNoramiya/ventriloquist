@@ -47,8 +47,10 @@ as specific personal data.
 
 - The detector has been scored only on generated media: synthetic cartoon clips
   (`docs/DETECTOR_EVAL_SYNTHETIC.md`) and 13 generated photoreal clips of one fictional patient, with
-  the fixes tuned on those same clips (`docs/DETECTOR_DATA_GENERATED.md`). The only real face it has
-  met is the author's, which has calibrated but not finished a message. Real patients with sedation,
+  the fixes tuned on those same clips (`docs/DETECTOR_DATA_GENERATED.md`). The only real person it has
+  met is the author: one live session finished a message from hand signals
+  ([#48](https://github.com/0xNoramiya/ventriloquist/issues/48)), but SAM 3.1 barely told a raised
+  finger from a fist, so the blind judge carried the answers. Real patients with sedation,
   delirium, weakness, poor lighting or a taped face will be harder.
 - The sensitive keyword lists need review by ICU clinicians and native Indonesian speakers.
 - Base rates are starting guesses, not clinical data.
