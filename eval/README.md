@@ -41,8 +41,10 @@ Open. `--runs N` scores every clip N times on one calibration, because the judge
 and one pass over a small set reports luck as much as accuracy.
 
 Clips are never committed. What exists today is generated video
-([`docs/DETECTOR_DATA_GENERATED.md`](../docs/DETECTOR_DATA_GENERATED.md)) and one unscored run on a
-real face; a labelled set from a consenting adult takes twenty minutes
+([`docs/DETECTOR_DATA_GENERATED.md`](../docs/DETECTOR_DATA_GENERATED.md)) and unscored live sessions
+with the author, one of which finished a message
+([#48](https://github.com/0xNoramiya/ventriloquist/issues/48)); a labelled set from a consenting
+adult takes twenty minutes
 ([`docs/RECORD_CLIPS.md`](../docs/RECORD_CLIPS.md)).
 
 ## The live check
