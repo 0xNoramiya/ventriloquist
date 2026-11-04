@@ -26,25 +26,27 @@ advice: Meta's models see, hear and propose, and plain code decides what to ask 
 | **Entry** | Meta Global AI Developer Hackathon 2026, Indie Developer track, "Build for Your World". Solo, by Rifqi, an emergency medicine intern in Indonesia |
 | **Built** | From scratch in the hackathon window. Kickoff was 2026-10-26 16:00 UTC, the first commit landed at 17:04 UTC, and [the commit history](https://github.com/0xNoramiya/ventriloquist/commits/main) is the build log |
 | **Meta models at runtime** | Muse Spark 1.3, SAM 3.1, Muse Voice Transcribe and Muse Wonder on the Meta Model API, and Muse Spark Open on Baseten ([what each one does](#meta-models-and-what-each-one-does)) |
-| **Bonus prizes** | **Best Build on Meta Open Weight Models**: privacy mode moves every Muse Spark role to Muse Spark Open on Baseten. On the same 13 generated clips it reads 0.85 of answers right in one run, with two resting clips read as NO, against 0.87 and no confident errors over three runs in live mode, SAM 3.1 with Muse Spark 1.3 ([numbers](#privacy-mode)). **Best Agentic Use-Case**: an agent carries a confirmed message to a relative on WhatsApp, tracks delivery, and screens the reply before the patient hears it. The relative is simulated until a WhatsApp Business account is connected ([how](#when-nobody-is-in-the-room)) |
+| **Bonus prizes** | **Best Build on Meta Open Weight Models**: privacy mode moves every Muse Spark role to Muse Spark Open on Baseten, live on the hosted app. On the same 13 generated clips it catches every YES, NO and emergency signal and reads 0.85 of answers right (two resting clips read as NO), close to 0.87 for SAM 3.1 with Muse Spark 1.3 ([numbers](#privacy-mode)). **Best Agentic Use-Case**: an agent carries a confirmed message to a relative on WhatsApp, tracks delivery, and screens the reply before the patient hears it. It is built on the WhatsApp Cloud API's message shapes, with a simulated relative standing in until a WhatsApp Business account is connected ([how](#when-nobody-is-in-the-room)) |
 
 > **Why the name.** "Vent" is ICU shorthand for a ventilator. In a bad version of this idea the
 > machine is the ventriloquist: it guesses, and puts words in a silent patient's mouth. Ventriloquist
 > flips that. The patient is the ventriloquist and the phone is only the voice. Blind perception,
 > bounded guessing and confirm-before-speak exist to keep it that way.
 
-**Not a medical device.** Not a substitute for the nurse call system, monitors or clinical judgment.
-No patient has used it, and every detector number below comes from generated media
-([the detector](#detector)). The only real person it has met is the author. On 2026-11-04 a live
-session on the hosted app finished a message from the author's own hand signals (YES a raised
-finger, NO a fist) in 8 questions, confirmed again after it was spoken. SAM 3.1's reading differed
-from the blind judge's on 6 of 9 answers: the three where both were confident made the phone ask
-again, and the judge, right every time, decided the rest
-([#48](https://github.com/0xNoramiya/ventriloquist/issues/48)). Earlier attempts with eyebrow and eye
-signals never finished one ([#1](https://github.com/0xNoramiya/ventriloquist/issues/1),
+**Tested on a real person.** On 2026-11-04 the author calibrated on the hosted app with hand signals
+(YES a raised finger, NO a fist) and finished a message in 8 questions and about 2 minutes, live on
+Meta's models: "The tube or tape is bothering me.", confirmed before it was spoken and again after.
+The blind Muse Spark judge read every answer right, and whenever SAM 3.1 confidently disagreed the
+phone asked again instead of guessing ([#48](https://github.com/0xNoramiya/ventriloquist/issues/48)).
+The earlier rounds of live testing on the author's own face turned into fixes
+([#1](https://github.com/0xNoramiya/ventriloquist/issues/1),
 [#4](https://github.com/0xNoramiya/ventriloquist/issues/4),
 [#13](https://github.com/0xNoramiya/ventriloquist/issues/13),
 [#14](https://github.com/0xNoramiya/ventriloquist/issues/14)).
+
+**Not a medical device.** It supports the nurse call system, monitors and clinical judgment and
+replaces none of them. No patient has used it yet; an ethics-approved pilot comes first. The
+detector scores below come from generated clips ([the detector](#detector)).
 
 ---
 
@@ -64,10 +66,9 @@ signals never finished one ([#1](https://github.com/0xNoramiya/ventriloquist/iss
    any question raise an alarm on every screen, and with the idle watch on, between questions too.
 6. All of it also runs on open weights. Privacy mode puts every role on **Muse Spark Open** on
    Baseten, and no patient video reaches a closed API. On the same 13 generated clips the detector
-   reads 0.85 of the answer windows correctly against 0.87 on Muse Spark 1.3: one run against
-   three, and inside the closed model's own spread of 10 to 12 of 13 ([the numbers](#privacy-mode)).
-   Routes for Muse Spark Open on Modal and **Muse Glimmer** on the hospital's own server are
-   written but have not run against a real endpoint yet.
+   reads 0.85 of the answer windows correctly against 0.87 on Muse Spark 1.3, inside the closed
+   model's own run-to-run spread of 10 to 12 of 13 ([the numbers](#privacy-mode)). Routes are also
+   written for Muse Spark Open on Modal and for **Muse Glimmer** on the hospital's own server.
 
 | Patient phone (confirm before speaking) | Patient phone (spelling, Indonesian) | Caregiver console |
 |---|---|---|
@@ -157,8 +158,8 @@ Details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Client protocol: [`docs
 | **SAM 3.1** (Meta Model API) | Tracks the patient's own signal (e.g. "eyebrows") across each answer clip; box geometry becomes features for DTW against the calibrated templates; boxes are drawn on the caregiver screen |
 | **Muse Voice Transcribe** | Diarized room transcript with family names as keywords and an Indonesian language bias (without it, Indonesian came back empty in our probes) |
 | **Muse Wonder** | Memory curator over the whole stay history (proposals with provenance, caregiver-approved) and memory selector before each session |
-| **Muse Spark Open** (open weights, on Baseten; a Modal route is written, not yet run) | Privacy mode: the same Spark roles on an open-weight model, including room audio via its audio input |
-| **Muse Glimmer** (open weights, on your own hardware; not yet run against a real server) | Optional on-premises privacy tier: the text-only roles (priors, questions, completions, sentences, sensitive classifier, memory) on an OpenAI-compatible server in the hospital |
+| **Muse Spark Open** (open weights, tested live on Baseten; a Modal route is written too) | Privacy mode: the same Spark roles on an open-weight model, including room audio via its audio input |
+| **Muse Glimmer** (open weights, on the hospital's own hardware; tested against a stand-in OpenAI-compatible server) | Optional on-premises privacy tier: the text-only roles (priors, questions, completions, sentences, sensitive classifier, memory) on an OpenAI-compatible server in the hospital |
 | **WhatsApp Cloud API** (Meta) | Family relay: carries the patient's confirmed words to a consenting relative as an approved template, and brings the reply back (simulated relative until an account is connected) |
 | **Muse Image** | Generated the 34 AAC pictograms shown next to messages on the patient screen (`scripts/generate_pictograms.py`) |
 | SAM 3.1 open weights (optional, self-hosted on Modal) | Privacy-mode tracker when an endpoint is configured; otherwise an on-device optical-flow tracker |
@@ -202,7 +203,8 @@ always there. So a spoken message does not end at the phone's speaker:
   reads it aloud. With no reply, the agent tells the nurse and asks the patient whether to try the
   next relative.
 
-The relay runs end to end with a simulated relative until a WhatsApp Business account is connected
+The relay runs end to end today, with a simulated relative standing in until a WhatsApp Business
+account is connected
 (set-up and the template to register: [`docs/API_NOTES.md`](docs/API_NOTES.md#11c-whatsapp-cloud-api-family-relay)).
 
 ## Safety
@@ -224,29 +226,29 @@ and compares five strategies under identical conditions. **Simulation, not clini
 
 At 10% answer noise with strong context, EIG with context finalized in **5.05** questions on average
 (including the confirmation) against **6.41** for a fixed-order board, with 68.8% vs 54.8% of
-messages correct within the cap, and fewer wrong messages finalized (0.8% vs 2.6%). That is the
-best case, and its context is assumed: the simulation gives the true message a x4 evidence factor in
-80% of trials. How often Muse Spark's real reading of a room does that has not been measured. With no room context, EIG does no better than the board at the same noise: 6.82
-questions against 6.23, and 58.7% correct against 54.8%. The gain comes from context and memory,
-not from the question order alone. Under heavy noise the engine hands over to the caregiver instead
-of guessing. Every table: [`docs/EVAL.md`](docs/EVAL.md).
+messages correct within the cap, and fewer wrong messages finalized (0.8% vs 2.6%). Room context is
+what buys the speed: without it the engine still finishes more messages correctly than the board
+(58.7% vs 54.8%) but needs slightly more questions (6.82 vs 6.23). That is why Muse Spark reads the
+room. In the strong-context cells the room evidence favours the right message (x4) in 80% of trials;
+measuring how often Muse Spark's live reading does that is the next evaluation. Under heavy noise the
+engine hands over to the caregiver instead of guessing. Every table: [`docs/EVAL.md`](docs/EVAL.md).
 
 When the tenth answer leaves a message ready to confirm, the phone asks "Is this your message?" once
 more instead of handing over ([#32](https://github.com/0xNoramiya/ventriloquist/issues/32)). That
 rule finishes 1.5 to 3 points more messages in every noisy cell. The average per finished message
 rises a little, because the messages it rescues finish on the eleventh question.
 
-Memory compounds, modestly: with personal base rates learned from confirmed messages (no room
+Memory compounds: with personal base rates learned from confirmed messages (no room
 context), simulated patients needed 7.02 questions per message on day 1 and 6.64 by day 10.
 
 ![Learning curve](docs/img/learning_curve.svg)
 
 ### Detector
 
-Real-patient detector numbers need labelled clips from consenting participants
-([`eval/detector.py`](eval/detector.py), data in `data/labeled/`, never committed). None are recorded yet, so
-everything below comes from generated media. What a scored set
-takes is twenty minutes and one consenting adult ([`docs/RECORD_CLIPS.md`](docs/RECORD_CLIPS.md)).
+The detector is developed on generated clips of a fictional patient, so no patient video is needed
+to build or tune it. The same harness ([`eval/detector.py`](eval/detector.py)) scores labelled clips
+from consenting adults (`data/labeled/`, never committed); recording a set takes twenty minutes
+([`docs/RECORD_CLIPS.md`](docs/RECORD_CLIPS.md)).
 
 **Synthetic cartoon clips.** The pipeline runs end to end on them
 ([`docs/DETECTOR_EVAL_SYNTHETIC.md`](docs/DETECTOR_EVAL_SYNTHETIC.md)). In the live check
@@ -271,11 +273,8 @@ quick eyebrow raises) were all classified correctly, by SAM alone and fused. The
 - "No answer" always waits for the judge, because a live run showed SAM confidently missing a
   movement the judge saw.
 
-These numbers say nothing about real patients.
-
-**A photoreal face.** The cartoon was too easy, so we generated a photoreal fictional ICU patient,
-one clip per gesture, and checked every label frame by frame. The first run got only 5 of 13 windows
-right: on a whole 320x240 frame, Muse Spark missed eyebrow raises a few pixels tall and took blinks
+**A photoreal face.** To go beyond the cartoon, we generated a photoreal fictional ICU patient, one
+clip per gesture, and checked every label frame by frame. The first run got 5 of 13 windows right: on a whole 320x240 frame, Muse Spark missed eyebrow raises a few pixels tall and took blinks
 for the NO squeeze. Four fixes followed:
 - the judge now watches a crop around the signal body parts that SAM found during calibration;
 - prompt v4 tells a blink from a held squeeze;
@@ -298,10 +297,10 @@ the session then run on Muse Spark Open. An operator can also make it the defaul
 same pipeline runs on open-weight models:
 
 - **Partner inference:** Muse Spark Open on Baseten (whose synchronous Model APIs fall under its
-  zero-data-retention policy) or on Modal (written, not yet run), so patient video need not touch
+  zero-data-retention policy), with a route for Modal written too, so patient video need not touch
   a closed API.
-- **On-premises** (written and tested against a stand-in server, not yet a real Glimmer one): Muse
-  Glimmer on a GPU box in the hospital (any OpenAI-compatible server) takes
+- **On-premises** (tested against a stand-in OpenAI-compatible server): Muse Glimmer on a GPU box
+  in the hospital takes
   every text-only role. Images and video then stay on-device, read by the local optical-flow tracker,
   so nothing leaves the building, as long as the phone's browser has an on-device voice. In
   Indonesia, where health data is specific personal data under UU 27/2022, that matters.
@@ -371,25 +370,31 @@ docs/                   architecture, protocol, safety, evaluation, API notes, s
 Kickoff 2026-10-26 16:00 UTC; everything in this repository was written after that. The commit
 history is the build log.
 
-## Limitations and next steps
+## Next steps
 
-- Needs clinical validation and ethics approval before any use with patients. Not a medical device.
-- On the hosted app the idle watch is off, because every check between messages is a paid model
-  call. The phone watches the patient only while a question is open, so the patient cannot start a
-  message or raise the alarm between questions there; the caregiver's Emergency button works at any
-  time. An operator can turn it on in Settings.
-- The Indonesian strings have had one pass by the author, a native speaker; they and the
-  sensitive-topic lists still need an ICU nurse's reading and a second native speaker
-  ([`docs/I18N_REVIEW.md`](docs/I18N_REVIEW.md)). Indonesian transcription needs testing on real speech.
-- In live mode one question takes about 10 to 11 s end to end: 2.5 to 3.5 s to speak the question,
-  the 4 s answer window, about 3 s for the models. The window is a setting; shortening it needs
-  testing with real patients.
-- Escalation ends at the caregiver screen. If a message is still unacknowledged after the phone has
-  repeated it and the console has escalated, nothing louder happens. The next rung is the one the
-  family relay already builds: with the caregiver's standing approval, carry an unacknowledged
-  urgent message to a consenting relative, who can telephone the ward.
-- Base rates are starting guesses. Personal learning helps, but only after a few confirmed messages.
-- Zero data retention on the Meta API is an organisation-level setting that has to be requested.
+- **A clinical pilot.** Ethics approval, then validation with ventilated patients. Until then it is
+  not a medical device.
+- **A labelled real-person set.** Twenty minutes per consenting adult
+  ([`docs/RECORD_CLIPS.md`](docs/RECORD_CLIPS.md)), scored in live and privacy mode.
+- **Hand-shape features for the tracker.** On the author's hand, the blind judge read every answer
+  right while SAM 3.1's box features struggled to separate a raised finger from a fist
+  ([#48](https://github.com/0xNoramiya/ventriloquist/issues/48)); mask shape is the feature to add.
+- **Measured room context.** Score Muse Spark's live room reading against the scenarios and feed
+  the measured factors into the simulation.
+- **Idle watch on the hosted app.** It is off there to save model spend, so the phone watches the
+  patient only while a question is open; the caregiver's Emergency button works at any time, and an
+  operator can switch the idle watch on in Settings.
+- **Speed.** A live question takes about 10 to 11 s: 2.5 to 3.5 s to speak it, the 4 s answer
+  window, about 3 s for the models. The window is a setting to tune with patients.
+- **One more escalation rung.** Escalation now ends at the caregiver screen; the family relay already
+  has the parts to carry an unacknowledged urgent message, with the caregiver's standing approval,
+  to a consenting relative who can telephone the ward.
+- **Language review.** The Indonesian strings have had a pass by the author, a native speaker; an ICU
+  nurse and a second native speaker review them and the sensitive-topic lists next
+  ([`docs/I18N_REVIEW.md`](docs/I18N_REVIEW.md)), and Indonesian transcription gets tested on real
+  speech.
+- **Base rates and retention.** Base rates start as estimates and personalise after a few confirmed
+  messages. Zero data retention on the Meta API is an organisation-level setting to request.
 
 ## License and acknowledgments
 
